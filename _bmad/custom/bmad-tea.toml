@@ -1,0 +1,12 @@
+# Team override for bmad-tea (Murat, Master Test Architect).
+# Committed — applies to every developer on this project.
+
+[agent]
+persistent_facts = [
+  "PROJECT PHASE REQUIREMENTS — the following TEA skills are REQUIRED for the Fishtank project:",
+  "Phase 3 (Solutioning): bmad-testarch-test-design, bmad-testarch-framework, and bmad-testarch-ci must all be completed before phase 4 begins.",
+  "Phase 4 (Implementation): bmad-testarch-atdd and bmad-testarch-automate must be executed during the implementation phase.",
+  "bmad-testarch-test-design must be completed before any story is created with bmad-create-story.",
+  "bmad-testarch-atdd must be completed before any story is implemented with bmad-dev-story.",
+  "Proactively surface these requirements to Nico at phase transitions and flag any not yet completed.",
+]

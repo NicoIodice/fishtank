@@ -1,0 +1,11 @@
+# Team override for bmad-sprint-planning.
+# Committed — applies to every developer on this project.
+
+[workflow]
+persistent_facts = [
+  "PROJECT PHASE REQUIREMENTS — the following TEA skills are REQUIRED deliverables for the Fishtank project:",
+  "Phase 3 (Solutioning): bmad-testarch-test-design, bmad-testarch-framework, and bmad-testarch-ci — allocate an explicit task for each in the phase 3 plan.",
+  "Phase 4 (Implementation): bmad-testarch-atdd and bmad-testarch-automate — allocate an explicit task for each in the phase 4 plan.",
+  "bmad-testarch-test-design must appear as a dependency before any story-creation tasks in the sprint plan.",
+  "bmad-testarch-atdd must appear as a dependency before any story-implementation tasks in the sprint plan.",
+]

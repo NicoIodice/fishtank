@@ -1,0 +1,10 @@
+# Team override for bmad-check-implementation-readiness.
+# Committed — applies to every developer on this project.
+
+[workflow]
+persistent_facts = [
+  "PROJECT PHASE REQUIREMENTS — before phase 4 (Implementation) begins, the following TEA skills MUST have been completed as part of phase 3:",
+  "Required phase 3 TEA skills: bmad-testarch-test-design, bmad-testarch-framework, bmad-testarch-ci.",
+  "Treat missing evidence of any of these three as a blocking gap in the readiness assessment.",
+  "bmad-testarch-test-design completion is a prerequisite for story creation — verify it is evidenced before approving readiness.",
+]

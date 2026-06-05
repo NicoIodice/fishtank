@@ -1,0 +1,7 @@
+# Team override for bmad-dev-story.
+# Committed — applies to every developer on this project.
+
+[workflow]
+activation_steps_append = [
+  "REQUIRED PRE-FLIGHT CHECK: Before proceeding, confirm that bmad-testarch-atdd has been completed for the story being implemented. If no ATDD/acceptance test scaffold exists for this story or epic, warn Nico that bmad-testarch-atdd is a required phase 4 deliverable and ask for confirmation before continuing.",
+]

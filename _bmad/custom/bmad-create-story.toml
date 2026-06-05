@@ -1,0 +1,7 @@
+# Team override for bmad-create-story.
+# Committed — applies to every developer on this project.
+
+[workflow]
+activation_steps_append = [
+  "REQUIRED PRE-FLIGHT CHECK: Before proceeding, confirm that bmad-testarch-test-design has been completed for this project. If no test design artifact exists under {project-root}/_bmad-output/, warn Nico that this is a required phase 3 deliverable and ask for confirmation before continuing.",
+]
