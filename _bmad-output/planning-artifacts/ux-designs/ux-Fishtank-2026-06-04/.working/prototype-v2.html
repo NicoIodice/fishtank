@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="clean-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fishtank — Prototype v2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+/* ── Themes ─────────────────────────────────────────────── */
+:root{--brand:#0ea5e9;--brand-fg:#fff;--sidebar-bg:#f1f5f9;--sidebar-fg:#475569;--sidebar-active-bg:#e0f2fe;--sidebar-active-fg:#0369a1;--topbar-bg:#ffffff;--topbar-border:#e2e8f0;--content-bg:#ffffff;--surface:#f8fafc;--fg:#1e293b;--muted:#64748b;--border:#e2e8f0;--input-bg:#f8fafc;--input-border:#cbd5e1}
+[data-theme=deep-ocean]{--brand:#3b82f6;--brand-fg:#fff;--sidebar-bg:#0d1b2a;--sidebar-fg:#64748b;--sidebar-active-bg:rgba(59,130,246,.18);--sidebar-active-fg:#93c5fd;--topbar-bg:#0a1628;--topbar-border:rgba(255,255,255,.07);--content-bg:#0f2233;--surface:#0d1b2a;--fg:#cbd5e1;--muted:#475569;--border:rgba(255,255,255,.08);--input-bg:#162d42;--input-border:rgba(255,255,255,.12)}
+[data-theme=emerald-terminal]{--brand:#10b981;--brand-fg:#fff;--sidebar-bg:#064e3b;--sidebar-fg:#6ee7b7;--sidebar-active-bg:rgba(16,185,129,.2);--sidebar-active-fg:#34d399;--topbar-bg:#052e20;--topbar-border:rgba(255,255,255,.08);--content-bg:#f9fafb;--surface:#f0fdf4;--fg:#1e293b;--muted:#64748b;--border:#d1fae5;--input-bg:#fff;--input-border:#a7f3d0}
+[data-theme=ink-amber]{--brand:#f59e0b;--brand-fg:#fff;--sidebar-bg:#18181b;--sidebar-fg:#71717a;--sidebar-active-bg:rgba(245,158,11,.15);--sidebar-active-fg:#fbbf24;--topbar-bg:#09090b;--topbar-border:rgba(255,255,255,.07);--content-bg:#fff;--surface:#fafafa;--fg:#18181b;--muted:#71717a;--border:#e4e4e7;--input-bg:#fafafa;--input-border:#d4d4d8}
+
+/* ── Reset ───────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;background:#050c14;display:flex;align-items:center;justify-content:center}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+.mono{font-family:'Cascadia Code','Fira Code',Consolas,monospace}
+
+/* ── App frame ───────────────────────────────────────────── */
+.app{width:1160px;height:700px;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.07)}
+
+/* ── Topbar ──────────────────────────────────────────────── */
+.topbar{height:44px;min-height:44px;background:var(--topbar-bg);border-bottom:1px solid var(--topbar-border);display:flex;align-items:center;padding:0 16px;gap:10px;position:relative;z-index:200}
+.logo{font-size:.92rem;font-weight:800;color:var(--fg);display:flex;align-items:center;gap:8px;cursor:pointer}
+.logo i{color:var(--brand);font-size:1.1rem}
+.tb-sp{flex:1}
+.tb-btn{width:32px;height:32px;border-radius:7px;background:rgba(128,128,128,.08);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--muted);position:relative;cursor:pointer;border:1px solid rgba(128,128,128,.08);transition:background .15s}
+.tb-btn:hover{background:rgba(128,128,128,.18)}
+.tb-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef4444;font-size:.52rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--topbar-bg)}
+.tb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);font-size:.65rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,.1)}
+
+/* ── Body ────────────────────────────────────────────────── */
+.body-row{flex:1;display:flex;overflow:hidden}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar{width:200px;min-width:200px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:10px 0;transition:width .2s,min-width .2s;position:relative;z-index:100}
+.sidebar.collapsed{width:48px;min-width:48px}
+.sidebar.collapsed .nav-lbl,.sidebar.collapsed .nav-badge{display:none}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:8px;margin:1px 6px;font-size:.74rem;color:var(--sidebar-fg);cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;position:relative;user-select:none}
+.nav-item:hover{background:rgba(128,128,128,.08);color:var(--fg)}
+.nav-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-fg)}
+.nav-item i{font-size:.95rem;width:18px;text-align:center;flex-shrink:0}
+.nav-lbl{flex:1}
+.nav-badge{background:#ef4444;color:#fff;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:99px;min-width:18px;text-align:center}
+.nav-sep{height:1px;background:var(--border);margin:7px 12px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:8px 6px 0}
+.collapse-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:rgba(128,128,128,.08);color:var(--muted);cursor:pointer;margin:0 auto;transition:background .15s}
+.collapse-btn:hover{background:rgba(128,128,128,.18);color:var(--fg)}
+.collapse-btn i{font-size:1rem;transition:transform .2s}
+.sidebar.collapsed .collapse-btn i{transform:rotate(180deg)}
+/* Tooltip for collapsed sidebar */
+.sidebar.collapsed .nav-item::after{content:attr(data-label);position:absolute;left:52px;top:50%;transform:translateY(-50%);background:#1e293b;color:#f1f5f9;padding:4px 10px;border-radius:6px;font-size:.7rem;white-space:nowrap;pointer-events:none;z-index:999;border:1px solid rgba(255,255,255,.12);display:none}
+.sidebar.collapsed .nav-item:hover::after{display:block}
+
+/* ── Main ────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;background:var(--content-bg);overflow:hidden}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── Page header ─────────────────────────────────────────── */
+.page-hdr{padding:14px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.page-title{font-size:.95rem;font-weight:800;color:var(--fg)}
+.page-sub{font-size:.68rem;color:var(--muted);margin-top:2px}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.toolbar{display:flex;gap:6px;align-items:center;padding:9px 20px;flex-shrink:0;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:160px}
+.search-wrap i.s-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none}
+.search-wrap i.s-clear{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;cursor:pointer}
+.search-wrap i.s-clear:hover{color:var(--fg)}
+.search{width:100%;padding:6px 28px;border-radius:7px;font-size:.72rem;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg)}
+.search::placeholder{color:var(--muted)}
+
+/* Buttons */
+.btn{padding:6px 13px;border-radius:7px;font-size:.72rem;font-weight:700;transition:opacity .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{opacity:.85}
+.btn-primary{background:var(--brand);color:var(--brand-fg)}
+.btn-ghost{background:rgba(128,128,128,.07);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(128,128,128,.14)}
+.btn-danger{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.btn-sm{padding:4px 10px;font-size:.67rem;border-radius:6px}
+.btn-xs{padding:3px 8px;font-size:.62rem;border-radius:5px}
+.icon-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;transition:background .12s;flex-shrink:0}
+.icon-btn:hover{background:rgba(128,128,128,.1);color:var(--fg)}
+.icon-btn.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:var(--brand)}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.vt-btn{padding:0 9px;height:30px;background:transparent;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;transition:background .12s}
+.vt-btn.active{background:rgba(59,130,246,.12);color:var(--brand)}
+
+/* Toggle */
+.toggle{width:34px;height:19px;border-radius:99px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#22c55e}.toggle.off{background:#94a3b8}
+.toggle::after{content:'';position:absolute;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{left:17px}.toggle.off::after{left:2px}
+.toggle-row{display:flex;align-items:center;gap:7px}
+.toggle-label{font-size:.68rem;font-weight:600;min-width:36px}
+.toggle.on~.toggle-label{color:#16a34a}
+.toggle.off~.toggle-label{color:var(--muted)}
+
+/* Status pill */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:99px;font-size:.62rem;font-weight:700;flex-shrink:0}
+.pill.live{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
+.pill.stopped{background:rgba(148,163,184,.1);color:#64748b;border:1px solid rgba(148,163,184,.2)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* Chips */
+.chip{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.62rem;font-weight:700}
+.chip-mock{background:#dbeafe;color:#1d4ed8}
+.chip-proxy{background:#d1fae5;color:#065f46}
+.chip-err{background:#fee2e2;color:#991b1b}
+.chip-get{background:#dbeafe;color:#1d4ed8}
+.chip-post{background:#d1fae5;color:#065f46}
+.chip-put{background:#fef3c7;color:#92400e}
+.chip-delete{background:#fee2e2;color:#991b1b}
+.chip-patch{background:#ede9fe;color:#5b21b6}
+.port-badge{padding:1px 7px;border-radius:5px;font-size:.63rem;font-weight:700;background:rgba(99,102,241,.1);color:#6366f1;border:1px solid rgba(99,102,241,.18);font-family:monospace}
+
+/* Scroll */
+.scroll{flex:1;overflow-y:auto;padding:14px 20px}
+.scroll::-webkit-scrollbar{width:4px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;flex-shrink:0}
+.tab{padding:9px 14px;font-size:.73rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:6px;transition:color .15s}
+.tab:hover{color:var(--fg)}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.tab-count{padding:1px 6px;border-radius:99px;font-size:.6rem;font-weight:700}
+.tc-warn{background:rgba(251,146,60,.15);color:#ea580c}
+.tc-info{background:rgba(59,130,246,.1);color:#2563eb}
+.tc-suc{background:rgba(34,197,94,.1);color:#16a34a}
+
+/* ═══════════════════ SERVICES ═══════════════════ */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.svc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:9px;transition:border-color .15s}
+.svc-card:hover{border-color:var(--brand)}
+.svc-card.stopped-card{opacity:.72}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sc-name{font-size:.8rem;font-weight:700;color:var(--fg)}
+.sc-desc{font-size:.67rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.sc-meta{display:flex;flex-direction:column;gap:3px}
+.sc-row{display:flex;align-items:center;gap:6px}
+.sc-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);width:56px;flex-shrink:0}
+.sc-val{font-size:.66rem;color:var(--fg);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.sc-footer{display:flex;align-items:center;gap:6px;padding-top:7px;border-top:1px solid var(--border)}
+.sc-link{font-size:.67rem;color:var(--brand);cursor:pointer;font-weight:600}
+.sc-link:hover{text-decoration:underline}
+.sc-sp{flex:1}
+.mock-count{font-size:.67rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.mock-count i{font-size:.7rem}
+
+/* Table */
+.tbl-outer{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.tbl-scroll{overflow-y:auto;flex:1}
+.tbl-scroll::-webkit-scrollbar{width:4px}
+.tbl-scroll::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;background:var(--surface);color:var(--muted);border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;z-index:1;white-space:nowrap;user-select:none}
+th.sortable{cursor:pointer}
+th.sortable:hover{color:var(--fg)}
+th .sort-icon{margin-left:4px;opacity:.5;font-size:.65rem}
+td{padding:6px 10px;font-size:.7rem;color:var(--fg);border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:hover td{background:var(--surface)}
+tr.selected td{background:rgba(59,130,246,.06)}
+tr.proxied-live td:first-child{border-left:2px solid #f59e0b}
+tr.error-row td{background:rgba(239,68,68,.04)}
+
+/* ═══════════════════ NETWORK ACTIVITY ═══════════════════ */
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.2);flex-shrink:0}
+.rec-badge{padding:2px 8px;border-radius:99px;font-size:.62rem;font-weight:700;background:rgba(245,158,11,.14);color:#d97706;border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;gap:4px}
+.type-icon-mock{color:#3b82f6;font-size:1rem}
+.type-icon-proxy{color:#10b981;font-size:1rem}
+
+/* Counter pill */
+.counter-pill{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:.67rem;font-weight:600;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:background .12s;color:var(--fg)}
+.counter-pill:hover{background:rgba(128,128,128,.1)}
+.counter-pill .cp-num{font-weight:800;color:var(--brand)}
+.counter-pill.has-err .cp-num{color:#ef4444}
+
+/* Type filter dropdown */
+.type-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--content-bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:300;min-width:140px;padding:6px}
+.type-dropdown label{display:flex;align-items:center;gap:7px;padding:5px 8px;font-size:.72rem;color:var(--fg);cursor:pointer;border-radius:5px}
+.type-dropdown label:hover{background:var(--surface)}
+
+/* Col selector dropdown */
+.col-dropdown{position:absolute;top:calc(100% + 4px);right:0;background:var(--content-bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:300;min-width:160px;padding:6px}
+.col-dropdown label{display:flex;align-items:center;gap:7px;padding:5px 8px;font-size:.72rem;color:var(--fg);cursor:pointer;border-radius:5px}
+.col-dropdown label:hover{background:var(--surface)}
+
+/* Proxy counter dropdown */
+.proxy-counter-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:240px;background:var(--content-bg);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:300;padding:6px}
+.pcd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;font-size:.72rem;border-radius:5px}
+.pcd-row:hover{background:var(--surface)}
+.pcd-num{font-weight:700;font-family:monospace}
+.pcd-num.is-proxy{color:#10b981}
+
+/* ═══════════════════ MAPPINGS ═══════════════════ */
+.mappings-layout{flex:1;display:flex;overflow:hidden}
+.tree-pane{width:230px;min-width:230px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface)}
+.tree-hdr{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tree-hdr-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tree{flex:1;overflow-y:auto;padding:6px 0}
+.tree::-webkit-scrollbar{width:3px}
+.tree::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.tn{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:.71rem;color:var(--fg);cursor:pointer;transition:background .1s;user-select:none}
+.tn:hover{background:rgba(128,128,128,.07)}
+.tn.active{background:rgba(59,130,246,.1);border-left:2px solid var(--brand);padding-left:8px;color:var(--brand)}
+.tn.modified{font-style:italic}
+.tn.modified::after{content:'●';color:#f59e0b;margin-left:4px;font-size:.55rem;font-style:normal}
+.tn i{flex-shrink:0;font-size:.78rem;width:15px;text-align:center}
+.tn-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tn-arr{font-size:.6rem;color:var(--muted);transition:transform .15s}
+.tn-arr.open{transform:rotate(90deg)}
+.tree-indent{padding-left:16px}
+.ep-pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ep-hdr{padding:10px 16px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.ep-breadcrumb{font-size:.63rem;color:var(--muted);margin-bottom:7px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep-tabs-row{display:flex;align-items:center;gap:0}
+.ep-tab{padding:7px 14px;font-size:.71rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s}
+.ep-tab:hover{color:var(--fg)}
+.ep-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.ep-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ep-body::-webkit-scrollbar{width:3px}
+.ep-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.ep-footer{padding:9px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;gap:7px;flex-shrink:0;background:var(--surface)}
+.ep-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;flex-direction:column;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.f-lbl{font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.f-input{padding:6px 9px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.71rem}
+.f-input.mono{font-family:monospace;font-size:.68rem}
+.f-select{padding:6px 9px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.71rem;cursor:pointer}
+.f-textarea{padding:6px 9px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.68rem;font-family:monospace;resize:none;line-height:1.5}
+.status-opts{display:flex;gap:4px;flex-wrap:wrap}
+.status-opt{padding:3px 9px;border-radius:6px;font-size:.66rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .12s}
+.status-opt.active{background:rgba(59,130,246,.1);border-color:var(--brand);color:var(--brand)}
+.json-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;flex:1}
+.json-hdr{padding:5px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.json-lang{font-size:.61rem;color:var(--muted);font-weight:600}
+.json-body{padding:10px 12px;font-family:monospace;font-size:.68rem;line-height:1.65;color:var(--fg);overflow:auto;white-space:pre;flex:1}
+.json-body::-webkit-scrollbar{width:3px;height:3px}
+.json-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.jk{color:#93c5fd}.js{color:#86efac}.jn{color:#fb923c}.jp{color:var(--muted)}.jb{color:#f472b6}.jc{color:#a78bfa}
+
+/* ═══════════════════ EVENTS ═══════════════════ */
+.ev-list{display:flex;flex-direction:column}
+.ev-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ev-item:last-child{border-bottom:none}
+.ev-icon{font-size:.9rem;flex-shrink:0;margin-top:1px}
+.ev-body{flex:1;min-width:0}
+.ev-msg{font-size:.72rem;color:var(--fg);line-height:1.45}
+.ev-msg strong{font-weight:700}
+.ev-msg code{font-size:.66rem;color:var(--brand);font-family:monospace;background:rgba(59,130,246,.08);padding:0 3px;border-radius:3px}
+.ev-meta{display:flex;gap:7px;margin-top:3px;align-items:center;flex-wrap:wrap}
+.ev-time{font-size:.62rem;color:var(--muted)}
+.ev-svc{font-size:.61rem;font-weight:600;padding:1px 5px;border-radius:4px;background:rgba(99,102,241,.09);color:#6366f1}
+.ev-type{font-size:.59rem;font-weight:700;padding:1px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.et-error{background:rgba(239,68,68,.1);color:#ef4444}
+.et-warn{background:rgba(251,146,60,.1);color:#f97316}
+.et-info{background:rgba(59,130,246,.09);color:#3b82f6}
+.et-success{background:rgba(34,197,94,.09);color:#22c55e}
+.ev-dismiss{font-size:.78rem;color:var(--muted);cursor:pointer;padding:2px 4px;border-radius:4px;flex-shrink:0}
+.ev-dismiss:hover{color:var(--fg)}
+
+/* ═══════════════════ SETTINGS ═══════════════════ */
+.settings-layout{flex:1;display:flex;overflow:hidden}
+.s-nav{width:165px;min-width:165px;padding:10px 0;border-right:1px solid var(--border);background:var(--surface)}
+.sn-item{padding:6px 14px;font-size:.72rem;color:var(--muted);cursor:pointer;border-radius:7px;margin:1px 6px;transition:background .12s}
+.sn-item:hover{background:rgba(128,128,128,.07);color:var(--fg)}
+.sn-item.active{background:rgba(59,130,246,.1);color:var(--brand);font-weight:600}
+.s-content{flex:1;overflow-y:auto;padding:18px 24px}
+.s-content::-webkit-scrollbar{width:4px}
+.s-content::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.s-section-title{font-size:.88rem;font-weight:800;color:var(--fg);margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.s-row{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:20px}
+.s-row:last-child{border-bottom:none}
+.s-lbl{font-size:.73rem;font-weight:600;color:var(--fg)}
+.s-desc{font-size:.65rem;color:var(--muted);margin-top:2px}
+.s-ctrl{flex-shrink:0;display:flex;align-items:center}
+.s-select{padding:5px 9px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.7rem;cursor:pointer}
+.theme-swatches{display:flex;gap:7px}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;position:relative;overflow:hidden;transition:border-color .15s}
+.swatch:hover,.swatch.selected{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.22)}
+.swatch-l{position:absolute;left:0;top:0;width:50%;height:100%}
+.swatch-r{position:absolute;right:0;top:0;width:50%;height:100%}
+.dmo-opts{display:flex;gap:4px}
+.dmo{padding:4px 9px;border-radius:6px;font-size:.66rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
+.dmo:hover{background:rgba(128,128,128,.08)}
+.dmo.active{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:var(--brand)}
+.cache-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.cache-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:7px;font-size:.72rem;color:var(--fg)}
+
+/* ═══════════════════ OVERLAYS ═══════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(2px)}
+.overlay.hidden{display:none}
+.modal{background:var(--content-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;max-height:92vh}
+.modal-sm{width:420px}
+.modal-md{width:560px}
+.modal-lg{width:740px}
+.modal-hdr{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:.8rem;font-weight:700;color:var(--fg)}
+.modal-close{font-size:.95rem;color:var(--muted);cursor:pointer;background:none;border:none;padding:2px 5px;border-radius:4px;line-height:1;margin-left:auto}
+.modal-close:hover{color:var(--fg)}
+.modal-body{padding:16px;overflow-y:auto;flex:1}
+.modal-body::-webkit-scrollbar{width:4px}
+.modal-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.modal-footer{padding:11px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:7px;flex-shrink:0}
+
+/* API Call modal */
+.api-field-grid{display:grid;grid-template-columns:120px 1fr;gap:0}
+.api-row{display:contents}
+.api-row>span:first-child{padding:5px 10px 5px 0;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:flex;align-items:flex-start;padding-top:7px;border-bottom:1px solid var(--border);white-space:nowrap}
+.api-row>span:last-child{padding:5px 0;font-size:.71rem;color:var(--fg);font-family:monospace;word-break:break-all;border-bottom:1px solid var(--border)}
+.api-row.no-border>span{border-bottom:none}
+.api-json-block{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.67rem;white-space:pre;overflow-x:auto;color:var(--fg);margin-top:4px}
+.api-json-block::-webkit-scrollbar{height:3px}
+.api-json-block::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+
+/* Mock suggestion modal */
+.ms-section{margin-bottom:10px}
+.ms-section-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin-bottom:5px;padding:4px 8px;background:rgba(59,130,246,.08);border-radius:4px;border-left:3px solid var(--brand)}
+.ms-json{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.66rem;white-space:pre;overflow-x:auto;color:var(--fg);min-height:80px}
+.ms-json::-webkit-scrollbar{height:3px}
+.ms-json::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+
+/* Notif panel */
+.notif-panel{position:absolute;top:46px;right:48px;width:340px;background:var(--content-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 28px rgba(0,0,0,.18);z-index:500;display:flex;flex-direction:column;max-height:400px}
+.notif-panel.hidden{display:none}
+.notif-hdr{padding:10px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.notif-title{font-size:.77rem;font-weight:700;color:var(--fg)}
+.notif-list{overflow-y:auto;flex:1}
+.notif-list::-webkit-scrollbar{width:3px}
+.notif-list::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.ni{display:flex;gap:9px;padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.ni:hover{background:var(--surface)}
+.ni.unread{background:rgba(59,130,246,.04)}
+.ni:last-child{border-bottom:none}
+.ni-icon{font-size:.85rem;flex-shrink:0;margin-top:1px}
+.ni-body{flex:1;min-width:0}
+.ni-msg{font-size:.69rem;color:var(--fg);line-height:1.4}
+.ni-time{font-size:.61rem;color:var(--muted);margin-top:2px}
+.ni-x{font-size:.72rem;color:var(--muted);cursor:pointer;padding:2px;flex-shrink:0}
+
+/* User dropdown */
+.user-dd{position:absolute;top:46px;right:8px;width:200px;background:var(--content-bg);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.14);z-index:500}
+.user-dd.hidden{display:none}
+.ud-info{padding:12px 13px;border-bottom:1px solid var(--border)}
+.ud-name{font-size:.77rem;font-weight:700;color:var(--fg)}
+.ud-role{font-size:.66rem;color:var(--muted)}
+.ud-item{padding:8px 13px;font-size:.72rem;color:var(--fg);cursor:pointer;transition:background .1s}
+.ud-item:hover{background:var(--surface)}
+.ud-item.danger{color:#ef4444}
+
+/* About */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.about-item .al{font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.about-item .av{font-size:.74rem;color:var(--fg);font-family:monospace}
+
+/* Toasts */
+.toast-c{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:7px;z-index:2000}
+.toast{padding:9px 14px;border-radius:8px;font-size:.72rem;font-weight:600;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.2);animation:toastin .2s ease;min-width:200px;display:flex;align-items:center;gap:7px}
+.toast-success{background:#16a34a}.toast-error{background:#dc2626}.toast-info{background:#2563eb}
+@keyframes toastin{from{transform:translateX(36px);opacity:0}to{transform:none;opacity:1}}
+
+/* Confirm */
+.confirm-body{font-size:.78rem;color:var(--fg);line-height:1.55}
+.confirm-body code{color:var(--brand);font-family:monospace;font-size:.73rem;background:rgba(59,130,246,.08);padding:0 3px;border-radius:3px}
+
+/* Tooltip via data-tip */
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e293b;color:#f1f5f9;padding:4px 9px;border-radius:6px;font-size:.65rem;white-space:nowrap;pointer-events:none;z-index:9999;border:1px solid rgba(255,255,255,.1)}
+
+/* Loading spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{animation:spin .7s linear infinite;display:inline-block;font-size:.85rem;color:var(--muted);cursor:pointer}
+.spinner:hover{color:var(--brand)}
+
+/* Login */
+.auth-screen{flex:1;display:flex;align-items:center;justify-content:center;background:var(--content-bg)}
+.auth-card{width:340px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:18px}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:9px;font-size:1.1rem;font-weight:800;color:var(--fg)}
+.auth-logo i{color:var(--brand);font-size:1.4rem}
+.auth-fields{display:flex;flex-direction:column;gap:9px}
+.af{display:flex;flex-direction:column;gap:3px}
+.af label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.af input{padding:8px 11px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:7px;color:var(--fg);font-size:.78rem}
+.auth-submit{width:100%;padding:9px;border-radius:7px;font-size:.78rem;font-weight:700;background:var(--brand);color:var(--brand-fg);border:none;cursor:pointer}
+
+/* Drawer */
+.drawer{position:absolute;top:0;right:0;bottom:0;width:310px;background:var(--content-bg);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,.14);display:flex;flex-direction:column;z-index:150;transform:translateX(0);transition:transform .2s}
+.drawer.hidden{transform:translateX(100%)}
+.drawer-hdr{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-title{font-size:.74rem;font-weight:700;color:var(--fg)}
+.drawer-body{flex:1;overflow-y:auto;padding:11px 13px;display:flex;flex-direction:column;gap:9px}
+.drawer-body::-webkit-scrollbar{width:3px}
+.drawer-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.dr-row{display:flex;flex-direction:column;gap:2px}
+.dr-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.dr-val{font-size:.68rem;color:var(--fg)}
+.dr-code{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:7px 9px;font-size:.64rem;font-family:monospace;color:var(--fg);white-space:pre;overflow:hidden}
+.drawer-footer{padding:9px 13px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* Bottom panel */
+.bp{flex-shrink:0;height:190px;border-top:1px solid rgba(59,130,246,.3);background:var(--surface);display:flex;flex-direction:column}
+.bp.hidden{display:none}
+.bp-hdr{padding:6px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.bp-tab{font-size:.64rem;font-weight:600;color:var(--muted);cursor:pointer;padding-bottom:2px;border-bottom:2px solid transparent}
+.bp-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.bp-close{margin-left:auto;font-size:.8rem;color:var(--muted);cursor:pointer;background:none;border:none}
+.bp-body{flex:1;overflow:hidden;padding:7px 13px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bp-sec{display:flex;flex-direction:column;gap:3px}
+.bp-sec-title{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--brand)}
+.bp-code{background:var(--content-bg);border:1px solid var(--border);border-radius:5px;padding:6px 8px;font-size:.62rem;font-family:monospace;color:var(--fg);white-space:pre;overflow:hidden;flex:1}
+</style>
+</head>
+<body>
+<div class="toast-c" id="toastC"></div>
+
+<!-- ── Confirm overlay ──────────────────────────────────── -->
+<div class="overlay hidden" id="confirmOvl">
+  <div class="modal modal-sm">
+    <div class="modal-hdr"><span class="modal-title" id="confirmTitle">Confirm</span><button class="modal-close" onclick="closeConfirm()"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body"><div class="confirm-body" id="confirmBody"></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger btn-sm" id="confirmOkBtn">Confirm</button></div>
+  </div>
+</div>
+
+<!-- ── About overlay ────────────────────────────────────── -->
+<div class="overlay hidden" id="aboutOvl">
+  <div class="modal modal-sm">
+    <div class="modal-hdr"><span class="modal-title">About Fishtank</span><button class="modal-close" onclick="hide('aboutOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:14px"><i class="bi bi-droplet-half" style="font-size:2rem;color:var(--brand)"></i></div>
+      <div class="about-grid">
+        <div class="about-item"><div class="al">Version</div><div class="av">1.0.0-beta</div></div>
+        <div class="about-item"><div class="al">Engine</div><div class="av">WireMock.NET</div></div>
+        <div class="about-item"><div class="al">Image</div><div class="av">fishtank:1.0.0</div></div>
+        <div class="about-item"><div class="al">Database</div><div class="av">SQLite 3.42</div></div>
+        <div class="about-item"><div class="al">Volume</div><div class="av">/mocks</div></div>
+        <div class="about-item"><div class="al">UI Port</div><div class="av">9090</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Service overlay ──────────────────────────────── -->
+<div class="overlay hidden" id="addSvcOvl">
+  <div class="modal modal-md">
+    <div class="modal-hdr"><span class="modal-title">Add Service</span><button class="modal-close" onclick="hide('addSvcOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="f-lbl">Service Name</label><input class="f-input" id="as-name" placeholder="e.g. Finance API" oninput="updateAddSvcPaths()"></div>
+        <div class="form-field"><label class="f-lbl">Port</label><input class="f-input mono" id="as-port" readonly></div>
+        <div class="form-field full"><label class="f-lbl">Description</label><input class="f-input" id="as-desc" placeholder="Brief description"></div>
+        <div class="form-field full"><label class="f-lbl">External URL</label><input class="f-input mono" id="as-url" placeholder="https://api.example.com"></div>
+        <div class="form-field"><label class="f-lbl">Mocks Root Folder</label><input class="f-input mono" id="as-root" readonly style="opacity:.6"></div>
+        <div class="form-field"><label class="f-lbl">Mappings Path</label><input class="f-input mono" id="as-map" readonly style="opacity:.6"></div>
+        <div class="form-field full"><label class="f-lbl">Responses Path</label><input class="f-input mono" id="as-res" readonly style="opacity:.6"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="hide('addSvcOvl')">Cancel</button><button class="btn btn-primary btn-sm" onclick="addService()">Add Service</button></div>
+  </div>
+</div>
+
+<!-- ── New Mapping overlay ──────────────────────────────── -->
+<div class="overlay hidden" id="newMapOvl">
+  <div class="modal modal-sm">
+    <div class="modal-hdr"><span class="modal-title" id="newMapTitle">New Mapping File</span><button class="modal-close" onclick="hide('newMapOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <div class="form-field" style="margin-bottom:10px"><label class="f-lbl">File Name</label><input class="f-input mono" id="newMapName" placeholder="e.g. account-get-200.json"></div>
+      <div class="form-field"><label class="f-lbl">Service</label><select class="f-select" id="newMapSvc"></select></div>
+      <div style="margin-top:8px;font-size:.65rem;color:var(--muted)" id="newMapPath"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="hide('newMapOvl')">Cancel</button><button class="btn btn-primary btn-sm" onclick="createNewFile()">Create</button></div>
+  </div>
+</div>
+
+<!-- ── Copy Mapping overlay ─────────────────────────────── -->
+<div class="overlay hidden" id="copyMapOvl">
+  <div class="modal modal-sm">
+    <div class="modal-hdr"><span class="modal-title">Copy File</span><button class="modal-close" onclick="hide('copyMapOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body">
+      <div class="form-field" style="margin-bottom:10px"><label class="f-lbl">Source</label><input class="f-input mono" id="copySrc" readonly></div>
+      <div class="form-field"><label class="f-lbl">New Name</label><input class="f-input mono" id="copyDest" placeholder="new-name.json"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="hide('copyMapOvl')">Cancel</button><button class="btn btn-primary btn-sm" onclick="doCopy()">Copy</button></div>
+  </div>
+</div>
+
+<!-- ── API Call detail overlay ──────────────────────────── -->
+<div class="overlay hidden" id="apiCallOvl">
+  <div class="modal modal-lg">
+    <div class="modal-hdr"><span class="modal-title" id="apiCallTitle">API Call</span><button class="modal-close" onclick="hide('apiCallOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body" id="apiCallBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="hide('apiCallOvl')">Close</button>
+      <button class="btn btn-primary btn-sm" id="mockFromCallBtn" onclick="openMockSuggestion()" style="display:none"><i class="bi bi-lightning-charge"></i> Mock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Mock Suggestion overlay ──────────────────────────── -->
+<div class="overlay hidden" id="mockSugOvl">
+  <div class="modal modal-lg">
+    <div class="modal-hdr"><span class="modal-title">Mock Suggestion</span><button class="modal-close" onclick="hide('mockSugOvl')"><i class="bi bi-x-lg"></i></button></div>
+    <div class="modal-body" id="mockSugBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="hide('mockSugOvl')">Close</button>
+      <button class="btn btn-primary btn-sm" onclick="saveMockSuggestion()"><i class="bi bi-floppy"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Notification panel ───────────────────────────────── -->
+<div class="notif-panel hidden" id="notifPanel">
+  <div class="notif-hdr"><span class="notif-title">Notifications</span><button class="btn btn-ghost btn-xs" onclick="markAllNotifsRead()">Mark all read</button></div>
+  <div class="notif-list" id="notifList"></div>
+</div>
+
+<!-- ── User dropdown ────────────────────────────────────── -->
+<div class="user-dd hidden" id="userDD">
+  <div class="ud-info"><div class="ud-name">Nico Iodice</div><div class="ud-role">Administrator</div></div>
+  <div class="ud-item danger" onclick="closeDD();showScreen('login')"><i class="bi bi-box-arrow-right" style="margin-right:5px"></i>Sign out</div>
+</div>
+
+<!-- ── Proxy counter dropdown ───────────────────────────── -->
+<div class="proxy-counter-dropdown hidden" id="proxyCountDD" style="position:absolute;z-index:400"></div>
+<!-- ── Type filter dropdown ─────────────────────────────── -->
+<div class="type-dropdown hidden" id="typeDD" style="position:absolute;z-index:400"></div>
+<!-- ── Col selector dropdown ────────────────────────────── -->
+<div class="col-dropdown hidden" id="colDD" style="position:absolute;z-index:400"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     APP
+════════════════════════════════════════════════════════ -->
+<div class="app" id="appFrame">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo" onclick="showScreen('services')"><i class="bi bi-droplet-half"></i> Fishtank</div>
+    <div class="tb-sp"></div>
+    <div class="tb-btn" data-tip="About" onclick="toggleAbout()"><i class="bi bi-info-circle"></i></div>
+    <div class="tb-btn" data-tip="Notifications" onclick="toggleNotif()" id="bellBtn"><i class="bi bi-bell"></i><span class="tb-badge" id="bellBadge" style="display:none">0</span></div>
+    <div class="tb-avatar" onclick="toggleUserDD()" data-tip="Nico Iodice">NI</div>
+  </div>
+
+  <div class="body-row">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="nav-item" id="nav-services" data-label="Services" onclick="showScreen('services')"><i class="bi bi-server"></i><span class="nav-lbl">Services</span></div>
+      <div class="nav-item" id="nav-network" data-label="Network Activity" onclick="showScreen('network')"><i class="bi bi-activity"></i><span class="nav-lbl">Network Activity</span></div>
+      <div class="nav-item" id="nav-mappings" data-label="Mappings" onclick="showScreen('mappings')"><i class="bi bi-file-earmark-code"></i><span class="nav-lbl">Mappings</span></div>
+      <div class="nav-sep"></div>
+      <div class="nav-item" id="nav-events" data-label="System Events" onclick="showScreen('events')"><i class="bi bi-journal-text"></i><span class="nav-lbl">System Events</span><span class="nav-badge" id="sidebarBadge" style="display:none">0</span></div>
+      <div class="nav-item" id="nav-settings" data-label="Settings" onclick="showScreen('settings')"><i class="bi bi-gear"></i><span class="nav-lbl">Settings</span></div>
+      <div class="sidebar-bottom">
+        <div class="collapse-btn" onclick="toggleSidebar()" data-tip="Collapse sidebar"><i class="bi bi-chevron-double-left"></i></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="mainArea">
+
+      <!-- ══════════════════ SERVICES ══════════════════ -->
+      <div class="screen" id="screen-services">
+        <div class="page-hdr">
+          <div><div class="page-title">Services</div><div class="page-sub" id="svcSub">Loading…</div></div>
+          <div style="display:flex;gap:7px;align-items:center;margin-left:auto">
+            <div class="view-toggle">
+              <button class="vt-btn active" id="vt-grid" data-tip="Grid view" onclick="setSvcView('grid')"><i class="bi bi-grid"></i></button>
+              <button class="vt-btn" id="vt-table" data-tip="Table view" onclick="setSvcView('table')"><i class="bi bi-list"></i></button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openAddSvc()"><i class="bi bi-plus-lg"></i> Add Service</button>
+          </div>
+        </div>
+        <div class="toolbar"><div class="search-wrap"><i class="bi bi-search s-icon"></i><input class="search" id="svcSearch" placeholder="Search services…" oninput="renderSvc()"><i class="bi bi-x-circle s-clear" onclick="clearSearch('svcSearch')"></i></div></div>
+        <div class="scroll" id="svcGridWrap"><div class="svc-grid" id="svcGrid"></div></div>
+        <div style="display:none;flex:1;overflow:hidden;flex-direction:column" id="svcTblWrap">
+          <div class="tbl-scroll" style="padding:0 20px">
+          <table><colgroup><col style="width:140px"><col style="width:60px"><col><col style="width:90px"><col style="width:70px"><col style="width:110px"><col style="width:120px"></colgroup>
+            <thead><tr><th>Name</th><th>Port</th><th>External URL</th><th>Mocks Root</th><th>Status</th><th>Enable</th><th>Actions</th></tr></thead>
+            <tbody id="svcTblBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ NETWORK ACTIVITY ══════════════════ -->
+      <div class="screen" id="screen-network" style="position:relative">
+        <div class="page-hdr">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="page-title">Network Activity</div>
+            <div class="live-dot" id="liveDot"></div>
+            <i class="bi bi-arrow-clockwise spinner" id="refreshBtn" data-tip="Refresh" onclick="refreshActivity()"></i>
+            <span class="rec-badge" id="recBadge" style="display:none"><i class="bi bi-record-circle"></i> Recording</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-left:auto;align-items:center">
+            <!-- Proxy counter -->
+            <div class="counter-pill" id="proxyCounterPill" onclick="toggleProxyCountDD(event)" data-tip="Proxied requests by service">
+              <i class="bi bi-arrow-repeat"></i>
+              <span>Proxied: <span class="cp-num" id="proxyCountNum">0</span></span>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="recBtn" onclick="toggleRecord()"><i class="bi bi-record-circle"></i> Record</button>
+            <button class="btn btn-ghost btn-sm" onclick="confirmClearActivity()"><i class="bi bi-trash"></i> Clear</button>
+          </div>
+        </div>
+        <div class="toolbar" style="gap:5px;flex-wrap:wrap">
+          <div class="search-wrap" style="min-width:180px;max-width:280px"><i class="bi bi-search s-icon"></i><input class="search" id="actSearch" placeholder="Filter URL path, method…" oninput="renderActivity()"><i class="bi bi-x-circle s-clear" onclick="clearSearch('actSearch')"></i></div>
+          <!-- Service dropdown -->
+          <select class="f-select" id="actSvcFilter" onchange="renderActivity()" style="font-size:.69rem;padding:5px 9px;height:30px">
+            <option value="">All Services</option>
+          </select>
+          <!-- Type filter -->
+          <div style="position:relative">
+            <button class="btn btn-ghost btn-sm" id="typeFilterBtn" onclick="toggleTypeDD(event)"><i class="bi bi-funnel"></i> Type: <span id="typeFilterLabel">All</span> <i class="bi bi-chevron-down" style="font-size:.6rem"></i></button>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearActFilters()"><i class="bi bi-x-circle"></i> Clear filters</button>
+          <!-- Col selector -->
+          <div style="position:relative;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="toggleColDD(event)"><i class="bi bi-layout-three-columns"></i> Columns</button>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0 20px 10px">
+          <div style="flex:1;overflow:hidden;border-radius:8px;border:1px solid var(--border)">
+            <div class="tbl-scroll">
+              <table id="actTable">
+                <colgroup id="actCols"></colgroup>
+                <thead id="actHead"></thead>
+                <tbody id="actBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Bottom panel -->
+          <div class="bp hidden" id="bpanel">
+            <div class="bp-hdr">
+              <span class="bp-tab active" onclick="switchBpTab('request',this)">Request</span>
+              <span class="bp-tab" onclick="switchBpTab('response',this)" style="margin-left:10px">Response</span>
+              <span class="bp-tab" onclick="switchBpTab('headers',this)" style="margin-left:10px">Headers</span>
+              <button class="bp-close" onclick="hide('bpanel')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="bp-body">
+              <div class="bp-sec"><div class="bp-sec-title">Request</div><div class="bp-code" id="bpL"></div></div>
+              <div class="bp-sec"><div class="bp-sec-title">Response</div><div class="bp-code" id="bpR"></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Right drawer -->
+        <div class="drawer hidden" id="actDrawer">
+          <div class="drawer-hdr"><span class="drawer-title" id="drawerTitle">Request Detail</span><button class="modal-close" onclick="hide('actDrawer')"><i class="bi bi-x-lg"></i></button></div>
+          <div class="drawer-body" id="drawerBody"></div>
+          <div class="drawer-footer"><button class="btn btn-primary btn-sm" style="width:100%" id="drawerMockBtn" onclick="openMockSuggestion()"><i class="bi bi-lightning-charge"></i> Mock</button></div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ MAPPINGS ══════════════════ -->
+      <div class="screen" id="screen-mappings">
+        <div class="page-hdr">
+          <div><div class="page-title">Mappings</div><div class="page-sub" id="mapSub">Select a file to view or edit</div></div>
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="resync()"><i class="bi bi-arrow-repeat"></i> Resync</button>
+            <button class="btn btn-ghost btn-sm" onclick="openNewFile('mapping')"><i class="bi bi-plus-lg"></i> New Mapping</button>
+            <button class="btn btn-ghost btn-sm" onclick="openNewFile('response')"><i class="bi bi-plus-lg"></i> New Response</button>
+          </div>
+        </div>
+        <div class="mappings-layout">
+          <div class="tree-pane">
+            <div class="tree-hdr"><span class="tree-hdr-lbl">File Tree</span><button class="btn btn-ghost btn-xs" onclick="collapseTree()"><i class="bi bi-arrows-collapse"></i></button></div>
+            <div class="tree" id="fileTree"></div>
+          </div>
+          <div class="ep-pane" id="epPane">
+            <div class="ep-empty" id="epEmpty"><i class="bi bi-file-earmark-code" style="font-size:2rem;color:var(--muted)"></i><span>Select a file to view or edit</span></div>
+            <div id="epContent" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+              <div class="ep-hdr">
+                <div class="ep-breadcrumb" id="epCrumb"></div>
+                <div class="ep-tabs-row">
+                  <div class="ep-tab active" id="etab-form" onclick="switchEpTab('form')">Form</div>
+                  <div class="ep-tab" id="etab-raw" onclick="switchEpTab('raw')">Raw JSON</div>
+                </div>
+              </div>
+              <div class="ep-body" id="epForm">
+                <div class="form-grid">
+                  <div class="form-field"><label class="f-lbl">Method</label><select class="f-select" id="fMethod" onchange="markDirty()"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option></select></div>
+                  <div class="form-field"><label class="f-lbl">Response Status</label><div class="status-opts"><div class="status-opt active" onclick="pickStatus(this,'200')">200</div><div class="status-opt" onclick="pickStatus(this,'201')">201</div><div class="status-opt" onclick="pickStatus(this,'400')">400</div><div class="status-opt" onclick="pickStatus(this,'404')">404</div><div class="status-opt" onclick="pickStatus(this,'500')">500</div></div></div>
+                  <div class="form-field full"><label class="f-lbl">URL Pattern</label><input class="f-input mono" id="fUrl" oninput="markDirty()"></div>
+                  <div class="form-field full"><label class="f-lbl">Request Headers Filter <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.6rem">(optional)</span></label><input class="f-input mono" id="fHeaderFilter" placeholder='e.g. bfa-test-workflow: RegexMatcher "somePattern"' oninput="markDirty()"></div>
+                  <div class="form-field full"><label class="f-lbl">Request Body Matcher <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.6rem">(optional)</span></label><input class="f-input mono" id="fBodyMatcher" placeholder='e.g. RegexMatcher "documentType.*IDENTIFICACAO"' oninput="markDirty()"></div>
+                  <div class="form-field full"><label class="f-lbl">Response Body</label><textarea class="f-textarea" id="fBody" rows="4" oninput="markDirty()"></textarea></div>
+                  <div class="form-field"><label class="f-lbl">Content-Type</label><input class="f-input" id="fCT" value="application/json" oninput="markDirty()"></div>
+                  <div class="form-field"><label class="f-lbl">Priority</label><input class="f-input mono" id="fPriority" value="1" oninput="markDirty()"></div>
+                  <div class="form-field"><label class="f-lbl">Delay (ms)</label><input class="f-input mono" id="fDelay" value="0" oninput="markDirty()"></div>
+                  <div class="form-field"><label class="f-lbl">Use Transformer</label><div class="toggle-row" style="margin-top:4px"><div class="toggle off" id="fTransformer" onclick="this.classList.toggle('on');this.classList.toggle('off');markDirty()"></div></div></div>
+                </div>
+              </div>
+              <div class="ep-body" id="epRaw" style="display:none">
+                <div class="json-wrap" style="flex:1">
+                  <div class="json-hdr"><span class="json-lang">JSON — WireMock.NET mapping</span><button class="btn btn-ghost btn-xs" onclick="copyJson()"><i class="bi bi-clipboard"></i> Copy</button></div>
+                  <div class="json-body" id="jsonBody"></div>
+                </div>
+              </div>
+              <div class="ep-footer">
+                <button class="btn btn-ghost btn-sm" id="copyFileBtn" onclick="openCopy()" data-tip="Copy this file with a new name"><i class="bi bi-files"></i> Copy</button>
+                <div style="flex:1"></div>
+                <button class="btn btn-danger btn-sm" onclick="deleteFile()"><i class="bi bi-trash"></i> Delete</button>
+                <button class="btn btn-ghost btn-sm" id="discardBtn" disabled onclick="discardChanges()">Discard</button>
+                <button class="btn btn-primary btn-sm" id="saveBtn" onclick="saveFile()"><i class="bi bi-floppy"></i> Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ SYSTEM EVENTS ══════════════════ -->
+      <div class="screen" id="screen-events">
+        <div class="page-hdr">
+          <div><div class="page-title">System Events</div><div class="page-sub">Warnings, errors and operational info</div></div>
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="markAllEventsRead()">Mark all read</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmClearEvents()"><i class="bi bi-trash"></i> Clear all</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" id="etab-warn" onclick="switchEvTab('warn')">Warnings &amp; Errors <span class="tab-count tc-warn" id="warnCnt">0</span></div>
+          <div class="tab" id="etab-info" onclick="switchEvTab('info')">Info <span class="tab-count tc-info" id="infoCnt">0</span></div>
+        </div>
+        <div class="scroll" id="evWarn"><div class="ev-list" id="warnList"></div></div>
+        <div class="scroll" id="evInfo" style="display:none"><div class="ev-list" id="infoList"></div></div>
+      </div>
+
+      <!-- ══════════════════ SETTINGS ══════════════════ -->
+      <div class="screen" id="screen-settings">
+        <div class="page-hdr"><div class="page-title">Settings</div></div>
+        <div class="settings-layout">
+          <div class="s-nav">
+            <div class="sn-item active" id="sn-appearance" onclick="showSS('appearance')">Appearance</div>
+            <div class="sn-item" id="sn-network" onclick="showSS('network')">Network Activity</div>
+            <div class="sn-item" id="sn-paths" onclick="showSS('paths')">Paths</div>
+            <div class="sn-item" id="sn-cache" onclick="showSS('cache')">Cache</div>
+            <div class="sn-item" id="sn-auth" onclick="showSS('auth')">Auth &amp; Users</div>
+            <div class="sn-item" id="sn-flags" onclick="showSS('flags')">Feature Flags</div>
+          </div>
+          <div class="s-content">
+            <div id="ss-appearance">
+              <div class="s-section-title">Appearance</div>
+              <div class="s-row"><div><div class="s-lbl">Theme</div><div class="s-desc">Applies instantly</div></div><div class="s-ctrl"><div class="theme-swatches">
+                <div class="swatch selected" data-tip="Clean Light" onclick="applyTheme('clean-light',this)"><div class="swatch-l" style="background:#f1f5f9"></div><div class="swatch-r" style="background:#0ea5e9"></div></div>
+                <div class="swatch" data-tip="Deep Ocean" onclick="applyTheme('deep-ocean',this)"><div class="swatch-l" style="background:#0d1b2a"></div><div class="swatch-r" style="background:#3b82f6"></div></div>
+                <div class="swatch" data-tip="Emerald Terminal" onclick="applyTheme('emerald-terminal',this)"><div class="swatch-l" style="background:#064e3b"></div><div class="swatch-r" style="background:#10b981"></div></div>
+                <div class="swatch" data-tip="Ink & Amber" onclick="applyTheme('ink-amber',this)"><div class="swatch-l" style="background:#18181b"></div><div class="swatch-r" style="background:#f59e0b"></div></div>
+              </div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Row detail style</div><div class="s-desc">How request detail opens in Network Activity</div></div><div class="s-ctrl"><div class="dmo-opts" id="dmoOpts">
+                <div class="dmo active" onclick="setDetailMode('modal',this)">Modal</div>
+                <div class="dmo" onclick="setDetailMode('drawer',this)">Right Drawer</div>
+                <div class="dmo" onclick="setDetailMode('panel',this)">Bottom Panel</div>
+              </div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Sidebar default</div></div><div class="s-ctrl"><select class="s-select" onchange="setSidebarState(this.value)"><option value="expanded">Expanded</option><option value="collapsed">Collapsed</option></select></div></div>
+            </div>
+            <div id="ss-network" style="display:none">
+              <div class="s-section-title">Network Activity</div>
+              <div class="s-row"><div><div class="s-lbl">Auto-refresh interval</div></div><div class="s-ctrl"><select class="s-select"><option>1 second</option><option>2 seconds</option><option selected>5 seconds</option><option>Disabled</option></select></div></div>
+              <div class="s-row"><div><div class="s-lbl">Max log entries per service</div></div><div class="s-ctrl"><select class="s-select"><option>500</option><option selected>1 000</option><option>5 000</option></select></div></div>
+              <div class="s-row"><div><div class="s-lbl">Sensitive header redaction</div><div class="s-desc">Redact Authorization, Cookie, Set-Cookie</div></div><div class="s-ctrl"><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div></div></div>
+            </div>
+            <div id="ss-paths" style="display:none">
+              <div class="s-section-title">Paths</div>
+              <div class="s-row"><div><div class="s-lbl">Mocks Root</div></div><div class="s-ctrl"><input class="f-input mono" style="width:240px" value="/mocks"></div></div>
+              <div style="margin-top:12px;text-align:right"><button class="btn btn-primary btn-sm" onclick="toast('Paths saved.','success')">Save</button></div>
+            </div>
+            <div id="ss-cache" style="display:none">
+              <div class="s-section-title">Cache</div>
+              <div class="s-row"><div><div class="s-lbl">Clear all caches</div><div class="s-desc">Removes all in-memory cached mappings and responses</div></div><div class="s-ctrl"><button class="btn btn-danger btn-sm" onclick="confirmClearCache('all')"><i class="bi bi-trash"></i> Clear All</button></div></div>
+              <div style="margin-top:16px"><div class="f-lbl" style="margin-bottom:8px">Named caches</div>
+                <div class="cache-list" id="cacheList"></div>
+              </div>
+            </div>
+            <div id="ss-auth" style="display:none">
+              <div class="s-section-title">Auth &amp; Users</div>
+              <div class="s-row"><div><div class="s-lbl">Auto-registration</div></div><div class="s-ctrl"><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div></div></div>
+              <table style="width:100%;margin-top:14px;border-collapse:collapse">
+                <thead><tr><th>Username</th><th>Role</th><th>Last Login</th></tr></thead>
+                <tbody><tr><td>nico.iodice</td><td>Admin</td><td style="color:var(--muted);font-size:.68rem">Today 09:00</td></tr></tbody>
+              </table>
+            </div>
+            <div id="ss-flags" style="display:none">
+              <div class="s-section-title">Feature Flags</div>
+              <div class="s-row"><div><div class="s-lbl">Record Mode</div></div><div class="s-ctrl"><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Pipeline Reset API</div><div class="s-desc">Enable POST /admin/reset</div></div><div class="s-ctrl"><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ LOGIN ══════════════════ -->
+      <div class="screen" id="screen-login">
+        <div class="auth-screen">
+          <div class="auth-card">
+            <div class="auth-logo"><i class="bi bi-droplet-half"></i> Fishtank</div>
+            <div><div style="font-size:.83rem;font-weight:700;color:var(--fg);text-align:center">Sign in</div><div style="font-size:.69rem;color:var(--muted);text-align:center;margin-top:3px">Self-hosted mock server manager</div></div>
+            <div class="auth-fields">
+              <div class="af"><label>Username</label><input type="text" value="nico.iodice"></div>
+              <div class="af"><label>Password</label><input type="password" value="••••••••"></div>
+            </div>
+            <button class="auth-submit" onclick="showScreen('services')">Sign in</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body-row -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const MOCK_ROOT = '/mocks';
+const PORT_BASE = 30100;
+
+let services = [
+  {id:1,name:'Finance API',desc:'Core banking & account data',port:30101,url:'https://api.finance.gov',live:true},
+  {id:2,name:'Social Security',desc:'Identity & verification services',port:30102,url:'https://api.socialsec.gov',live:true},
+  {id:3,name:'Payments Gateway',desc:'Transaction processing',port:30103,url:'https://pay.stripe.example',live:true},
+  {id:4,name:'Logistics API',desc:'Shipping & fulfilment tracking',port:30104,url:'https://api.logistics.io',live:true},
+  {id:5,name:'Notifications',desc:'Email & SMS dispatch service',port:30105,url:'https://api.notify.example',live:true},
+  {id:6,name:'Legacy Auth',desc:'Deprecated auth provider (staging)',port:30106,url:'https://auth-legacy.internal',live:false}
+];
+
+function svcSlug(name){return name.toLowerCase().replace(/\s+/g,'-')}
+function svcRoot(name){return MOCK_ROOT+'/'+svcSlug(name)}
+function svcMappingsPath(name){return svcRoot(name)+'/mappings'}
+function svcResponsesPath(name){return svcRoot(name)+'/responses'}
+function nextPort(){const used=services.map(s=>s.port);for(let p=PORT_BASE;p<=PORT_BASE+10;p++){if(!used.includes(p))return p;}return PORT_BASE+services.length+1}
+function mockCountForSvc(name){const ft=fileTree[name];if(!ft)return 0;return (ft.mappings||[]).length+(ft.responses||[]).length}
+
+let activityRows = [
+  {id:1,method:'GET',path:'/api/finance/account',status:200,type:'mock',ms:4,svc:'Finance API',port:30101,reqBody:'GET /api/finance/account HTTP/1.1\nHost: fishtank:30101\nAccept: application/json\nConnection: keep-alive',resBody:'HTTP/1.1 200 OK\nContent-Type: application/json\n\n{"accountId":"acc_123","balance":4200.00,"currency":"EUR","status":"active"}',reqHeaders:{'Accept':'application/json','Host':'fishtank:30101'},resHeaders:{'Content-Type':'application/json'}},
+  {id:2,method:'POST',path:'/api/social/identity',status:201,type:'proxy',ms:312,svc:'Social Security',port:30102,reqBody:'POST /api/social/identity HTTP/1.1\nContent-Type: application/json\n\n{"userId":"abc123","action":"verify"}',resBody:'HTTP/1.1 201 Created\nX-Proxied: true\nContent-Type: application/json\n\n{"verified":true,"token":"eyJhbGciOiJSUzI1NiJ9..."}',reqHeaders:{'Content-Type':'application/json'},resHeaders:{'Content-Type':'application/json','X-Proxied':'true'}},
+  {id:3,method:'GET',path:'/api/finance/balance',status:500,type:'mock',ms:8,svc:'Finance API',port:30101,reqBody:'GET /api/finance/balance HTTP/1.1\nHost: fishtank:30101',resBody:'HTTP/1.1 500 Internal Server Error\nContent-Type: application/json\n\n{"error":"Mapping load failed","code":"ERR_500"}',reqHeaders:{'Host':'fishtank:30101'},resHeaders:{'Content-Type':'application/json'}},
+  {id:4,method:'DELETE',path:'/api/social/session',status:204,type:'mock',ms:2,svc:'Social Security',port:30102,reqBody:'DELETE /api/social/session/sess_789 HTTP/1.1',resBody:'HTTP/1.1 204 No Content',reqHeaders:{},resHeaders:{}},
+  {id:5,method:'POST',path:'/api/finance/transfer',status:201,type:'proxy',ms:445,svc:'Finance API',port:30101,reqBody:'POST /api/finance/transfer HTTP/1.1\nContent-Type: application/json\n\n{"from":"acc_123","to":"acc_456","amount":100.00,"currency":"EUR"}',resBody:'HTTP/1.1 201 Created\nContent-Type: application/json\n\n{"transferId":"txn_789","status":"pending","amount":100.00}',reqHeaders:{'Content-Type':'application/json'},resHeaders:{'Content-Type':'application/json'}},
+  {id:6,method:'GET',path:'/getUnableToSignMotives',status:200,type:'proxy',ms:87,svc:'Social Security',port:30102,reqBody:'GET /getUnableToSignMotives HTTP/1.1\nHost: fishtank:30101\nAccept: */*\nConnection: keep-alive\nUser-Agent: node\nAccept-Encoding: gzip, deflate\nAccept-Language: *\nsec-fetch-mode: cors',resBody:'HTTP/1.1 200 OK\nContent-Type: application/json\nTransfer-Encoding: chunked\nDate: Tue, 19 May 2026 17:17:59 GMT\nKeep-Alive: timeout=60\nConnection: keep-alive\n\n["Menor","Interdito","Inabilitado","Incapacitado","Não sabe assinar"]',reqHeaders:{'Accept':'*/*','Host':'fishtank:30101','User-Agent':'node','sec-fetch-mode':'cors'},resHeaders:{'Content-Type':'application/json','Transfer-Encoding':'chunked'}},
+];
+
+let fileTree = {
+  'Finance API':{live:true,mappings:['account-get-200.json','account-create-201.json','balance-get-200.json','balance-get-500.json','transfer-post-201.json','extract-document-post-200.json'],responses:['account-200.json','balance-200.json','transfer-201.json']},
+  'Social Security':{live:true,mappings:['identity-post-201.json','session-delete-204.json','getUnableToSignMotives-get-200.json'],responses:['identity-201.json','getUnableToSignMotives-200.json']},
+  'Payments Gateway':{live:true,mappings:['charge-post-201.json','refund-post-200.json'],responses:['charge-201.json']},
+  'Logistics API':{live:true,mappings:['shipment-get-200.json'],responses:['shipment-200.json']},
+  'Notifications':{live:true,mappings:[],responses:[]},
+  'Legacy Auth':{live:false,mappings:['token-post-200.json'],responses:['token-200.json']},
+};
+
+let warnEvents=[
+  {icon:'🔴',msg:'<strong>Duplicate GUID detected</strong> — mapping <code>a3f1b2c4</code> in <code>finance/mappings/accounts.json</code> and <code>finance/mappings/legacy.json</code>',time:'Today 14:32:07',svc:'Finance API',type:'error'},
+  {icon:'🟠',msg:'<strong>Malformed response body</strong> — <code>verify-response.json</code> contains invalid JSON at line 14',time:'Today 13:58:41',svc:'Social Security',type:'warn'},
+  {icon:'🔴',msg:'<strong>Mapping load failed</strong> — <code>refund.json</code> missing required field <code>request.method</code>',time:'Today 11:20:14',svc:'Payments Gateway',type:'error'},
+  {icon:'🟠',msg:'<strong>Config conflict</strong> — seed file service on port <code>30104</code> already registered',time:'Yesterday 09:11',svc:'Logistics API',type:'warn'},
+];
+let infoEvents=[
+  {icon:'✅',msg:'<strong>Mock saved</strong> — <code>GET /api/finance/account</code>',time:'Today 14:45',svc:'Finance API',type:'success'},
+  {icon:'🔄',msg:'<strong>Resync completed</strong> — Finance API: 24 mappings reloaded in 142ms',time:'Today 14:30',svc:'Finance API',type:'info'},
+  {icon:'⏺',msg:'<strong>Record mode enabled</strong> — proxied requests auto-promote to mappings',time:'Today 13:50',svc:'Social Security',type:'info'},
+  {icon:'🚀',msg:'<strong>Fishtank started</strong> — 6 services loaded, 5 live, 1 stopped',time:'Today 09:00',svc:'',type:'info'},
+];
+
+let notifications=[
+  {id:1,icon:'🔴',msg:'<strong>Duplicate GUID</strong> — mapping <code>a3f1b2c4</code> in Finance API',time:'Today 14:32',unread:true},
+  {id:2,icon:'🟠',msg:'<strong>Malformed response</strong> — <code>verify-response.json</code> line 14',time:'Today 13:58',unread:true},
+  {id:3,icon:'🔴',msg:'<strong>Mapping load failed</strong> — missing <code>request.method</code>',time:'Today 11:20',unread:true},
+  {id:4,icon:'🟠',msg:'<strong>Config conflict</strong> — port <code>30104</code> already in use',time:'Yesterday 09:11',unread:true},
+];
+
+let caches=[
+  {name:'finance-api',entries:24,size:'18 KB'},
+  {name:'social-security',entries:12,size:'9 KB'},
+  {name:'payments-gateway',entries:6,size:'4 KB'},
+  {name:'logistics-api',entries:4,size:'3 KB'},
+];
+
+// State
+let detailMode='modal';
+let svcView='grid';
+let treeState={};
+let activeFile=null;
+let isDirty=false;
+let isNewFile=false;
+let newFileType=null;
+let modifiedFiles=new Set();
+let typeFilter={mock:true,proxy:true};
+let visibleCols={method:true,path:true,status:true,type:true,service:true,actions:true};
+let currentRow=null;
+let sortCol=null,sortDir=1;
+let settingSection='appearance';
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.onload=()=>{
+  showScreen('services');
+  renderSvc();
+  renderActivity();
+  renderFileTree();
+  renderEvents();
+  renderNotifs();
+  renderCacheList();
+  populateActSvcFilter();
+  updateBellBadge();
+  updateSidebarBadge();
+  renderActColHeaders();
+};
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const s=document.getElementById('screen-'+id);if(s)s.classList.add('active');
+  const n=document.getElementById('nav-'+id);if(n)n.classList.add('active');
+  closeAllDD();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
+function setSidebarState(v){const sb=document.getElementById('sidebar');v==='collapsed'?sb.classList.add('collapsed'):sb.classList.remove('collapsed')}
+
+// ══════════════════════════════════════════════════════
+// SERVICES
+// ══════════════════════════════════════════════════════
+function renderSvc(){
+  const q=(document.getElementById('svcSearch').value||'').toLowerCase();
+  const fl=services.filter(s=>s.name.toLowerCase().includes(q)||s.desc.toLowerCase().includes(q));
+  const live=services.filter(s=>s.live).length;
+  document.getElementById('svcSub').textContent=`${services.length} services · ${live} live · ${services.length-live} stopped`;
+  // Grid
+  document.getElementById('svcGrid').innerHTML=fl.map(svc=>`
+    <div class="svc-card${svc.live?'':' stopped-card'}">
+      <div class="sc-top"><div><div class="sc-name">${svc.name}</div><div class="sc-desc">${svc.desc}</div></div>
+      <div class="pill ${svc.live?'live':'stopped'}"><span class="pill-dot"></span>${svc.live?'Live':'Stopped'}</div></div>
+      <div class="sc-meta">
+        <div class="sc-row"><span class="sc-lbl">Port</span><span class="port-badge">${svc.port}</span></div>
+        <div class="sc-row"><span class="sc-lbl">Ext. URL</span><span class="sc-val" title="${svc.url}">${svc.url}</span></div>
+        <div class="sc-row"><span class="sc-lbl">Mocks Root</span><span class="sc-val mono" title="${svcRoot(svc.name)}">${svcRoot(svc.name)}</span></div>
+      </div>
+      <div class="sc-meta" style="margin-top:-4px">
+        <div class="sc-row"><span class="sc-lbl">Mocks</span><span class="mock-count"><i class="bi bi-file-earmark-code"></i> ${mockCountForSvc(svc.name)} files</span></div>
+      </div>
+      <div class="sc-footer">
+        <span class="sc-link" onclick="goMappings('${svc.name}')"><i class="bi bi-file-earmark-code"></i> Mappings</span>
+        <span class="sc-link" style="margin-left:8px" onclick="editSvc(${svc.id})"><i class="bi bi-pencil"></i> Edit</span>
+        <div class="sc-sp"></div>
+        <div class="toggle-row" data-tip="${svc.live?'Disable service':'Enable service'}">
+          <div class="toggle ${svc.live?'on':'off'}" onclick="toggleSvc(${svc.id})"></div>
+          <span class="toggle-label">${svc.live?'Live':'Off'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+  // Table
+  document.getElementById('svcTblBody').innerHTML=fl.map(svc=>`
+    <tr>
+      <td style="font-weight:600">${svc.name}</td>
+      <td><span class="port-badge">${svc.port}</span></td>
+      <td class="mono" style="font-size:.66rem;overflow:hidden;text-overflow:ellipsis" title="${svc.url}">${svc.url}</td>
+      <td class="mono" style="font-size:.64rem">${svcRoot(svc.name)}</td>
+      <td><span class="pill ${svc.live?'live':'stopped'}"><span class="pill-dot"></span>${svc.live?'Live':'Stopped'}</span></td>
+      <td><div class="toggle-row" data-tip="${svc.live?'Disable':'Enable'}"><div class="toggle ${svc.live?'on':'off'}" onclick="toggleSvc(${svc.id})"></div><span class="toggle-label">${svc.live?'Live':'Off'}</span></div></td>
+      <td style="display:flex;gap:4px;align-items:center">
+        <button class="icon-btn btn-xs" data-tip="Mappings" onclick="goMappings('${svc.name}')"><i class="bi bi-file-earmark-code"></i></button>
+        <button class="icon-btn btn-xs" data-tip="Edit" onclick="editSvc(${svc.id})"><i class="bi bi-pencil"></i></button>
+        <button class="icon-btn btn-xs" data-tip="Delete" onclick="confirmDeleteSvc(${svc.id})" style="color:#ef4444"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+function setSvcView(v){svcView=v;document.getElementById('vt-grid').classList.toggle('active',v==='grid');document.getElementById('vt-table').classList.toggle('active',v==='table');document.getElementById('svcGridWrap').style.display=v==='grid'?'':'none';const tw=document.getElementById('svcTblWrap');tw.style.display=v==='table'?'flex':'none';}
+function toggleSvc(id){const s=services.find(x=>x.id===id);s.live=!s.live;renderSvc();toast(`${s.name} ${s.live?'enabled':'disabled'}.`,s.live?'success':'info');addInfo(s.live?'✅':'⏹',`<strong>Service ${s.live?'started':'stopped'}</strong> — ${s.name}`,s.name,s.live?'success':'info');}
+function editSvc(id){toast(`Edit service — form available in production.`,'info')}
+function confirmDeleteSvc(id){const s=services.find(x=>x.id===id);showConfirm(`Delete service <code>${s.name}</code>?`,`Removes service definition. Mapping files on disk are not deleted.`,()=>{services=services.filter(x=>x.id!==id);renderSvc();toast(`"${s.name}" deleted.`,'success');})}
+function goMappings(svcName){showScreen('mappings');treeState[svcName]={expanded:true,mappings:true,responses:false};renderFileTree()}
+function openAddSvc(){document.getElementById('as-name').value='';document.getElementById('as-desc').value='';document.getElementById('as-url').value='';document.getElementById('as-port').value=nextPort();updateAddSvcPaths();show('addSvcOvl')}
+function updateAddSvcPaths(){const name=document.getElementById('as-name').value||'';const slug=svcSlug(name)||'new-service';document.getElementById('as-root').value=`${MOCK_ROOT}/${slug}`;document.getElementById('as-map').value=`${MOCK_ROOT}/${slug}/mappings`;document.getElementById('as-res').value=`${MOCK_ROOT}/${slug}/responses`}
+function addService(){const name=document.getElementById('as-name').value.trim()||'New Service';const port=parseInt(document.getElementById('as-port').value);const url=document.getElementById('as-url').value;const desc=document.getElementById('as-desc').value;services.push({id:Date.now(),name,desc,port,url,live:true});if(!fileTree[name])fileTree[name]={live:true,mappings:[],responses:[]};hide('addSvcOvl');renderSvc();populateActSvcFilter();toast(`Service "${name}" added.`,'success');}
+
+// ══════════════════════════════════════════════════════
+// NETWORK ACTIVITY
+// ══════════════════════════════════════════════════════
+function populateActSvcFilter(){const sel=document.getElementById('actSvcFilter');const cur=sel.value;sel.innerHTML='<option value="">All Services</option>'+services.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');sel.value=cur}
+function renderActColHeaders(){const cols=document.getElementById('actCols');const head=document.getElementById('actHead');const defs=[{id:'method',label:'Method',w:'62px',sort:true},{id:'path',label:'URL Path',w:'auto',sort:true},{id:'status',label:'Status',w:'58px',sort:true},{id:'type',label:'Type',w:'52px',sort:false,filter:true},{id:'service',label:'Service',w:'110px',sort:true},{id:'actions',label:'',w:'70px',sort:false}];
+cols.innerHTML=defs.filter(d=>visibleCols[d.id]).map(d=>`<col style="width:${d.w}">`).join('');
+head.innerHTML='<tr>'+defs.filter(d=>visibleCols[d.id]).map(d=>{
+  if(d.id==='actions')return'<th></th>';
+  if(d.filter)return`<th><span style="display:flex;align-items:center;gap:4px">${d.label}<span style="position:relative"><i class="bi bi-funnel" style="cursor:pointer;font-size:.7rem;opacity:.6" onclick="toggleTypeDD(event)"></i></span></span></th>`;
+  if(d.sort)return`<th class="sortable" onclick="sortActivity('${d.id}')"><span style="display:flex;align-items:center;gap:3px">${d.label}<span class="sort-icon">${sortCol===d.id?(sortDir===1?'↑':'↓'):'↕'}</span></span></th>`;
+  return`<th>${d.label}</th>`;
+}).join('')+'</tr>';}
+
+function getFilteredRows(){let rows=[...activityRows];const q=(document.getElementById('actSearch').value||'').toLowerCase();const svcF=document.getElementById('actSvcFilter').value;if(q)rows=rows.filter(r=>r.path.toLowerCase().includes(q)||r.method.toLowerCase().includes(q)||String(r.status).includes(q));if(svcF)rows=rows.filter(r=>r.svc===svcF);rows=rows.filter(r=>(r.type==='mock'&&typeFilter.mock)||(r.type==='proxy'&&typeFilter.proxy));if(sortCol){rows.sort((a,b)=>{let av=a[sortCol],bv=b[sortCol];if(typeof av==='string')av=av.toLowerCase(),bv=bv.toLowerCase();return av<bv?-1*sortDir:av>bv?sortDir:0});}return rows;}
+
+function renderActivity(){
+  renderActColHeaders();
+  updateTypeFilterLabel();
+  updateProxyCounter();
+  const rows=getFilteredRows();
+  const liveSvcNames=new Set(services.filter(s=>s.live).map(s=>s.name));
+  const methodCls=m=>({'GET':'chip-get','POST':'chip-post','PUT':'chip-put','DELETE':'chip-delete','PATCH':'chip-patch'}[m]||'chip-get');
+  document.getElementById('actBody').innerHTML=rows.map(r=>{
+    const isProxy=r.type==='proxy';
+    const isProxiedAndLive=isProxy&&liveSvcNames.has(r.svc);
+    const isErr=r.status>=500;
+    let rowCls='';
+    if(isProxiedAndLive)rowCls='proxied-live';
+    if(isErr)rowCls=(rowCls?rowCls+' ':'')+'error-row';
+    const typeIcon=isProxy?`<i class="bi bi-arrow-repeat type-icon-proxy" data-tip="Proxied to external"></i>`:`<i class="bi bi-database type-icon-mock" data-tip="Served from mock"></i>`;
+    let cells='';
+    if(visibleCols.method)cells+=`<td><span class="chip ${methodCls(r.method)}">${r.method}</span></td>`;
+    if(visibleCols.path)cells+=`<td class="mono" style="font-size:.66rem;overflow:hidden;text-overflow:ellipsis" title="${r.path}">${r.path}</td>`;
+    if(visibleCols.status)cells+=`<td class="mono">${r.status}</td>`;
+    if(visibleCols.type)cells+=`<td>${typeIcon}</td>`;
+    if(visibleCols.service)cells+=`<td style="font-size:.67rem;overflow:hidden;text-overflow:ellipsis" title="${r.svc}">${r.svc}</td>`;
+    if(visibleCols.actions)cells+=`<td style="display:flex;gap:3px;align-items:center">
+      <button class="icon-btn btn-xs" data-tip="View detail" onclick="openRowDetail(${r.id})"><i class="bi bi-eye"></i></button>
+      ${isProxy?`<button class="icon-btn btn-xs" data-tip="Save mapping & response to disk" onclick="openMockSuggestionFromRow(${r.id})" style="color:var(--brand)"><i class="bi bi-lightning-charge"></i></button>`:''}
+    </td>`;
+    return`<tr class="${rowCls}" onclick="openRowDetail(${r.id})">${cells}</tr>`;
+  }).join('');
+}
+
+function sortActivity(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}renderActivity();}
+function clearActFilters(){document.getElementById('actSearch').value='';document.getElementById('actSvcFilter').value='';typeFilter={mock:true,proxy:true};sortCol=null;sortDir=1;renderActivity();}
+function clearSearch(id){document.getElementById(id).value='';renderActivity();renderSvc();}
+function refreshActivity(){const i=document.getElementById('refreshBtn');i.style.color='var(--brand)';setTimeout(()=>i.style.color='',600);toast('Activity refreshed.','info');}
+function confirmClearActivity(){showConfirm('Clear all activity?','Removes all logged requests from the current session.',()=>{activityRows=[];renderActivity();toast('Activity cleared.','info');})}
+
+function updateTypeFilterLabel(){const {mock,proxy}=typeFilter;const lbl=mock&&proxy?'All':mock?'Mock only':proxy?'Proxy only':'None';document.getElementById('typeFilterLabel').textContent=lbl;}
+function toggleTypeDD(e){e.stopPropagation();const dd=document.getElementById('typeDD');const btn=e.currentTarget||e.target.closest('button')||e.target;const rect=btn.getBoundingClientRect();const appRect=document.getElementById('appFrame').getBoundingClientRect();dd.style.top=(rect.bottom-appRect.top+2)+'px';dd.style.left=(rect.left-appRect.left)+'px';dd.classList.toggle('hidden');
+  dd.innerHTML=`<label><input type="checkbox" ${typeFilter.mock?'checked':''} onchange="typeFilter.mock=this.checked;renderActivity()"> <i class="bi bi-database" style="color:#3b82f6"></i> Mock</label><label><input type="checkbox" ${typeFilter.proxy?'checked':''} onchange="typeFilter.proxy=this.checked;renderActivity()"> <i class="bi bi-arrow-repeat" style="color:#10b981"></i> Proxy</label>`;}
+
+function toggleColDD(e){e.stopPropagation();const dd=document.getElementById('colDD');const btn=e.currentTarget;const rect=btn.getBoundingClientRect();const appRect=document.getElementById('appFrame').getBoundingClientRect();dd.style.top=(rect.bottom-appRect.top+2)+'px';dd.style.right=(appRect.right-rect.right)+'px';dd.style.left='auto';dd.classList.toggle('hidden');
+  const cols=[{id:'method',label:'Method'},{id:'path',label:'URL Path'},{id:'status',label:'Status'},{id:'type',label:'Type'},{id:'service',label:'Service'}];
+  dd.innerHTML=cols.map(c=>`<label><input type="checkbox" ${visibleCols[c.id]?'checked':''} onchange="visibleCols['${c.id}']=this.checked;renderActivity()"> ${c.label}</label>`).join('');}
+
+function updateProxyCounter(){const proxied=activityRows.filter(r=>r.type==='proxy');document.getElementById('proxyCountNum').textContent=proxied.length;const pill=document.getElementById('proxyCounterPill');pill.classList.toggle('has-err',proxied.some(r=>r.status>=500));}
+function toggleProxyCountDD(e){e.stopPropagation();const dd=document.getElementById('proxyCountDD');const btn=e.currentTarget;const rect=btn.getBoundingClientRect();const appRect=document.getElementById('appFrame').getBoundingClientRect();dd.style.top=(rect.bottom-appRect.top+2)+'px';dd.style.left=(rect.left-appRect.left)+'px';dd.classList.toggle('hidden');
+  const bySvc={};activityRows.filter(r=>r.type==='proxy').forEach(r=>{if(!bySvc[r.svc])bySvc[r.svc]=0;bySvc[r.svc]++;});
+  dd.innerHTML='<div style="padding:6px 10px;font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Proxied requests by service</div>'+
+    Object.entries(bySvc).map(([svc,cnt])=>`<div class="pcd-row"><span>${svc}</span><span class="pcd-num is-proxy">${cnt}</span></div>`).join('')+
+    (Object.keys(bySvc).length===0?'<div class="pcd-row" style="color:var(--muted)">No proxied requests</div>':'');}
+
+function openRowDetail(id){
+  currentRow=activityRows.find(r=>r.id===id);if(!currentRow)return;
+  const r=currentRow;
+  if(detailMode==='modal'){renderApiCallModal(r);show('apiCallOvl');}
+  else if(detailMode==='drawer'){renderDrawer(r);show('actDrawer');}
+  else{renderBp(r);document.getElementById('bpanel').classList.remove('hidden');}
+}
+function renderApiCallModal(r){
+  document.getElementById('apiCallTitle').textContent='API Call';
+  const isProxy=r.type==='proxy';
+  document.getElementById('mockFromCallBtn').style.display=isProxy?'':'none';
+  const headersHtml=Object.entries(r.reqHeaders||{}).map(([k,v])=>`<div class="api-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  const resHeadersHtml=Object.entries(r.resHeaders||{}).map(([k,v])=>`<div class="api-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  const jsonRow=(label,val)=>{const j=tryFormatJson(val);return`<div style="margin-bottom:8px"><div class="f-lbl" style="margin-bottom:4px">${label}</div><div class="api-json-block">${escHtml(j)}</div></div>`};
+  document.getElementById('apiCallBody').innerHTML=`
+    <div class="api-field-grid">
+      <div class="api-row"><span>ID</span><span>${'87f596dd-68ff-42c3-b28c-33b29fd9fc0a'}</span></div>
+      <div class="api-row"><span>DateTime</span><span>${new Date().toISOString()}</span></div>
+      <div class="api-row"><span>Method</span><span><strong>${r.method}</strong></span></div>
+      <div class="api-row"><span>URL</span><span class="mono">${r.path}</span></div>
+      <div class="api-row"><span>Service</span><span>${r.svc} · <span class="port-badge">${r.port}</span></span></div>
+      <div class="api-row"><span>Type</span><span>${r.type==='proxy'?'<i class="bi bi-arrow-repeat" style="color:#10b981"></i> Proxied':'<i class="bi bi-database" style="color:#3b82f6"></i> Mock'}</span></div>
+      <div class="api-row"><span>Status</span><span class="mono"><strong>${r.status}</strong></span></div>
+      ${headersHtml?`<div class="api-row" style="align-items:start"><span style="padding-top:7px">Headers</span><span style="padding:5px 0"><div style="font-size:.67rem;font-family:monospace">${Object.entries(r.reqHeaders||{}).map(([k,v])=>`${k}: ${v}`).join('<br>')}</div></span></div>`:''}
+      <div class="api-row no-border"><span>Body</span><span></span></div>
+    </div>
+    ${jsonRow('Request Body',extractJsonFromRaw(r.reqBody))}
+    ${jsonRow('Response Body',extractJsonFromRaw(r.resBody))}
+    ${resHeadersHtml?`<div><div class="f-lbl" style="margin-bottom:4px">Response Headers</div><div class="api-json-block mono" style="font-size:.65rem">${Object.entries(r.resHeaders||{}).map(([k,v])=>`${k}: ${v}`).join('\n')}</div></div>`:''}
+  `;}
+
+function extractJsonFromRaw(raw){const idx=raw.indexOf('\n\n');if(idx>-1)return raw.slice(idx+2).trim();return raw;}
+function tryFormatJson(str){try{return JSON.stringify(JSON.parse(str),null,2)}catch{return str}}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function openMockSuggestion(){hide('apiCallOvl');if(currentRow)openMockSuggestionFromRow(currentRow.id);}
+function openMockSuggestionFromRow(id){
+  currentRow=activityRows.find(r=>r.id===id);if(!currentRow)return;
+  const r=currentRow;
+  const slug=svcSlug(r.svc);
+  const fname=`${r.method.toLowerCase()}_${r.path.replace(/\//g,'-').replace(/^-/,'')}_body.json`;
+  const mappingJson={Guid:crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const rv=Math.random()*16|0;return(c==='x'?rv:(rv&0x3|0x8)).toString(16)}),Title:'',Priority:1,Request:{Path:{Matchers:[{Name:'WildcardMatcher',Pattern:r.path,IgnoreCase:true}]},Methods:[r.method]},Response:{StatusCode:r.status,Headers:{'Content-Type':'application/json'},BodyAsFile:`../responses/${fname}`,UseTransformer:true,UseTransformerForBodyAsFile:true},UseWebhooksFireAndForget:false};
+  const resBody=extractJsonFromRaw(r.resBody);
+  document.getElementById('mockSugBody').innerHTML=`
+    <div class="ms-section"><div class="ms-section-title">Mapping</div><div class="ms-json" contenteditable="true">${escHtml(JSON.stringify(mappingJson,null,2))}</div></div>
+    <div class="ms-section" style="margin-top:12px"><div class="ms-section-title">Response Body — <span class="mono" style="font-size:.65rem">${fname}</span></div><div class="ms-json" contenteditable="true">${escHtml(tryFormatJson(resBody))}</div></div>`;
+  show('mockSugOvl');
+}
+function saveMockSuggestion(){
+  const r=currentRow;if(!r)return;
+  const slug=svcSlug(r.svc);
+  const fname=`${r.method.toLowerCase()}_${r.path.replace(/\//g,'-').replace(/^-/,'')}.json`;
+  if(fileTree[r.svc]){if(!fileTree[r.svc].mappings.includes(fname))fileTree[r.svc].mappings.push(fname);}
+  hide('mockSugOvl');
+  toast(`Mapping & response saved for ${r.path}`,'success');
+  addInfo('✅',`<strong>Mock saved</strong> — <code>${r.method} ${r.path}</code> → <code>${svcMappingsPath(r.svc)}/${fname}</code>`,r.svc,'success');
+  renderFileTree();
+}
+
+function renderDrawer(r){
+  document.getElementById('drawerTitle').textContent=`${r.method} ${r.path}`;
+  document.getElementById('drawerMockBtn').style.display=r.type==='proxy'?'':'none';
+  document.getElementById('drawerBody').innerHTML=`
+    <div class="dr-row"><div class="dr-lbl">Service</div><div class="dr-val">${r.svc} · <span class="port-badge">${r.port}</span></div></div>
+    <div class="dr-row"><div class="dr-lbl">Status · Duration</div><div class="dr-val">${r.status} · ${r.ms}ms</div></div>
+    <div class="dr-row"><div class="dr-lbl">Request</div><div class="dr-code">${escHtml(r.reqBody)}</div></div>
+    <div class="dr-row"><div class="dr-lbl">Response</div><div class="dr-code">${escHtml(r.resBody)}</div></div>`;}
+function renderBp(r){document.getElementById('bpL').textContent=r.reqBody;document.getElementById('bpR').textContent=r.resBody;}
+function switchBpTab(t,el){document.querySelectorAll('.bp-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(!currentRow)return;const l=document.getElementById('bpL'),r2=document.getElementById('bpR');document.querySelector('.bp-sec:first-child .bp-sec-title').textContent=t==='headers'?'Request Headers':'Request Body';document.querySelector('.bp-sec:last-child .bp-sec-title').textContent=t==='headers'?'Response Headers':'Response Body';if(t==='headers'){l.textContent=Object.entries(currentRow.reqHeaders||{}).map(([k,v])=>`${k}: ${v}`).join('\n');r2.textContent=Object.entries(currentRow.resHeaders||{}).map(([k,v])=>`${k}: ${v}`).join('\n');}else{l.textContent=currentRow.reqBody;r2.textContent=currentRow.resBody;}}
+
+function setDetailMode(m,el){detailMode=m;document.querySelectorAll('.dmo').forEach(d=>d.classList.remove('active'));if(el)el.classList.add('active');hide('bpanel');hide('actDrawer');hide('apiCallOvl');}
+function toggleRecord(){const rm=document.getElementById('recBadge').style.display==='none';document.getElementById('recBadge').style.display=rm?'':'none';document.getElementById('recBtn').innerHTML=rm?'<i class="bi bi-stop-circle"></i> Stop':'<i class="bi bi-record-circle"></i> Record';toast(rm?'Record mode enabled.':'Record mode disabled.',rm?'info':'info');addInfo(rm?'⏺':'⏹',`<strong>Record mode ${rm?'enabled':'disabled'}</strong>`,'All Services','info');}
+
+// ══════════════════════════════════════════════════════
+// MAPPINGS
+// ══════════════════════════════════════════════════════
+function renderFileTree(){
+  let html='';
+  Object.entries(fileTree).forEach(([svc,data])=>{
+    const st=treeState[svc]||{};
+    html+=`<div>
+      <div class="tn" onclick="toggleTN('${svc}','svc')">
+        <i class="bi bi-folder${st.expanded?'2-open':'2'}" style="color:${data.live?'#f59e0b':'var(--muted)'}"></i>
+        <span class="tn-name">${svc}</span>
+        <span class="pill ${data.live?'live':'stopped'}" style="font-size:.54rem;padding:1px 5px;margin-right:4px"><span class="pill-dot"></span>${data.live?'Live':'Off'}</span>
+        <span class="tn-arr ${st.expanded?'open':''}"><i class="bi bi-chevron-right" style="font-size:.6rem"></i></span>
+      </div>`;
+    if(st.expanded){
+      // mappings/
+      html+=`<div class="tree-indent"><div class="tn" onclick="toggleTN('${svc}','mappings')">
+        <i class="bi bi-folder${st.mappings?'2-open':'2'}" style="color:#3b82f6"></i>
+        <span class="tn-name">mappings/</span>
+        <span class="tn-arr ${st.mappings?'open':''}"><i class="bi bi-chevron-right" style="font-size:.6rem"></i></span>
+      </div>`;
+      if(st.mappings){
+        html+='<div class="tree-indent">';
+        (data.mappings||[]).forEach(f=>{
+          const isAct=activeFile&&activeFile.svc===svc&&activeFile.type==='mappings'&&activeFile.name===f;
+          const isMod=modifiedFiles.has(svc+'/mappings/'+f);
+          html+=`<div class="tn ${isAct?'active':''} ${isMod?'modified':''}" onclick="openFile('${svc}','mappings','${f}')">
+            <i class="bi bi-file-earmark-code" style="color:var(--muted)"></i>
+            <span class="tn-name">${f}</span>
+          </div>`;
+        });
+        html+='</div>';
+      }
+      // responses/
+      html+=`<div class="tn" onclick="toggleTN('${svc}','responses')">
+        <i class="bi bi-folder${st.responses?'2-open':'2'}" style="color:#10b981"></i>
+        <span class="tn-name">responses/</span>
+        <span class="tn-arr ${st.responses?'open':''}"><i class="bi bi-chevron-right" style="font-size:.6rem"></i></span>
+      </div>`;
+      if(st.responses){
+        html+='<div class="tree-indent">';
+        (data.responses||[]).forEach(f=>{
+          const isAct=activeFile&&activeFile.svc===svc&&activeFile.type==='responses'&&activeFile.name===f;
+          html+=`<div class="tn ${isAct?'active':''}" onclick="openFile('${svc}','responses','${f}')">
+            <i class="bi bi-file-earmark-text" style="color:var(--muted)"></i>
+            <span class="tn-name">${f}</span>
+          </div>`;
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  document.getElementById('fileTree').innerHTML=html;
+}
+function toggleTN(svc,type){if(!treeState[svc])treeState[svc]={};if(type==='svc')treeState[svc].expanded=!treeState[svc].expanded;else if(type==='mappings')treeState[svc].mappings=!treeState[svc].mappings;else treeState[svc].responses=!treeState[svc].responses;renderFileTree();}
+function collapseTree(){treeState={};renderFileTree();}
+
+const EXAMPLE_MAPPING={Guid:'2d018e5b-536c-43db-9ca9-83c5b16bb73a',Title:'',Data:{},Priority:300,Request:{Path:{Matchers:[{Name:'WildcardMatcher',Pattern:'/extract-document',IgnoreCase:true}]},Headers:[{Name:'bfa-test-workflow',Matchers:[{Name:'RegexMatcher',Pattern:'"existingEntityDocId"\\s*:\\s*"BI"'}]}],Body:{Matcher:{Name:'RegexMatcher',Pattern:'"documentType"\\s*:\\s*"DOCUMENTO_IDENTIFICACAO_INDIVIDUAL"'}},Methods:['POST']},Response:{StatusCode:200,Headers:{'Content-Type':'application/json'},BodyAsFile:'../responses/post_extract-document_existing_entity_BI_body.json',UseTransformer:true,UseTransformerForBodyAsFile:true},UseWebhooksFireAndForget:false};
+
+function openFile(svc,type,name){
+  if(isDirty){if(!confirm('You have unsaved changes. Discard them?'))return;markClean();}
+  activeFile={svc,type,name};isNewFile=false;
+  document.getElementById('epEmpty').style.display='none';
+  const ec=document.getElementById('epContent');ec.style.display='flex';
+  document.getElementById('epCrumb').textContent=`${MOCK_ROOT}/${svcSlug(svc)}/${type}/${name}`;
+  document.getElementById('mapSub').textContent=`${svc} — ${type}/ — ${name}`;
+  // Fill form
+  const isMapping=type==='mappings';
+  let method='GET',status='200',path='/',body='{\n  "id": "abc123",\n  "status": "ok"\n}';
+  if(name.includes('extract-document')){const m=EXAMPLE_MAPPING;method=m.Request.Methods[0];path=m.Request.Path.Matchers[0].Pattern;status=String(m.Response.StatusCode);document.getElementById('fHeaderFilter').value=m.Request.Headers[0].Name+': '+m.Request.Headers[0].Matchers[0].Pattern;document.getElementById('fBodyMatcher').value=m.Request.Body.Matcher.Pattern;}
+  else{if(name.includes('post'))method='POST';else if(name.includes('delete'))method='DELETE';else if(name.includes('put'))method='PUT';const sm=name.match(/[-_](\d{3})/);if(sm)status=sm[1];document.getElementById('fHeaderFilter').value='';document.getElementById('fBodyMatcher').value='';}
+  document.getElementById('fMethod').value=method;
+  document.getElementById('fUrl').value=path;
+  document.getElementById('fBody').value=body;
+  document.getElementById('fCT').value='application/json';
+  document.getElementById('fDelay').value='0';
+  document.getElementById('fPriority').value=name.includes('extract-document')?'300':'1';
+  document.querySelectorAll('.status-opt').forEach(o=>o.classList.toggle('active',o.textContent===status));
+  // Raw JSON
+  const mappingData=name.includes('extract-document')?EXAMPLE_MAPPING:{Guid:'a1b2c3d4-e5f6-7890-abcd-ef1234567890',Title:'',Priority:1,Request:{Path:{Matchers:[{Name:'WildcardMatcher',Pattern:path,IgnoreCase:true}]},Methods:[method]},Response:{StatusCode:parseInt(status),Headers:{'Content-Type':'application/json'},BodyAsFile:`../responses/${name.replace('mapping','response')}`,UseTransformer:true,UseTransformerForBodyAsFile:true},UseWebhooksFireAndForget:false};
+  renderJson(mappingData);
+  updateEditorBtns();renderFileTree();
+}
+function renderJson(obj){document.getElementById('jsonBody').innerHTML=syntaxHighlight(JSON.stringify(obj,null,2))}
+function syntaxHighlight(json){return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,match=>{let cls='jn';if(/^"/.test(match)){if(/:$/.test(match))cls='jk';else cls='js';}else if(/true|false/.test(match))cls='jb';else if(/null/.test(match))cls='jc';return`<span class="${cls}">${match}</span>`;});}
+function switchEpTab(t){document.getElementById('etab-form').classList.toggle('active',t==='form');document.getElementById('etab-raw').classList.toggle('active',t==='raw');document.getElementById('epForm').style.display=t==='form'?'':'none';document.getElementById('epRaw').style.display=t==='raw'?'':'none';}
+function pickStatus(el,val){document.querySelectorAll('.status-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');markDirty();}
+function markDirty(){isDirty=true;if(activeFile)modifiedFiles.add(activeFile.svc+'/'+activeFile.type+'/'+activeFile.name);updateEditorBtns();renderFileTree();}
+function markClean(){isDirty=false;if(activeFile)modifiedFiles.delete(activeFile.svc+'/'+activeFile.type+'/'+activeFile.name);updateEditorBtns();renderFileTree();}
+function updateEditorBtns(){
+  const saveBtn=document.getElementById('saveBtn');
+  const discBtn=document.getElementById('discardBtn');
+  if(saveBtn)saveBtn.disabled=!isDirty&&!isNewFile;
+  if(discBtn)discBtn.disabled=!isDirty||isNewFile;
+}
+function saveFile(){if(!activeFile)return;markClean();toast('Mapping saved.','success');addInfo('✅',`<strong>Mapping saved</strong> — <code>${activeFile.name}</code>`,activeFile.svc,'success');}
+function discardChanges(){if(!isDirty)return;markClean();if(activeFile)openFile(activeFile.svc,activeFile.type,activeFile.name);toast('Changes discarded.','info');}
+function deleteFile(){if(!activeFile)return;showConfirm(`Delete <code>${activeFile.name}</code>?`,`Removes file from <code>${MOCK_ROOT}/${svcSlug(activeFile.svc)}/${activeFile.type}/${activeFile.name}</code>. This cannot be undone.`,()=>{const ft=fileTree[activeFile.svc];if(ft)ft[activeFile.type]=ft[activeFile.type].filter(f=>f!==activeFile.name);modifiedFiles.delete(activeFile.svc+'/'+activeFile.type+'/'+activeFile.name);activeFile=null;isDirty=false;isNewFile=false;document.getElementById('epEmpty').style.display='';document.getElementById('epContent').style.display='none';document.getElementById('mapSub').textContent='Select a file to view or edit';renderFileTree();toast('File deleted.','success');});}
+function openNewFile(type){newFileType=type;document.getElementById('newMapTitle').textContent=type==='mapping'?'New Mapping File':'New Response File';const sel=document.getElementById('newMapSvc');sel.innerHTML=Object.keys(fileTree).map(k=>`<option>${k}</option>`).join('');updateNewFilePath();show('newMapOvl');}
+function updateNewFilePath(){const svc=document.getElementById('newMapSvc').value;const t=newFileType;if(svc&&t)document.getElementById('newMapPath').textContent=`Will be saved to: ${MOCK_ROOT}/${svcSlug(svc)}/${t==='mapping'?'mappings':'responses'}/`;}
+function createNewFile(){const name=document.getElementById('newMapName').value.trim()||'new-file.json';const svc=document.getElementById('newMapSvc').value;const type=newFileType==='mapping'?'mappings':'responses';const fname=name.endsWith('.json')?name:name+'.json';if(!fileTree[svc])fileTree[svc]={live:true,mappings:[],responses:[]};fileTree[svc][type].push(fname);if(!treeState[svc])treeState[svc]={};treeState[svc].expanded=true;treeState[svc][newFileType==='mapping'?'mappings':'responses']=true;hide('newMapOvl');isNewFile=true;isDirty=false;activeFile={svc,type,name:fname};document.getElementById('epEmpty').style.display='none';const ec=document.getElementById('epContent');ec.style.display='flex';document.getElementById('epCrumb').textContent=`${MOCK_ROOT}/${svcSlug(svc)}/${type}/${fname}`;document.getElementById('fMethod').value='GET';document.getElementById('fUrl').value='/';document.getElementById('fBody').value='';document.getElementById('fHeaderFilter').value='';document.getElementById('fBodyMatcher').value='';document.getElementById('fCT').value='application/json';document.getElementById('fDelay').value='0';document.getElementById('fPriority').value='1';document.querySelectorAll('.status-opt').forEach(o=>o.classList.toggle('active',o.textContent==='200'));renderJson({Guid:'',Title:'',Priority:1,Request:{Path:{Matchers:[{Name:'WildcardMatcher',Pattern:'/',IgnoreCase:true}]},Methods:['GET']},Response:{StatusCode:200,Headers:{'Content-Type':'application/json'},BodyAsFile:`../responses/${fname.replace('.json','')}_body.json`,UseTransformer:false,UseTransformerForBodyAsFile:false},UseWebhooksFireAndForget:false});updateEditorBtns();renderFileTree();toast(`New ${newFileType} file created — fill in and save.`,'info');}
+function openCopy(){if(!activeFile)return;document.getElementById('copySrc').value=activeFile.name;document.getElementById('copyDest').value='';show('copyMapOvl');}
+function doCopy(){const dest=document.getElementById('copyDest').value.trim();if(!dest||!activeFile)return;const fname=dest.endsWith('.json')?dest:dest+'.json';fileTree[activeFile.svc][activeFile.type].push(fname);hide('copyMapOvl');renderFileTree();openFile(activeFile.svc,activeFile.type,fname);toast(`Copied to "${fname}".`,'success');}
+function resync(){toast('Resync completed — mappings reloaded from disk.','success');addInfo('🔄','<strong>Resync completed</strong> — mappings reloaded from disk','All Services','info');}
+function copyJson(){toast('JSON copied to clipboard.','info');}
+
+// ══════════════════════════════════════════════════════
+// SYSTEM EVENTS
+// ══════════════════════════════════════════════════════
+function renderEvents(){
+  document.getElementById('warnList').innerHTML=warnEvents.map((e,i)=>`<div class="ev-item"><span class="ev-icon">${e.icon}</span><div class="ev-body"><div class="ev-msg">${e.msg}</div><div class="ev-meta"><span class="ev-time">${e.time}</span>${e.svc?`<span class="ev-svc">${e.svc}</span>`:''}<span class="ev-type et-${e.type}">${e.type.toUpperCase()}</span></div></div><span class="ev-dismiss" onclick="rmWarn(${i})"><i class="bi bi-x-lg"></i></span></div>`).join('');
+  document.getElementById('infoList').innerHTML=infoEvents.map((e,i)=>`<div class="ev-item"><span class="ev-icon">${e.icon}</span><div class="ev-body"><div class="ev-msg">${e.msg}</div><div class="ev-meta"><span class="ev-time">${e.time}</span>${e.svc?`<span class="ev-svc">${e.svc}</span>`:''}<span class="ev-type et-${e.type}">${e.type.toUpperCase()}</span></div></div><span class="ev-dismiss" onclick="rmInfo(${i})"><i class="bi bi-x-lg"></i></span></div>`).join('');
+  document.getElementById('warnCnt').textContent=warnEvents.length;
+  document.getElementById('infoCnt').textContent=infoEvents.length;
+  updateSidebarBadge();
+}
+function switchEvTab(t){document.getElementById('etab-warn').classList.toggle('active',t==='warn');document.getElementById('etab-info').classList.toggle('active',t==='info');document.getElementById('evWarn').style.display=t==='warn'?'':'none';document.getElementById('evInfo').style.display=t==='info'?'':'none';}
+function rmWarn(i){warnEvents.splice(i,1);renderEvents();}
+function rmInfo(i){infoEvents.splice(i,1);renderEvents();}
+function markAllEventsRead(){warnEvents=[];infoEvents=[];renderEvents();toast('All events cleared.','info');}
+function confirmClearEvents(){showConfirm('Clear all events?','This removes all warnings, errors and info entries from the log.',()=>{warnEvents=[];infoEvents=[];renderEvents();toast('Events cleared.','info');});}
+function addInfo(icon,msg,svc,type){infoEvents.unshift({icon,msg,time:'Just now',svc,type});if(type==='error'||type==='warn')warnEvents.unshift({icon,msg,time:'Just now',svc,type});renderEvents();}
+function updateSidebarBadge(){const cnt=warnEvents.length;document.getElementById('sidebarBadge').textContent=cnt;document.getElementById('sidebarBadge').style.display=cnt>0?'':'none';}
+
+// ══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+function renderNotifs(){
+  // Bell shows ONLY warnings & errors
+  const unread=notifications.filter(n=>n.unread).length;
+  document.getElementById('bellBadge').textContent=unread;
+  document.getElementById('bellBadge').style.display=unread>0?'':'none';
+  document.getElementById('notifList').innerHTML=notifications.map((n,i)=>`
+    <div class="ni ${n.unread?'unread':''}" onclick="readNotif(${i})">
+      <span class="ni-icon">${n.icon}</span>
+      <div class="ni-body"><div class="ni-msg">${n.msg}</div><div class="ni-time">${n.time}</div></div>
+      <span class="ni-x" onclick="event.stopPropagation();dismissNotif(${i})"><i class="bi bi-x-lg"></i></span>
+    </div>`).join('')+'<div style="padding:8px 13px;font-size:.64rem;color:var(--muted);text-align:center">Only warnings &amp; errors shown. See <a href="#" onclick="event.preventDefault();closeAllDD();showScreen(\'events\')" style="color:var(--brand)">System Events</a> for info.</div>';
+}
+function updateBellBadge(){renderNotifs();}
+function toggleNotif(){const p=document.getElementById('notifPanel');closeAllDD();p.classList.toggle('hidden');}
+function readNotif(i){notifications[i].unread=false;renderNotifs();}
+function dismissNotif(i){notifications.splice(i,1);renderNotifs();}
+function markAllNotifsRead(){notifications.forEach(n=>n.unread=false);renderNotifs();}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function showSS(s){['appearance','network','paths','cache','auth','flags'].forEach(x=>{document.getElementById('ss-'+x).style.display=x===s?'':'none';document.getElementById('sn-'+x).classList.toggle('active',x===s);});}
+function applyTheme(t,el){document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));el.classList.add('selected');toast('Theme applied.','success');}
+function setSidebarState(v){setSidebarState(v);}
+function renderCacheList(){document.getElementById('cacheList').innerHTML=caches.map((c,i)=>`<div class="cache-item"><div><strong>${c.name}</strong><span style="margin-left:8px;color:var(--muted);font-size:.67rem">${c.entries} entries · ${c.size}</span></div><button class="btn btn-danger btn-xs" onclick="confirmClearCache('${c.name}')"><i class="bi bi-trash"></i> Clear</button></div>`).join('');}
+function confirmClearCache(name){showConfirm(name==='all'?'Clear all caches?':`Clear cache <code>${name}</code>?`,name==='all'?'Removes all in-memory cached mappings and responses for all services.':'Removes all cached mappings and responses for this service.',()=>{if(name==='all'){caches.forEach(c=>c.entries=0);}else{const c=caches.find(x=>x.name===name);if(c){c.entries=0;c.size='0 KB';}}renderCacheList();toast(name==='all'?'All caches cleared.':'"'+name+'" cache cleared.','success');});}
+
+// ══════════════════════════════════════════════════════
+// DROPDOWNS / OVERLAYS
+// ══════════════════════════════════════════════════════
+function toggleAbout(){closeAllDD();show('aboutOvl');}
+function toggleUserDD(){const ud=document.getElementById('userDD');closeAllDD();ud.classList.toggle('hidden');}
+function closeAllDD(){['notifPanel','userDD','proxyCountDD','typeDD','colDD'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hidden');});}
+function show(id){document.getElementById(id).classList.remove('hidden')}
+function hide(id){document.getElementById(id).classList.add('hidden')}
+
+let confirmCB=null;
+function showConfirm(title,body,cb){document.getElementById('confirmTitle').textContent=title.replace(/<[^>]+>/g,'');document.getElementById('confirmBody').innerHTML=body;confirmCB=cb;show('confirmOvl');}
+function closeConfirm(){hide('confirmOvl');confirmCB=null;}
+document.addEventListener('DOMContentLoaded',()=>{document.getElementById('confirmOkBtn').onclick=()=>{const cb=confirmCB;closeConfirm();if(cb)cb();};});
+window.addEventListener('load',()=>{document.getElementById('confirmOkBtn').onclick=()=>{const cb=confirmCB;closeConfirm();if(cb)cb();};});
+
+// Close dropdowns on outside click
+document.addEventListener('click',e=>{if(!e.target.closest('#notifPanel')&&!e.target.closest('#bellBtn'))document.getElementById('notifPanel').classList.add('hidden');if(!e.target.closest('#userDD')&&!e.target.closest('.tb-avatar'))document.getElementById('userDD').classList.add('hidden');if(!e.target.closest('#proxyCountDD')&&!e.target.closest('#proxyCounterPill'))document.getElementById('proxyCountDD').classList.add('hidden');if(!e.target.closest('#typeDD')&&!e.target.closest('#typeFilterBtn'))document.getElementById('typeDD').classList.add('hidden');if(!e.target.closest('#colDD'))document.getElementById('colDD').classList.add('hidden');});
+
+// ══════════════════════════════════════════════════════
+// TOASTS
+// ══════════════════════════════════════════════════════
+function toast(msg,type='info'){const c=document.getElementById('toastC');const t=document.createElement('div');t.className=`toast toast-${type}`;const icons={success:'bi-check-circle',error:'bi-x-circle',info:'bi-info-circle'};t.innerHTML=`<i class="bi ${icons[type]||'bi-info-circle'}"></i>${msg}`;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3000);}
+</script>
+</body>
+</html>

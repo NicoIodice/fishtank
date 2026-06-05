@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fishtank — Multi-Screen Mockup</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #060d16;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+  color: #e2e8f0;
+}
+
+/* ── Outer wrapper ───────────────────────────────────────── */
+.frame {
+  width: 960px; height: 620px;
+  border-radius: 14px; overflow: hidden;
+  box-shadow: 0 8px 60px rgba(0,0,0,.7);
+  display: flex; flex-direction: column;
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+.topbar {
+  height: 42px; min-height: 42px;
+  background: #0a1628;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  z-index: 100;
+}
+.logo { font-size: 0.9rem; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 7px; letter-spacing: -.01em; }
+.logo-fish { font-size: 1rem; }
+.topbar-sp { flex: 1; }
+.tb-icon {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; color: #94a3b8; position: relative; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.06); transition: background .15s;
+}
+.tb-icon:hover { background: rgba(255,255,255,.1); }
+.tb-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: #ef4444; font-size: 0.55rem; font-weight: 800; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #0a1628;
+}
+.tb-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  font-size: 0.67rem; font-weight: 800; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 2px solid rgba(255,255,255,.1);
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.body { flex: 1; display: flex; overflow: hidden; }
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  width: 200px; min-width: 200px;
+  background: #0d1b2a;
+  border-right: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column;
+  padding: 14px 0;
+}
+.sidebar-section-label {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #334155; padding: 0 16px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; border-radius: 8px; margin: 1px 8px;
+  font-size: 0.75rem; color: #64748b; cursor: pointer;
+  transition: background .12s, color .12s; user-select: none;
+}
+.nav-item:hover { background: rgba(255,255,255,.04); color: #94a3b8; }
+.nav-item.active { background: rgba(59,130,246,.18); color: #93c5fd; }
+.nav-icon { font-size: 0.85rem; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-sep { height: 1px; background: rgba(255,255,255,.06); margin: 8px 16px; }
+.nav-badge {
+  margin-left: auto; background: #ef4444;
+  color: #fff; font-size: 0.58rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 99px; min-width: 18px; text-align: center;
+}
+
+/* ── Main content ────────────────────────────────────────── */
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #0f2233; }
+
+/* ── Screen visibility ───────────────────────────────────── */
+.screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.screen.active { display: flex; }
+
+/* ── Page header ─────────────────────────────────────────── */
+.page-hdr {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; gap: 12px;
+  background: #0f2233;
+}
+.page-title { font-size: 1rem; font-weight: 800; color: #f1f5f9; flex: 1; }
+.page-sub { font-size: 0.72rem; color: #475569; margin-top: 2px; }
+.btn {
+  padding: 7px 14px; border-radius: 7px; font-size: 0.73rem; font-weight: 700;
+  border: none; cursor: pointer; transition: opacity .15s;
+}
+.btn:hover { opacity: .85; }
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-ghost { background: rgba(255,255,255,.06); color: #94a3b8; border: 1px solid rgba(255,255,255,.08); }
+.btn-sm { padding: 4px 10px; font-size: 0.67rem; border-radius: 5px; }
+.btn-danger-ghost { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+
+/* ── Search + toolbar ────────────────────────────────────── */
+.toolbar { display: flex; gap: 8px; align-items: center; padding: 12px 22px; }
+.search {
+  flex: 1; padding: 7px 12px; border-radius: 7px; font-size: 0.73rem;
+  background: #162d42; border: 1px solid rgba(255,255,255,.09); color: #cbd5e1; outline: none;
+}
+.search::placeholder { color: #475569; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 7px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04); color: #64748b; display: flex; align-items: center;
+  justify-content: center; font-size: 0.8rem; cursor: pointer; transition: background .12s;
+}
+.icon-btn:hover { background: rgba(255,255,255,.08); color: #94a3b8; }
+.icon-btn.active { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.3); color: #60a5fa; }
+.view-toggle { display: flex; border: 1px solid rgba(255,255,255,.08); border-radius: 7px; overflow: hidden; }
+.vt-btn {
+  padding: 0 10px; height: 32px; background: transparent; border: none;
+  color: #64748b; font-size: 0.8rem; cursor: pointer; transition: background .12s;
+}
+.vt-btn:hover { background: rgba(255,255,255,.04); }
+.vt-btn.active { background: rgba(59,130,246,.15); color: #60a5fa; }
+
+/* ── Scrollable content area ─────────────────────────────── */
+.scroll-area { flex: 1; overflow-y: auto; padding: 16px 22px; }
+.scroll-area::-webkit-scrollbar { width: 4px; }
+.scroll-area::-webkit-scrollbar-track { background: transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 1 — SERVICES
+═══════════════════════════════════════════════════════════ */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.service-card {
+  background: #0d1b2a;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: border-color .15s;
+}
+.service-card:hover { border-color: rgba(59,130,246,.3); }
+.sc-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.sc-name { font-size: 0.82rem; font-weight: 700; color: #e2e8f0; }
+.sc-desc { font-size: 0.69rem; color: #64748b; margin-top: 2px; line-height: 1.4; }
+.status-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 99px; font-size: 0.62rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.status-pill.live { background: rgba(74,222,128,.12); color: #4ade80; border: 1px solid rgba(74,222,128,.2); }
+.status-pill.stopped { background: rgba(100,116,139,.1); color: #64748b; border: 1px solid rgba(100,116,139,.2); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.sc-meta { display: flex; flex-direction: column; gap: 4px; }
+.sc-row { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: #475569; }
+.sc-row-label { color: #334155; font-weight: 600; width: 36px; flex-shrink: 0; }
+.sc-row-val { color: #94a3b8; font-family: monospace; font-size: 0.66rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.port-badge {
+  padding: 1px 7px; border-radius: 5px; font-size: 0.63rem; font-weight: 700;
+  background: rgba(99,102,241,.15); color: #818cf8; border: 1px solid rgba(99,102,241,.2);
+  font-family: monospace;
+}
+.sc-footer { display: flex; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.05); }
+.sc-action { font-size: 0.67rem; color: #3b82f6; cursor: pointer; font-weight: 600; }
+.sc-action:hover { color: #60a5fa; }
+.sc-sp { flex: 1; }
+/* Toggle switch */
+.toggle-wrap { display: flex; align-items: center; gap: 6px; }
+.toggle {
+  width: 32px; height: 18px; border-radius: 99px; position: relative; cursor: pointer;
+  transition: background .2s; flex-shrink: 0;
+}
+.toggle.on { background: #22c55e; }
+.toggle.off { background: #334155; }
+.toggle::after {
+  content: ''; position: absolute; top: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: left .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.toggle.on::after { left: 16px; }
+.toggle.off::after { left: 2px; }
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 2 — SYSTEM EVENTS
+═══════════════════════════════════════════════════════════ */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  padding: 0 22px;
+  background: #0f2233;
+}
+.tab {
+  padding: 10px 16px; font-size: 0.74rem; font-weight: 600;
+  color: #475569; cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s; display: flex; align-items: center; gap: 7px;
+  margin-bottom: -1px;
+}
+.tab:hover { color: #94a3b8; }
+.tab.active { color: #93c5fd; border-bottom-color: #3b82f6; }
+.tab-count {
+  padding: 1px 6px; border-radius: 99px; font-size: 0.6rem; font-weight: 700;
+}
+.tab.active .tab-count.warn { background: rgba(251,146,60,.2); color: #fb923c; }
+.tab.active .tab-count.info { background: rgba(59,130,246,.2); color: #60a5fa; }
+.tab-count.warn { background: rgba(251,146,60,.12); color: #fb923c; }
+.tab-count.info { background: rgba(59,130,246,.12); color: #60a5fa; }
+
+.event-list { display: flex; flex-direction: column; gap: 0; }
+.event-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.event-item:last-child { border-bottom: none; }
+.event-icon { font-size: 0.85rem; margin-top: 1px; flex-shrink: 0; }
+.event-body { flex: 1; min-width: 0; }
+.event-msg { font-size: 0.73rem; color: #cbd5e1; line-height: 1.45; }
+.event-msg strong { color: #e2e8f0; }
+.event-meta { display: flex; gap: 8px; margin-top: 3px; align-items: center; }
+.event-time { font-size: 0.63rem; color: #475569; }
+.event-svc {
+  font-size: 0.62rem; font-weight: 600; padding: 1px 6px; border-radius: 4px;
+  background: rgba(99,102,241,.12); color: #818cf8;
+}
+.event-type-badge {
+  font-size: 0.6rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .04em;
+}
+.et-error { background: rgba(239,68,68,.15); color: #f87171; }
+.et-warn { background: rgba(251,146,60,.15); color: #fb923c; }
+.et-info { background: rgba(59,130,246,.12); color: #60a5fa; }
+.et-success { background: rgba(74,222,128,.12); color: #4ade80; }
+.event-dismiss { font-size: 0.72rem; color: #334155; cursor: pointer; flex-shrink: 0; padding: 2px; }
+.event-dismiss:hover { color: #64748b; }
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 3 — SETTINGS
+═══════════════════════════════════════════════════════════ */
+.settings-layout { display: flex; flex: 1; overflow: hidden; }
+.settings-nav {
+  width: 170px; min-width: 170px; padding: 16px 0;
+  border-right: 1px solid rgba(255,255,255,.06); background: #0d1b2a;
+}
+.sn-item {
+  padding: 7px 16px; font-size: 0.73rem; color: #64748b;
+  cursor: pointer; border-radius: 7px; margin: 1px 8px;
+  transition: background .12s;
+}
+.sn-item:hover { background: rgba(255,255,255,.04); color: #94a3b8; }
+.sn-item.active { background: rgba(59,130,246,.15); color: #93c5fd; font-weight: 600; }
+.settings-content { flex: 1; overflow-y: auto; padding: 22px 26px; }
+.settings-content::-webkit-scrollbar { width: 4px; }
+.settings-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+.settings-section-title {
+  font-size: 0.9rem; font-weight: 800; color: #e2e8f0;
+  margin-bottom: 16px; padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.04); gap: 20px;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 0.74rem; font-weight: 600; color: #cbd5e1; }
+.setting-desc { font-size: 0.66rem; color: #475569; margin-top: 2px; }
+.setting-control { flex-shrink: 0; }
+.select {
+  padding: 5px 10px; background: #162d42; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px; color: #cbd5e1; font-size: 0.71rem; outline: none; cursor: pointer;
+}
+.theme-swatches { display: flex; gap: 8px; }
+.swatch {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .15s;
+  position: relative; overflow: hidden;
+}
+.swatch.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.3); }
+.swatch-half-l { position: absolute; left: 0; top: 0; width: 50%; height: 100%; }
+.swatch-half-r { position: absolute; right: 0; top: 0; width: 50%; height: 100%; }
+.detail-mode-opts { display: flex; gap: 6px; }
+.dmo {
+  padding: 5px 10px; border-radius: 6px; font-size: 0.67rem; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+  color: #64748b; cursor: pointer;
+}
+.dmo.active { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.35); color: #60a5fa; }
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 4 — MAPPINGS
+═══════════════════════════════════════════════════════════ */
+.mappings-layout { flex: 1; display: flex; overflow: hidden; }
+.mapping-list-pane {
+  width: 340px; min-width: 340px;
+  border-right: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column;
+}
+.mlp-header {
+  padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.svc-selector {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; background: #0d1b2a; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 7px; cursor: pointer; font-size: 0.73rem;
+}
+.svc-pill {
+  background: rgba(74,222,128,.12); color: #4ade80;
+  border: 1px solid rgba(74,222,128,.2); border-radius: 5px;
+  padding: 1px 8px; font-size: 0.67rem; font-weight: 700;
+}
+.svc-selector-caret { margin-left: auto; color: #475569; font-size: 0.7rem; }
+.mlp-search { padding: 0 16px 10px; }
+.mlp-search .search { width: 100%; }
+.mlp-list { flex: 1; overflow-y: auto; }
+.mlp-list::-webkit-scrollbar { width: 3px; }
+.mlp-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+.mapping-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04);
+  cursor: pointer; transition: background .12s;
+}
+.mapping-row:hover { background: rgba(255,255,255,.03); }
+.mapping-row.active { background: rgba(59,130,246,.1); border-left: 2px solid #3b82f6; padding-left: 14px; }
+.mr-method {
+  font-size: 0.62rem; font-weight: 800; width: 38px; flex-shrink: 0;
+  padding: 2px 0; text-align: center; border-radius: 4px;
+}
+.mr-get { background: rgba(59,130,246,.15); color: #60a5fa; }
+.mr-post { background: rgba(52,211,153,.15); color: #34d399; }
+.mr-put { background: rgba(251,191,36,.15); color: #fbbf24; }
+.mr-delete { background: rgba(248,113,113,.15); color: #f87171; }
+.mr-body { flex: 1; min-width: 0; }
+.mr-path { font-size: 0.72rem; color: #cbd5e1; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mr-name { font-size: 0.63rem; color: #475569; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mr-status { font-size: 0.68rem; color: #64748b; flex-shrink: 0; font-family: monospace; }
+
+/* Editor pane */
+.editor-pane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.ep-header {
+  padding: 14px 18px 0; border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; gap: 0;
+}
+.ep-title { font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 10px; font-family: monospace; }
+.ep-tabs { display: flex; gap: 0; }
+.ep-tab {
+  padding: 8px 16px; font-size: 0.72rem; font-weight: 600; color: #475569;
+  cursor: pointer; border-bottom: 2px solid transparent; transition: color .12s;
+  margin-bottom: -1px;
+}
+.ep-tab:hover { color: #94a3b8; }
+.ep-tab.active { color: #93c5fd; border-bottom-color: #3b82f6; }
+.ep-body { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.ep-body::-webkit-scrollbar { width: 3px; }
+.ep-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+
+/* Form fields */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field.full { grid-column: 1 / -1; }
+.field-label { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #475569; }
+.field-input {
+  padding: 7px 10px; background: #162d42; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px; color: #cbd5e1; font-size: 0.72rem; outline: none;
+  font-family: inherit;
+}
+.field-input:focus { border-color: rgba(59,130,246,.5); }
+.field-input.mono { font-family: monospace; font-size: 0.69rem; }
+.field-textarea {
+  padding: 7px 10px; background: #162d42; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px; color: #cbd5e1; font-size: 0.69rem; outline: none;
+  font-family: monospace; resize: none; min-height: 72px; line-height: 1.5;
+}
+.field-textarea:focus { border-color: rgba(59,130,246,.5); }
+.status-row { display: flex; gap: 6px; }
+.status-opt {
+  padding: 5px 10px; border-radius: 6px; font-size: 0.67rem; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03);
+  color: #64748b; cursor: pointer;
+}
+.status-opt.active { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.3); color: #60a5fa; }
+
+/* Raw JSON editor */
+.json-editor-wrap {
+  background: #0a1628; border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px; overflow: hidden; flex: 1; display: flex; flex-direction: column;
+}
+.json-editor-header {
+  padding: 6px 12px; background: #0d1b2a; border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.json-editor-lang { font-size: 0.62rem; color: #475569; font-weight: 600; }
+.json-editor-body {
+  padding: 12px 14px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.69rem; line-height: 1.65; color: #cbd5e1; overflow: hidden;
+  flex: 1;
+}
+.jk { color: #93c5fd; } /* key */
+.js { color: #86efac; } /* string */
+.jn { color: #fb923c; } /* number */
+.jb { color: #f472b6; } /* bool */
+.jp { color: #94a3b8; } /* punctuation */
+
+.ep-footer {
+  padding: 10px 18px; border-top: 1px solid rgba(255,255,255,.06);
+  display: flex; justify-content: flex-end; gap: 8px;
+  background: #0d1b2a;
+}
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ── TOP BAR ───────────────────────────────────────────── -->
+  <div class="topbar">
+    <div class="logo"><span class="logo-fish">🐠</span> Fishtank</div>
+    <div class="topbar-sp"></div>
+    <div class="tb-icon" title="About">ℹ</div>
+    <div class="tb-icon" title="Notifications">🔔<span class="tb-badge">4</span></div>
+    <div class="tb-avatar" title="Nico Iodice">NI</div>
+  </div>
+
+  <!-- ── BODY ──────────────────────────────────────────────── -->
+  <div class="body">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    <div class="sidebar">
+      <div class="nav-item" id="nav-services" onclick="show('services')">
+        <span class="nav-icon">⚙</span> Services
+      </div>
+      <div class="nav-item" id="nav-network" onclick="show('network')">
+        <span class="nav-icon">📡</span> Network Activity
+      </div>
+      <div class="nav-item" id="nav-mappings" onclick="show('mappings')" class="active">
+        <span class="nav-icon">🗂</span> Mappings
+      </div>
+      <div class="nav-sep"></div>
+      <div class="nav-item" id="nav-events" onclick="show('events')">
+        <span class="nav-icon">📋</span> System Events
+        <span class="nav-badge">4</span>
+      </div>
+      <div class="nav-item" id="nav-settings" onclick="show('settings')">
+        <span class="nav-icon">⚙</span> Settings
+      </div>
+    </div>
+
+    <!-- ── MAIN ────────────────────────────────────────────── -->
+    <div class="main">
+
+      <!-- ════════════════════════════════════════════════════
+           SCREEN: SERVICES
+      ════════════════════════════════════════════════════ -->
+      <div class="screen" id="screen-services">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title">Services</div>
+            <div class="page-sub">6 services configured · 5 live · 1 stopped</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <div class="view-toggle">
+              <button class="vt-btn active" title="Grid view">⊞</button>
+              <button class="vt-btn" title="Table view">☰</button>
+            </div>
+            <button class="btn btn-primary">+ Add Service</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="search" type="text" placeholder="Search services…">
+          <div class="icon-btn" title="Filter">▼</div>
+        </div>
+        <div class="scroll-area">
+          <div class="services-grid">
+
+            <!-- Card 1 -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Finance API</div>
+                  <div class="sc-desc">Core banking & account data</div>
+                </div>
+                <div class="status-pill live"><span class="status-dot"></span>Live</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8081</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://api.finance.gov</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle on"></div></div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Social Security</div>
+                  <div class="sc-desc">Identity & verification services</div>
+                </div>
+                <div class="status-pill live"><span class="status-dot"></span>Live</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8082</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://api.socialsec.gov</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle on"></div></div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Payments Gateway</div>
+                  <div class="sc-desc">Transaction processing</div>
+                </div>
+                <div class="status-pill live"><span class="status-dot"></span>Live</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8083</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://pay.stripe.example</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle on"></div></div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Logistics API</div>
+                  <div class="sc-desc">Shipping & fulfilment tracking</div>
+                </div>
+                <div class="status-pill live"><span class="status-dot"></span>Live</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8084</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://api.logistics.io</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle on"></div></div>
+              </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Notifications</div>
+                  <div class="sc-desc">Email & SMS dispatch service</div>
+                </div>
+                <div class="status-pill live"><span class="status-dot"></span>Live</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8085</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://api.notify.example</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle on"></div></div>
+              </div>
+            </div>
+
+            <!-- Card 6 — Stopped -->
+            <div class="service-card">
+              <div class="sc-top">
+                <div>
+                  <div class="sc-name">Legacy Auth</div>
+                  <div class="sc-desc">Deprecated auth provider (staging only)</div>
+                </div>
+                <div class="status-pill stopped"><span class="status-dot"></span>Stopped</div>
+              </div>
+              <div class="sc-meta">
+                <div class="sc-row"><span class="sc-row-label">Port</span><span class="port-badge">8086</span></div>
+                <div class="sc-row"><span class="sc-row-label">URL</span><span class="sc-row-val">https://auth-legacy.internal</span></div>
+              </div>
+              <div class="sc-footer">
+                <span class="sc-action">Edit</span>
+                <span class="sc-action" style="margin-left:8px">Mappings</span>
+                <div class="sc-sp"></div>
+                <div class="toggle-wrap"><div class="toggle off"></div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           SCREEN: NETWORK ACTIVITY (placeholder)
+      ════════════════════════════════════════════════════ -->
+      <div class="screen" id="screen-network">
+        <div class="page-hdr">
+          <div class="page-title">Network Activity</div>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#334155;font-size:.8rem;">
+          ← Select this screen from the row-detail mockup
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           SCREEN: SYSTEM EVENTS
+      ════════════════════════════════════════════════════ -->
+      <div class="screen" id="screen-events">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title">System Events</div>
+            <div class="page-sub">Warnings, errors and operational info</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto">Mark all read</button>
+          <button class="btn btn-danger-ghost btn-sm">Clear all</button>
+        </div>
+        <div class="tabs">
+          <div class="tab active" id="tab-warn" onclick="switchTab('warn')">
+            Warnings &amp; Errors <span class="tab-count warn">4</span>
+          </div>
+          <div class="tab" id="tab-info" onclick="switchTab('info')">
+            Info <span class="tab-count info">12</span>
+          </div>
+        </div>
+
+        <!-- Warnings & Errors tab -->
+        <div class="scroll-area" id="events-warn">
+          <div class="event-list">
+
+            <div class="event-item">
+              <span class="event-icon">🔴</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Duplicate GUID detected</strong> — mapping <code style="font-size:.68rem;color:#93c5fd">a3f1b2c4</code> appears in both <code style="font-size:.68rem;color:#93c5fd">finance/mappings/accounts.json</code> and <code style="font-size:.68rem;color:#93c5fd">finance/mappings/legacy.json</code></div>
+                <div class="event-meta">
+                  <span class="event-time">Today 14:32:07</span>
+                  <span class="event-svc">Finance API</span>
+                  <span class="event-type-badge et-error">Error</span>
+                </div>
+              </div>
+              <span class="event-dismiss" title="Dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">🟠</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Malformed response body</strong> — mapping <code style="font-size:.68rem;color:#93c5fd">POST /api/social/verify</code> references response file <code style="font-size:.68rem;color:#93c5fd">verify-response.json</code> which contains invalid JSON at line 14</div>
+                <div class="event-meta">
+                  <span class="event-time">Today 13:58:41</span>
+                  <span class="event-svc">Social Security</span>
+                  <span class="event-type-badge et-warn">Warning</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">🔴</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Mapping load failed</strong> — <code style="font-size:.68rem;color:#93c5fd">payments/mappings/refund.json</code> is missing required field <code style="font-size:.68rem;color:#93c5fd">request.method</code></div>
+                <div class="event-meta">
+                  <span class="event-time">Today 11:20:14</span>
+                  <span class="event-svc">Payments Gateway</span>
+                  <span class="event-type-badge et-error">Error</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">🟠</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Config conflict on import</strong> — seed file defines service <code style="font-size:.68rem;color:#93c5fd">logistics</code> on port <code style="font-size:.68rem;color:#93c5fd">8084</code> but database already has an existing entry on that port. Import skipped for this service.</div>
+                <div class="event-meta">
+                  <span class="event-time">Yesterday 09:11:52</span>
+                  <span class="event-svc">Logistics API</span>
+                  <span class="event-type-badge et-warn">Warning</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Info tab (hidden by default) -->
+        <div class="scroll-area" id="events-info" style="display:none">
+          <div class="event-list">
+
+            <div class="event-item">
+              <span class="event-icon">✅</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Mock saved</strong> — <code style="font-size:.68rem;color:#93c5fd">GET /api/finance/account</code> saved as mapping <code style="font-size:.68rem;color:#93c5fd">finance/mappings/account-get-200.json</code></div>
+                <div class="event-meta">
+                  <span class="event-time">Today 14:45:02</span>
+                  <span class="event-svc">Finance API</span>
+                  <span class="event-type-badge et-success">Success</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">🔄</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Resync completed</strong> — Finance API reloaded 24 mappings from disk in 142ms</div>
+                <div class="event-meta">
+                  <span class="event-time">Today 14:30:00</span>
+                  <span class="event-svc">Finance API</span>
+                  <span class="event-type-badge et-info">Info</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">⏺</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Record mode enabled</strong> — proxied requests to Social Security will auto-promote to mappings</div>
+                <div class="event-meta">
+                  <span class="event-time">Today 13:50:00</span>
+                  <span class="event-svc">Social Security</span>
+                  <span class="event-type-badge et-info">Info</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+            <div class="event-item">
+              <span class="event-icon">🚀</span>
+              <div class="event-body">
+                <div class="event-msg"><strong>Fishtank started</strong> — 6 services loaded, 5 live, 1 stopped. SQLite DB ready. Volume mounted at <code style="font-size:.68rem;color:#93c5fd">/mocks</code></div>
+                <div class="event-meta">
+                  <span class="event-time">Today 09:00:01</span>
+                  <span class="event-type-badge et-info">Info</span>
+                </div>
+              </div>
+              <span class="event-dismiss">✕</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           SCREEN: SETTINGS
+      ════════════════════════════════════════════════════ -->
+      <div class="screen" id="screen-settings">
+        <div class="page-hdr">
+          <div class="page-title">Settings</div>
+        </div>
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <div class="sn-item active">Appearance</div>
+            <div class="sn-item">Network Activity</div>
+            <div class="sn-item">Paths</div>
+            <div class="sn-item">Headers</div>
+            <div class="sn-item">Auth & Users</div>
+            <div class="sn-item">Feature Flags</div>
+            <div class="sn-item">About</div>
+          </div>
+          <div class="settings-content">
+
+            <div class="settings-section-title">Appearance</div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Theme</div>
+                <div class="setting-desc">Choose your colour scheme</div>
+              </div>
+              <div class="setting-control">
+                <div class="theme-swatches">
+                  <!-- Clean Light -->
+                  <div class="swatch selected" title="Clean Light">
+                    <div class="swatch-half-l" style="background:#f1f5f9"></div>
+                    <div class="swatch-half-r" style="background:#0ea5e9"></div>
+                  </div>
+                  <!-- Deep Ocean -->
+                  <div class="swatch" title="Deep Ocean">
+                    <div class="swatch-half-l" style="background:#0d1b2a"></div>
+                    <div class="swatch-half-r" style="background:#3b82f6"></div>
+                  </div>
+                  <!-- Emerald Terminal -->
+                  <div class="swatch" title="Emerald Terminal">
+                    <div class="swatch-half-l" style="background:#064e3b"></div>
+                    <div class="swatch-half-r" style="background:#10b981"></div>
+                  </div>
+                  <!-- Ink & Amber -->
+                  <div class="swatch" title="Ink & Amber">
+                    <div class="swatch-half-l" style="background:#18181b"></div>
+                    <div class="swatch-half-r" style="background:#f59e0b"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Color mode</div>
+                <div class="setting-desc">Override OS preference</div>
+              </div>
+              <div class="setting-control">
+                <select class="select">
+                  <option>System default</option>
+                  <option>Always light</option>
+                  <option>Always dark</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Network Activity row detail style</div>
+                <div class="setting-desc">How request detail opens when you click a row</div>
+              </div>
+              <div class="setting-control">
+                <div class="detail-mode-opts">
+                  <div class="dmo active">Modal</div>
+                  <div class="dmo">Right Drawer</div>
+                  <div class="dmo">Bottom Panel</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Sidebar</div>
+                <div class="setting-desc">Default expansion state on load</div>
+              </div>
+              <div class="setting-control">
+                <select class="select">
+                  <option>Expanded (labels visible)</option>
+                  <option>Collapsed (icons only)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:24px">
+              <div class="settings-section-title">Network Activity</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Auto-refresh</div>
+                  <div class="setting-desc">Polling interval for live activity log</div>
+                </div>
+                <div class="setting-control">
+                  <select class="select">
+                    <option>1 second</option>
+                    <option>2 seconds</option>
+                    <option>5 seconds</option>
+                    <option>Disabled</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Max log entries per service</div>
+                  <div class="setting-desc">Oldest entries pruned automatically</div>
+                </div>
+                <div class="setting-control">
+                  <select class="select">
+                    <option>500</option>
+                    <option>1 000</option>
+                    <option>5 000</option>
+                  </select>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Sensitive header redaction</div>
+                  <div class="setting-desc">Redact Authorization, Cookie, Set-Cookie by default</div>
+                </div>
+                <div class="setting-control">
+                  <div class="toggle on"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           SCREEN: MAPPINGS
+      ════════════════════════════════════════════════════ -->
+      <div class="screen active" id="screen-mappings">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title">Mappings</div>
+            <div class="page-sub">24 mappings · Finance API</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+            <button class="btn btn-ghost btn-sm">↺ Resync</button>
+            <button class="btn btn-primary">+ New Mapping</button>
+          </div>
+        </div>
+        <div class="mappings-layout">
+
+          <!-- List pane -->
+          <div class="mapping-list-pane">
+            <div class="mlp-header">
+              <!-- Service selector -->
+              <div class="svc-selector">
+                <span class="svc-pill">● Live</span>
+                <span style="font-size:.73rem;color:#e2e8f0;font-weight:600">Finance API</span>
+                <span style="font-size:.67rem;color:#475569;font-family:monospace">:8081</span>
+                <span class="svc-selector-caret">▾</span>
+              </div>
+            </div>
+            <div class="mlp-search">
+              <input class="search" type="text" placeholder="Filter mappings…" style="width:100%;margin-top:10px">
+            </div>
+            <div class="mlp-list">
+
+              <div class="mapping-row active">
+                <span class="mr-method mr-get">GET</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/account</div>
+                  <div class="mr-name">account-get-200</div>
+                </div>
+                <span class="mr-status">200</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-post">POST</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/account</div>
+                  <div class="mr-name">account-create-201</div>
+                </div>
+                <span class="mr-status">201</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-get">GET</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/balance</div>
+                  <div class="mr-name">balance-get-200</div>
+                </div>
+                <span class="mr-status">200</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-get">GET</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/balance</div>
+                  <div class="mr-name">balance-get-500-error</div>
+                </div>
+                <span class="mr-status" style="color:#f87171">500</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-put">PUT</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/account/{{id}}</div>
+                  <div class="mr-name">account-update-200</div>
+                </div>
+                <span class="mr-status">200</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-delete">DEL</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/account/{{id}}</div>
+                  <div class="mr-name">account-delete-204</div>
+                </div>
+                <span class="mr-status">204</span>
+              </div>
+
+              <div class="mapping-row">
+                <span class="mr-method mr-post">POST</span>
+                <div class="mr-body">
+                  <div class="mr-path">/api/finance/transfer</div>
+                  <div class="mr-name">transfer-post-201</div>
+                </div>
+                <span class="mr-status">201</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Editor pane -->
+          <div class="editor-pane">
+            <div class="ep-header">
+              <div class="ep-title">GET /api/finance/account → 200</div>
+              <div class="ep-tabs">
+                <div class="ep-tab active" id="etab-form" onclick="switchEditorTab('form')">Form</div>
+                <div class="ep-tab" id="etab-raw" onclick="switchEditorTab('raw')">Raw JSON</div>
+              </div>
+            </div>
+
+            <!-- Form tab -->
+            <div class="ep-body" id="ep-form">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label class="field-label">Method</label>
+                  <select class="field-input">
+                    <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Response Status</label>
+                  <div class="status-row">
+                    <div class="status-opt active">200</div>
+                    <div class="status-opt">201</div>
+                    <div class="status-opt">400</div>
+                    <div class="status-opt">404</div>
+                    <div class="status-opt">500</div>
+                  </div>
+                </div>
+                <div class="form-field full">
+                  <label class="field-label">URL Pattern</label>
+                  <input class="field-input mono" type="text" value="/api/finance/account">
+                </div>
+                <div class="form-field full">
+                  <label class="field-label">Response Body</label>
+                  <textarea class="field-textarea">{"accountId": "acc_123",
+"balance": 4200.00,
+"currency": "EUR",
+"status": "active"}</textarea>
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Content-Type</label>
+                  <input class="field-input" type="text" value="application/json">
+                </div>
+                <div class="form-field">
+                  <label class="field-label">Response Delay (ms)</label>
+                  <input class="field-input mono" type="text" value="0">
+                </div>
+              </div>
+            </div>
+
+            <!-- Raw JSON tab (hidden) -->
+            <div class="ep-body" id="ep-raw" style="display:none">
+              <div class="json-editor-wrap" style="flex:1">
+                <div class="json-editor-header">
+                  <span class="json-editor-lang">JSON — WireMock mapping format</span>
+                  <button class="btn btn-ghost btn-sm">Copy</button>
+                </div>
+                <div class="json-editor-body"><span class="jp">{</span>
+  <span class="jk">"id"</span><span class="jp">:</span> <span class="js">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span><span class="jp">,</span>
+  <span class="jk">"name"</span><span class="jp">:</span> <span class="js">"account-get-200"</span><span class="jp">,</span>
+  <span class="jk">"request"</span><span class="jp">:</span> <span class="jp">{</span>
+    <span class="jk">"method"</span><span class="jp">:</span> <span class="js">"GET"</span><span class="jp">,</span>
+    <span class="jk">"url"</span><span class="jp">:</span> <span class="js">"/api/finance/account"</span>
+  <span class="jp">},</span>
+  <span class="jk">"response"</span><span class="jp">:</span> <span class="jp">{</span>
+    <span class="jk">"status"</span><span class="jp">:</span> <span class="jn">200</span><span class="jp">,</span>
+    <span class="jk">"headers"</span><span class="jp">:</span> <span class="jp">{</span>
+      <span class="jk">"Content-Type"</span><span class="jp">:</span> <span class="js">"application/json"</span>
+    <span class="jp">},</span>
+    <span class="jk">"bodyFileName"</span><span class="jp">:</span> <span class="js">"finance/responses/account-get-200.json"</span>
+  <span class="jp">}</span>
+<span class="jp">}</span></div>
+              </div>
+            </div>
+
+            <div class="ep-footer">
+              <button class="btn btn-ghost btn-sm">Delete</button>
+              <button class="btn btn-ghost btn-sm">Discard</button>
+              <button class="btn btn-primary btn-sm">Save Mapping</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body -->
+</div><!-- /frame -->
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-warn').classList.toggle('active', tab === 'warn');
+  document.getElementById('tab-info').classList.toggle('active', tab === 'info');
+  document.getElementById('events-warn').style.display = tab === 'warn' ? '' : 'none';
+  document.getElementById('events-info').style.display = tab === 'info' ? '' : 'none';
+}
+
+function switchEditorTab(tab) {
+  document.getElementById('etab-form').classList.toggle('active', tab === 'form');
+  document.getElementById('etab-raw').classList.toggle('active', tab === 'raw');
+  document.getElementById('ep-form').style.display = tab === 'form' ? '' : 'none';
+  document.getElementById('ep-raw').style.display = tab === 'raw' ? '' : 'none';
+}
+
+// Default screen
+show('mappings');
+document.getElementById('nav-mappings').classList.add('active');
+</script>
+</body>
+</html>
