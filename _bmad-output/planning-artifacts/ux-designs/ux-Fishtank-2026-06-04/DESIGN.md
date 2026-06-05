@@ -99,7 +99,7 @@ spacing:
 components:
   # Visual specs only — behavioral specs live in EXPERIENCE.md
   service-card-min-height: "auto"
-  service-card-grid-cols:  "repeat(3, 1fr)"   # desktop; 2 col tablet; 1 col mobile
+  service-card-grid-cols:  "repeat(3, 1fr)"   # ≥ 1024px; 2 col 640–1023px; 1 col < 640px
   table-row-height:        "36px"
   sidebar-transition:      "width 200ms ease"
   toggle-width:            "32px"
@@ -113,7 +113,7 @@ Fishtank is a developer and QA tool — a **professional infrastructure product*
 
 **Voice in UI chrome:** direct, technical, never cute. Labels use the real term ("Resync Mappings", not "Refresh"); status text is exact ("24 mappings loaded in 142ms", not "Done!").
 
-**Logo mark:** Bootstrap Icon `bi-droplet-half` (interim); a proper SVG icon to be designed before v1 ship.
+**Logo mark:** Bootstrap Icon `bi-droplet-half` (placeholder). A custom SVG logo must be designed and delivered before v1 ships. **Action required:** assign logo design task to design lead and track in the project backlog. Rendered at 20×20px beside the wordmark.
 
 ---
 
@@ -223,7 +223,7 @@ System font stack; no custom web fonts loaded at runtime (performance requiremen
 
 **Content area max-width:** uncapped — fills available space. Tables use `table-layout: fixed` with `width: 100%`; no `overflow-x` on table wrapper — column widths defined in `<colgroup>` to prevent horizontal scroll.
 
-**Card grid:** 3 columns desktop → 2 columns tablet (≥ 768px) → 1 column mobile (< 640px).
+**Card grid:** 3 columns desktop (≥ 1024px) → 2 columns mid (640px–1023px) → 1 column mobile (< 640px).
 
 ---
 
@@ -235,6 +235,32 @@ Three levels:
 3. **Overlay** — modals, drawers: `box-shadow: 0 8px 40px rgba(0,0,0,.25)` + backdrop `rgba(0,0,0,.5)`
 
 Dark themes use slightly stronger shadows (`rgba(0,0,0,.4)` / `.6`) since borders are less visible against dark backgrounds.
+
+---
+
+# Motion & Animation
+
+**Sidebar collapse:** `width 200ms ease`. **Collapse chevron:** `transform: rotate(180deg)` with matching 200ms ease transition.
+
+**Live status pulse:** CSS animation cycling `box-shadow` from `0 0 0 2px {success-subtle}` to `0 0 0 5px transparent`, 1.8s infinite ease-in-out.
+
+**Bottom sheet (mobile drawer):** `transform: translateY(100%)` → `translateY(0)` with `300ms ease` slide-up on open.
+
+**Toast entrance/exit:** `opacity 0→1` + `translateY(8px)→0` on enter; reversed on exit. Duration: 150ms.
+
+**`prefers-reduced-motion` overrides:** when the user has opted into reduced motion, all transitions and animations are disabled:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .sidebar          { transition: none; }
+  .collapse-chevron { transition: none; }
+  .live-pulse       { animation: none; box-shadow: 0 0 0 2px var(--success-subtle); }
+  .bottom-sheet     { transition: none; }
+  .toast            { transition: none; }
+}
+```
+
+All animated state changes have static visual equivalents — no state is communicated by motion alone.
 
 ---
 
@@ -258,8 +284,10 @@ Fixed height `{spacing.topbar-height}`. Logo (`bi-droplet-half` + wordmark) left
 
 **User avatar dropdown:** displays account name + role, then a single action: **Sign out** (`bi-box-arrow-right`). Does not contain a Settings link — Settings is accessed via sidebar nav only.
 
+**About modal** (triggered by `bi-info-circle`): max-width 400px, `{rounded.card}`, elevation level 3. Contains: app name + logo mark, version number, build hash (monospace), link to documentation (opens in new tab), link to changelog (opens in new tab), close button. No user-editable fields. Dismiss: Esc, click backdrop, or close button.
+
 ## Sidebar
-Collapsible. Expanded: 200px with label + icon. Collapsed: 52px with icon only, tooltip on hover. Section divider: 1px `{colors.border}` line. Badge on System Events item: `{colors.error}` pill showing unread warning/error count. Collapse chevron at bottom.
+Collapsible. Expanded: 200px with label + icon. Collapsed: 52px with icon only, tooltip on hover. Section divider: 1px `{colors.border}` line. Collapse chevron at bottom. Unread event counts are surfaced only via the notification bell in the top bar — no badge on sidebar nav items.
 
 **Nav icons (Bootstrap Icons):**
 
@@ -277,29 +305,34 @@ Collapsible. Expanded: 200px with label + icon. Collapsed: 52px with icon only, 
 `{rounded.card}` + `border: 1px solid {colors.border}`. Hover: border shifts to `{colors.brand}` at 30% opacity. Stopped services render at 72% opacity. Contains:
 
 - Service name (bold) + description (muted)
-- Port badge (violet-tinted monospace pill) — range 30100–30110
+- Port badge (violet-tinted monospace pill) — range 30100–30199
 - **External URL** (monospace, truncated with tooltip) — renamed from "Upstream URL"
-- **Mocks Root** path in monospace: `/mocks/{service-slug}` — read-only derived field, not the full `/mappings` or `/responses` sub-path
-- **Mock count** — number of mapping + response files combined (e.g. `bi-file-earmark-code  7 files`)
+- **Mocks Root** path in monospace: `/mocks/{service-slug}` — read-only, informational. No click interaction; use the **Mappings** action link to navigate to the service's files.
+- **Mock count** — total mapping + response files combined (e.g. `bi-file-earmark-code  7 files`). Informational only.
 - Status pill (Live/Stopped)
 - Enable/disable toggle
-- Action links: Edit · Mappings
+- **Edit** — opens the Edit Service form
+- **Mappings** — navigates to the Mappings view with this service pre-selected in the folder tree
 
 **Service slug convention:** lowercase display name, spaces → hyphens. Example: "Finance API" → `finance-api`.
 
-**Port auto-assignment:** when adding a new service, the next available port in range 30100–30110 is pre-filled. The range is hard-capped at 30110.
+**Port auto-assignment:** when adding a new service, the next available port in range 30100–30199 is pre-filled. The range supports up to 100 services.
+
+**Port exhaustion states:**
+- **Warning (≤ 10 ports remaining):** the port input field shows an amber inline notice: "X ports remaining in range (30100–30199)."
+- **Range full (0 ports remaining):** the Add Service button is disabled; an amber banner in the Services view reads: "Port range 30100–30199 is fully allocated. Remove a service to free a port." The port field is hidden from the Add Service form.
 
 ## Status pill
 `{rounded.full}`, 5px colored dot, text label. Live: green palette. Stopped: slate palette. Never uses just color alone — always dot + text (accessibility).
 
 ## Toggle switch
-32×18px track, 14px thumb. On: `{colors.success}`. Off: slate-600 / zinc-600. Thumb slides with CSS transition. Keyboard: `Space` toggles; `Enter` confirms.
+32×18px track, 14px thumb. On: `{colors.success}`. Off: slate-600 / zinc-600. Thumb slides with CSS transition. Keyboard: `Space` toggles the switch state. (`Enter` is reserved for form submission and does not activate standalone toggles — WAI-ARIA `role="switch"` pattern.)
 
 ## Tables
 `table-layout: fixed`, `width: 100%`. No outer horizontal scroll — columns defined via `<colgroup>`. Vertical scroll within a bounded container. Row hover: subtle `{colors.content-surface}` background. Selected row: `{colors.brand}` at 10% opacity + 2px left border in `{colors.brand}`. Sticky column headers.
 
 ## Notification bell dropdown
-Opens below top bar, right-aligned, max-width 360px, `{rounded.card}`, elevation level 3. Header: "Notifications" + "Mark all read" link. List: paginated 10 items, scroll loads next batch. Each item: icon (severity) + message + timestamp + dismiss (✕). Unread items: slightly elevated background. Mark-as-read: click item or explicit button; badge decrements.
+Opens below top bar, right-aligned, max-width 360px, `{rounded.card}`, elevation level 3. Header: "Notifications" + "Mark all read" link. List: infinite scroll — loads next 20 items on scroll. Each item: icon (severity) + message + timestamp + dismiss (✕). Unread items: slightly elevated background. Mark-as-read: click item or explicit button; badge decrements.
 
 **Scope restriction:** the bell panel shows **warnings and errors only** — `info` and `success` events are excluded. A footer note links to System Events for the full log. This keeps the bell panel actionable — it signals things that need attention, not routine operational info.
 
@@ -314,17 +347,36 @@ Right pane (file editor): breadcrumb path at top. Tab bar: Form | Raw JSON. Form
 
 **New file actions:** "+ New Mapping" and "+ New Response" are **separate buttons** that create files in the correct sub-folder (`mappings/` vs `responses/`) respectively.
 
-**File naming conventions:**
-- Mapping files: `{method-lowercase}-{path-slugified}-{status}.json` — e.g. `account-get-200.json`
-- Response files: `{method-lowercase}_{path-slugified}_body.json` — e.g. `get_account_body.json`
+**File naming conventions:** all segments use underscores as delimiters.
+- Mapping files: `{method-lowercase}_{path-slugified}_{variant}.json` — `{variant}` is a scenario descriptor (e.g. `happy-path`, `not-found`, `server-error`, `unauthorized`). Example: `get_account_happy-path.json`
+- Response files: `{method-lowercase}_{path-slugified}_{variant}_body.json` — example: `get_account_happy-path_body.json`
 
-**Path structure:** all service files live under `/mocks/{service-slug}/` — mappings at `/mocks/{service-slug}/mappings/`, responses at `/mocks/{service-slug}/responses/`. The `BodyAsFile` field in a mapping references the response file with a relative path: `../responses/{filename}_body.json`.
+**Path structure:** all service files live under `/mocks/{service-slug}/` — mappings at `/mocks/{service-slug}/mappings/`, responses at `/mocks/{service-slug}/responses/`. The `BodyAsFile` field in a mapping references the response file with a relative path that mirrors the response file naming convention: `../responses/{method-lowercase}_{path-slugified}_{variant}_body.json`.
 
 ## Modal
 Max-width 480px (content permitting). `{rounded.card}`. Header: title + close (✕). Footer: action buttons right-aligned (ghost + primary). Backdrop: `rgba(0,0,0,.5)`. Dismiss: Esc key or click backdrop. Focus trapped while open.
 
+## Toast notifications
+
+Toasts appear at the **bottom-right** of the viewport, above the content area (never overlapping table action buttons). Max-width 360px, `{rounded.card}`, elevation level 2. Stack vertically (newest on top), up to 3 visible; additional toasts queue behind.
+
+| Severity | Icon | Behaviour |
+|---|---|---|
+| Success | `bi-check-circle` | Auto-dismiss after 4 s |
+| Info | `bi-info-circle` | Auto-dismiss after 4 s |
+| Warning | `bi-exclamation-triangle` | Auto-dismiss after 6 s |
+| Error | `bi-x-circle` | Persistent — dismiss manually |
+
+Left border accent uses the severity color token. Dismiss button (✕) on every toast.
+
+**File save error:** "Failed to save `{filename}` — {reason}." Severity: error. Includes a **Retry** inline action.
+
+**File delete error:** "Failed to delete `{filename}` — {reason}." Severity: error. No retry.
+
+**Connection loss during save:** persistent warning toast: "Connection lost. Your changes have not been saved." Auto-clears when connection is restored; can also be dismissed manually.
+
 ## Right drawer
-Slides from right, width 320px (desktop) / full-width (mobile). Same elevation as modal. Dismiss: Esc, click outside, or close button.
+Slides from right, width 320px (desktop, ≥ 640px). On mobile (< 640px), renders as a **bottom sheet** — slides up from the bottom of the viewport, full width, drag handle at top. Bottom sheet is more thumb-accessible than a side drawer on small screens. Same elevation as modal (level 3). Dismiss: Esc, tap/click outside, drag down (bottom sheet only), or close button.
 
 ## Bottom panel
 Split layout, draggable divider handle. Min panel height 100px; max 60% of viewport. Tab bar: Request | Response | Headers. Close button collapses panel.
@@ -334,10 +386,90 @@ Left sub-nav (170px) + right content area. Sub-nav items same style as main side
 
 **Settings sub-nav items:** Appearance / Network Activity / Paths / Cache / Auth & Users / Feature Flags.
 
+**Dual-sidebar layout:** when Settings is active, both the main sidebar (200px/52px, collapsible) and the settings sub-nav (170px, fixed) are visible simultaneously. The main sidebar remains fully functional and can be collapsed to 52px to give the settings content more room. The settings sub-nav has no collapse affordance — it is always at full width.
+
+> **TBD — Auth & Users:** user management, roles, and authentication configuration are not yet designed. This section is reserved in the sub-nav; do not implement until a dedicated spec exists.
+
 **Cache section:**
 - "Clear all caches" row: description + red `Clear All` button → confirmation dialog
 - Named caches list: each cache shown as a card row with name, entry count, size, and individual `Clear` button
 - Clearing a cache is confirmed before execution
+
+## HTTP method chip
+
+`{rounded.sm}`, `font-weight: 700`, `font-size: {typography.scale.xs}`, uppercase text, `white-space: nowrap`. Foreground and background from the `method-*` token set. Always includes the method text — never color-only.
+
+Long methods (`OPTIONS`, `HEAD`, `CONNECT`, `TRACE`) render at full text; set a minimum column width of `72px` in `<colgroup>` to accommodate the widest value. Chips never truncate — if a chip overflows, fix the column definition.
+
+## Tooltip
+
+Appears on **hover** (300ms delay) and on **keyboard focus** (no delay) for any element whose visible label is absent or truncated. Placement: above by default; flips below or to the side when insufficient viewport space. Max-width: 240px. `{typography.scale.sm}`, `{rounded.md}`, elevation level 2. Long paths wrap; tooltip text is never truncated. Dismiss on `Esc` or when the trigger loses focus/hover.
+
+**Standard tooltip targets:**
+- Truncated path/URL cells in tables (shows full value)
+- Collapsed sidebar nav items (shows item label)
+- Service tree nodes in Mappings pane (shows real file system path)
+- Top bar icon buttons (shows action label)
+- Network Activity type icon (`bi-database`, `bi-arrow-repeat`) — shows "Mock" or "Proxied"
+
+---
+
+# Empty States
+
+All views must render a purposeful empty state — not a blank content area.
+
+| View | Empty condition | Empty state content |
+|---|---|---|
+| Services | No services configured | `bi-server` (48px, muted) + "No services yet" heading + "Add your first service to get started." + primary **Add Service** button |
+| Network Activity | No requests captured | `bi-activity` (48px, muted) + "No activity yet" + "Requests will appear here once a service is live and receiving traffic." |
+| Mappings — no service selected | Tree present, nothing selected | `bi-file-earmark-code` (48px, muted) + "Select a service" + "Choose a service from the left panel to browse its mapping files." |
+| Mappings — service selected, no files | Service expanded, folders empty | Service name shown + `bi-file-earmark-plus` (48px, muted) + "No mappings yet" + **+ New Mapping** and **+ New Response** buttons |
+| System Events | No events logged | `bi-journal-text` (48px, muted) + "No events yet" + "System events will appear here as services start and stop." |
+| Notifications panel | No unread notifications | `bi-bell-slash` (32px, muted) + "You're all caught up" — inline within the bell dropdown |
+
+Empty state icons: `color: {colors.content-muted}`. Headings: `{typography.scale.md}` + `font-weight: 600`. Body text: `{typography.scale.base}` + `color: {colors.content-muted}`.
+
+---
+
+# Accessibility
+
+## ARIA roles and labels
+- **Toggle switch:** `role="switch"` + `aria-checked="true|false"` + label associated via `aria-labelledby` or `<label>`.
+- **Notification bell button:** `aria-label="Notifications"` + `aria-haspopup="true"` + `aria-expanded` reflecting dropdown open state.
+- **Sidebar nav:** `role="navigation"` on `<nav>`; `aria-current="page"` on the active item.
+- **Modal:** `role="dialog"` + `aria-modal="true"` + `aria-labelledby` pointing to the modal title element.
+- **Right drawer / bottom sheet:** `role="dialog"` + `aria-modal="true"` + `aria-labelledby` pointing to a visible heading.
+- **File tree:** `role="tree"` with `role="treeitem"` for nodes; `aria-expanded` on folder nodes; `aria-selected` on active file.
+- **Status pill:** colored dot is `aria-hidden="true"`; text label is always present.
+- **Skeleton loaders:** `aria-busy="true"` on the loading container; removed when content is resolved.
+
+## Focus management
+- **Modal / drawer open:** focus moves to the first focusable element inside the overlay.
+- **Modal / drawer close:** focus returns to the element that triggered the overlay.
+- **Focus trap:** active for modals. Active for bottom sheets on mobile. Desktop drawers do not trap focus.
+
+## Live regions
+- Service status changes (Live ↔ Stopped): `aria-live="polite"` — e.g. "Finance API is now Live."
+- Toast notifications: `role="alert"` for errors; `role="status"` for success/info.
+- Notification badge count changes: `aria-live="polite"` on the badge element.
+
+## Color contrast
+All text/background combinations must meet WCAG 2.1 AA (4.5:1 normal text, 3:1 large text). Theme variants must be validated individually before shipping.
+
+## `data-testid` convention
+All interactive and key structural elements carry a `data-testid` attribute for automated testing. Convention: `kebab-case`, scoped to the component. `data-testid` values are never used for styling.
+
+| Element | `data-testid` |
+|---|---|
+| Add Service button | `add-service-btn` |
+| Service card (per service) | `service-card-{slug}` |
+| Enable/disable toggle | `service-toggle-{slug}` |
+| Mappings link on card | `service-mappings-link-{slug}` |
+| Notification bell | `notification-bell` |
+| Sidebar collapse button | `sidebar-collapse-btn` |
+| Save button (file editor) | `file-editor-save-btn` |
+| Discard button (file editor) | `file-editor-discard-btn` |
+| Toast container | `toast-container` |
 
 ---
 
