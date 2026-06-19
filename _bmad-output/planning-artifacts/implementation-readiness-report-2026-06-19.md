@@ -1,5 +1,5 @@
 ---
-stepsCompleted: ['step-01-document-discovery', 'step-02-prd-analysis']
+stepsCompleted: ['step-01-document-discovery', 'step-02-prd-analysis', 'step-03-epic-coverage-validation', 'step-04-ux-alignment', 'step-05-epic-quality-review', 'step-06-final-assessment']
 documentsInventory:
   prd: 'prds/prd-Fishtank-2026-06-19/prd.md + addendum.md'
   architecture: 'architecture.md'
@@ -187,3 +187,159 @@ No epics or stories document was found in `_bmad-output/planning-artifacts`.
 ### Missing Requirements
 
 🚨 **ALL 45 FRs are uncovered — no epics or stories document exists.**
+
+---
+
+## UX Alignment Assessment
+
+### UX Document Status
+
+✅ **Found** — two-file sharded spec:
+- `ux-designs/ux-Fishtank-2026-06-04/DESIGN.md` — design tokens, visual component specs, themes
+- `ux-designs/ux-Fishtank-2026-06-04/EXPERIENCE.md` — behavioral specs for every screen and interaction
+
+Overall, the UX documents are comprehensive, detailed, and tightly aligned with the majority of PRD requirements. The following specific misalignments were identified.
+
+---
+
+### UX ↔ PRD Misalignments
+
+#### 🔴 CRITICAL — FR-25 Login Rate Limiting: Direct Contradiction
+
+- **PRD FR-25** defines login rate limiting as an explicit **in-scope v1 Functional Requirement**, with HTTP 429 + `Retry-After` header and configurable threshold/window.
+- **NFR-10** similarly lists login rate limiting as a non-functional requirement.
+- **EXPERIENCE.md Login screen** states: *"Rate limiting and account lockout are out of v1 scope — this is a developer tool deployed on trusted internal networks. PRD Non-Goal: 'Fishtank v1 does not implement login rate limiting or account lockout.'"*
+- **Architecture (D3)** correctly implements the rate limiter per the PRD.
+- **Resolution required:** The UX note is a direct contradiction of the PRD and Architecture. Either the UX note must be removed/corrected, or the PRD and Architecture must be updated to remove FR-25/NFR-10. The current state leaves an implementation team with conflicting authoritative sources.
+
+#### 🔴 CRITICAL — FR-31 User Management: Directly Contradicted by UX
+
+- **PRD FR-31** (v1 in-scope): "Admin users can view, create, and deactivate user accounts."
+- **Architecture**: `GET /api/users`, `POST /api/users`, `PUT /api/users/{guid}/deactivate` all present. `UserDto.cs`, `CreateUserRequest.cs` in models.
+- **EXPERIENCE.md Settings** (Auth & Users section): *"Auth & Users — not in v1 scope. See DESIGN.md Settings layout for the canonical placeholder visual spec and the v2 removal gate."*
+- **First-run setup screen** in UX: *"Maximum admin accounts: Fishtank v1 supports exactly one admin account. Multi-user management is v2 scope."*
+- **Resolution required:** The UX explicitly marks user management as v2 scope. The PRD and Architecture include it as v1. The implementation team cannot proceed with a coherent plan while this contradiction exists. One of the two must be authoritative — decide and update the other documents.
+
+#### 🔴 CRITICAL — FR-45 Pipeline Reset Authentication: Three-Way Inconsistency
+
+- **PRD FR-45**: *"requires a valid pre-shared API key, configured via environment variable"*
+- **Architecture**: `/admin/reset — API key auth` (consistent with PRD)
+- **EXPERIENCE.md Feature Flags section**: *"requires valid session cookie; CI/CD pipelines must first authenticate via POST /login to obtain a session cookie before calling this endpoint — a dedicated API-key authentication mode is v2 scope"*
+- **Resolution required:** PRD and Architecture agree on API key auth. UX contradicts both by specifying session cookie auth. The UX was likely authored before this design decision was locked in the Architecture. The UX Feature Flags section must be updated to reflect API key authentication.
+
+#### 🟡 WARNING — Admin Console UX Route Undefined
+
+- **PRD §5.7** defines an Admin Console feature area with FR-30 (feature toggles), FR-31 (user management), FR-32 (health dashboard), and FR-33 (audit log viewer).
+- **Architecture**: `features/admin/` frontend folder, `AdminEndpoints.cs`, `GET /api/admin/toggles`, `GET /api/admin/health`, `GET /api/admin/audit`.
+- **EXPERIENCE.md Information Architecture**: Routes table lists `/services`, `/activity`, `/mappings`, `/events`, `/settings`, `/login`, `/setup` — no `/admin` route.
+- The User avatar dropdown in UX shows only "Sign out" — no Admin Console link.
+- Feature Flags are partially covered in Settings (`/settings` → Feature Flags sub-nav), but FR-32 (Health Dashboard) and FR-33 (Audit Log Viewer) have **no UX screen spec**.
+- **Resolution required:** Define the Admin Console UX — either as a distinct `/admin` route (visible only to Admin role) or as a confirmed extension of `/settings`. Health dashboard and audit log viewer screens need behavioral specs.
+
+#### 🟡 WARNING — FR-10 Header Redaction Scope Expanded in UX
+
+- **PRD FR-10**: *"`Authorization`, `Cookie`, and `Set-Cookie` headers are redacted by default"*
+- **EXPERIENCE.md Settings**: extends redaction to also cover `X-Api-Key`, `X-Auth-Token`, and any header containing `secret` or `token` (case-insensitive).
+- This is a UX expansion beyond the PRD. Not a blocking gap, but the expanded header redaction behavior must be recorded as a formal requirement update to the PRD if it is to be implemented — otherwise the implementation team has conflicting authoritative sources on the scope of default redaction.
+
+#### 🟡 WARNING — Cache Section in Settings: No PRD Backing
+
+- **EXPERIENCE.md Settings** includes a "Cache" sub-section covering per-service cache clearing operations.
+- No PRD Functional Requirement covers in-memory cache management as a user-accessible feature.
+- **Resolution required:** Either add an FR for cache management to the PRD, or remove the cache section from the UX if it represents scope creep.
+
+#### ℹ️ INFO — System Events "Clear All" Not in PRD
+
+- **EXPERIENCE.md System Events**: specifies a "Clear all" button for permanent server-side deletion of events in each tab, requiring a confirmation dialog.
+- The PRD does not specify a "Clear all" action for System Events.
+- Lower severity — this is a useful UX addition. Consider adding an FR or noting it as an implicit requirement in the PRD.
+
+---
+
+### UX ↔ Architecture Alignment
+
+Generally strong. Key findings:
+
+| Area | Status | Notes |
+|---|---|---|
+| SignalR hubs | ✅ Aligned | 4 hubs defined in both; event names consistent |
+| JWT httpOnly cookie auth | ✅ Aligned | Both specify httpOnly cookie; no localStorage |
+| Response envelope | ✅ Aligned | Both define identical `{success, data, error}` pattern |
+| Feature flag broadcast | ✅ Aligned | Both specify SignalR `FeatureToggleChanged` event |
+| FileSystemWatcher | ✅ Aligned | Architecture D6 matches UX Resync conflict detection |
+| Non-root container | ✅ Aligned | Architecture Dockerfile + PRD NFR-12 consistent |
+| `/admin/reset` auth | ⚠️ UX contradicts | Architecture (API key) ≠ UX (session cookie); PRD is authoritative |
+| Admin Console route | ⚠️ UX undefined | Architecture has `features/admin/`; no UX route or screen spec |
+
+---
+
+## Epic Quality Review
+
+**N/A — No epics or stories document was found.** No quality review can be performed.
+
+Per the **persistent facts** for this workflow: the required Phase 3 TEA skills must have been completed before Phase 4 (Implementation) begins:
+
+| TEA Skill | Required By | Evidence Found |
+|---|---|---|
+| `bmad-testarch-test-design` | Phase 3 completion gate | ❌ No evidence |
+| `bmad-testarch-framework` | Phase 3 completion gate | ❌ No evidence |
+| `bmad-testarch-ci` | Phase 3 completion gate | ❌ No evidence |
+
+The `_bmad-output/test-artifacts/` directory is **empty**. No test design, framework setup, or CI pipeline documentation was found anywhere in the project output folders.
+
+🚨 **All three TEA skills are blocking gaps. `bmad-testarch-test-design` is a prerequisite for story creation — it must be completed before epics and stories can be created.**
+
+---
+
+## Summary and Recommendations
+
+### Overall Readiness Status
+
+# 🔴 NOT READY
+
+Implementation cannot begin. The project has strong foundational planning artifacts (PRD, Architecture, UX) but is missing the deliverables required to proceed to Phase 4.
+
+---
+
+### Critical Issues Requiring Immediate Action
+
+| # | Severity | Issue | Blocking? |
+|---|---|---|---|
+| 1 | 🔴 BLOCKER | **No epics or stories exist** — 0% of 45 FRs are decomposed into implementable work | YES |
+| 2 | 🔴 BLOCKER | **No TEA test design (`bmad-testarch-test-design`)** — required before story creation | YES |
+| 3 | 🔴 BLOCKER | **No test framework setup (`bmad-testarch-framework`)** — required before implementation | YES |
+| 4 | 🔴 BLOCKER | **No CI pipeline spec (`bmad-testarch-ci`)** — required before implementation | YES |
+| 5 | 🔴 CONTRADICTION | **FR-25/NFR-10 vs. UX Login screen** — PRD requires rate limiting; UX excludes it | Must resolve before implementation |
+| 6 | 🔴 CONTRADICTION | **FR-31 (User Management) vs. UX Settings** — PRD says v1; UX says v2 | Must resolve before implementation |
+| 7 | 🔴 CONTRADICTION | **FR-45 Pipeline Reset auth** — PRD/Architecture = API key; UX = session cookie | Must resolve before implementation |
+| 8 | 🟡 WARNING | **Admin Console (FR-30–FR-33) has no UX route or screen spec** — Health Dashboard (FR-32) and Audit Log Viewer (FR-33) screens are entirely undefined in UX | Resolve before Admin Console stories |
+| 9 | 🟡 WARNING | **FR-10 header redaction scope expanded in UX** — UX adds `X-Api-Key`, `X-Auth-Token`, and pattern matching beyond what PRD defines | Resolve before FR-10 implementation story |
+| 10 | 🟡 WARNING | **Cache management in UX Settings has no PRD backing** | Resolve before Settings stories |
+
+---
+
+### Recommended Next Steps
+
+1. **Resolve the three document contradictions (Issues 5–7)** — convene a 30-minute decision session between PM and Engineering Lead. Pick the authoritative source (PRD wins unless scope was intentionally changed), update the other document, and commit. These must be clean before story creation.
+
+2. **Run `bmad-testarch-test-design`** — this is a hard prerequisite for story creation per the project workflow. It will produce the test plan and strategy that must be in place before epics are authored.
+
+3. **Run `bmad-testarch-framework`** — sets up the testing framework (xUnit + Vitest + Playwright per Architecture). Required before implementation stories ship.
+
+4. **Run `bmad-testarch-ci`** — scaffolds the CI quality pipeline. Required before any PR workflow begins.
+
+5. **Define Admin Console UX** — before creating Admin Console stories (FR-30–FR-33), the UX must specify: the Admin Console access route/entry point, the Health Dashboard screen (FR-32), and the Audit Log Viewer screen (FR-33).
+
+6. **Run `bmad-create-epics-and-stories`** — once the TEA blockers are resolved and contradictions are fixed, this skill will decompose all 45 FRs into epics and user stories.
+
+---
+
+### Final Note
+
+This assessment identified **10 issues** across **4 categories** (missing artifacts, document contradictions, missing UX specs, out-of-scope UX additions). The three TEA skill blockers are structural — they cannot be bypassed. The three document contradictions leave the implementation team without a coherent single source of truth on three separate features. Address all items in the Critical column before proceeding to implementation.
+
+The planning foundation (PRD, Architecture, UX) is otherwise of high quality. Once the blockers are cleared and epics/stories are created, this project is well-positioned to enter implementation with strong, traceable requirements.
+
+---
+
+*Report generated: 2026-06-19 | Project: Fishtank | Assessor: GitHub Copilot (bmad-check-implementation-readiness)*
