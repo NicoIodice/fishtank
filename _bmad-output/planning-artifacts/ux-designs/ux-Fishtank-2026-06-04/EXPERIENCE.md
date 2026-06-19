@@ -49,6 +49,7 @@ design-ref: DESIGN.md
 | `/mappings` | Mappings (file explorer) | Browse / edit / create mapping + response files |
 | `/events` | System Events | Review warnings, errors, info |
 | `/settings` | Settings | Configure appearance, behavior, auth |
+| `/admin` | Admin Console | Feature toggles, health, audit log (Admin role only) |
 | `/login` | Login | Authenticate |
 | `/setup` | First-run setup | Create admin account |
 
@@ -94,6 +95,7 @@ Always visible, never scrolls away. Fixed `z-index` above sidebar and content. L
 - **Mobile sidebar overlay:** when the sidebar is open on mobile (< 768px) via the hamburger, a `rgba(0,0,0,0.4)` full-screen backdrop sits between the sidebar and the page content. Tapping the backdrop closes the sidebar. The sidebar overlays content — it does not push it.
 - Active item: highlighted per `DESIGN.md {colors.sidebar-active-*}`; route-driven
 - System Events: no badge on nav item — unread counts surface only via the notification bell
+- **Admin Console nav item** (`/admin`): visible only to Admin-role users. Rendered as the last nav item above the collapse toggle, below a divider. Standard Users do not see this item and cannot navigate to `/admin` — a direct URL attempt redirects to `/services`.
 
 ## Notification panel (bell dropdown)
 - Opens on bell click; closes on click outside, Esc, or second bell click. Keyboard: `Enter` and `Space` open or close the panel when the bell button is focused. The notification panel closes automatically on any navigation event (sidebar click, logo click, browser back/forward).
@@ -417,6 +419,31 @@ Both tabs: flat list, newest first, no sub-grouping by type. A **"Load more" but
 
 **Per-item dismiss (✕):** dismissing an item in System Events removes it from the current view only — the server-side event log is unchanged and the event reappears on page reload. The dismiss (✕) button carries `aria-label="Remove from view"` and a tooltip: “Removes from this view — event remains in the server log and reappears on reload.” Use "Clear all" to permanently remove events from the server log.
 
+## Admin Console screen
+
+**Access:** Admin-role users only. Route: `/admin`. Standard Users attempting to access `/admin` directly are redirected to `/services`. The Admin Console nav item in the sidebar is hidden for Standard Users.
+
+**Entry point:** sidebar nav item “Admin Console” (last item, below divider, visible to Admins only).
+
+Sub-navigation: **Feature Toggles / Health / Audit Log**.
+
+**Feature Toggles sub-section (FR-30):**
+A table listing every feature toggle with: toggle name (display name), description (one line), current state (enabled/disabled toggle switch), and last-modified timestamp. Toggles are always listed in a fixed order (alphabetical by display name). Changing a toggle fires a confirmation dialog for destructive-direction toggles (disabling an active feature): title “Disable {Feature Name}?”; body “This will take effect immediately for all active sessions.”; actions: **Cancel** and **Disable**. Enabling a disabled feature requires no confirmation — it is a non-destructive action. Toggle state changes broadcast to all active sessions via SignalR immediately after the server confirms (FR-30 consequence: “toggling a feature takes effect immediately for all active sessions”). A per-toggle “Overridden by env var” badge appears when the toggle’s state is locked by a container environment variable — in this state the toggle switch is rendered as disabled (`aria-disabled="true"`, `cursor: not-allowed`) and a tooltip explains: “This toggle is locked by environment variable `{ENV_VAR_NAME}` and cannot be changed at runtime.” Empty state: not applicable — the toggle list is always non-empty (all features have a toggle entry).
+
+**Health sub-section (FR-32):**
+A read-only dashboard showing the current container and service health state. Refreshes every 30 seconds automatically; a manual refresh icon (`bi-arrow-clockwise`) in the sub-section header triggers an immediate fetch. Content panels:
+- **Services:** total count, Live count, Stopped count. Each stopped service listed by name with its stop reason (if available).
+- **Request counts:** total requests handled since container start, per-service breakdown (table: service name, request count, proxied count).
+- **Database:** status indicator (Healthy / Degraded / Unreachable), database file path, file size.
+- **Uptime:** container start timestamp (ISO 8601, displayed in local timezone) and elapsed duration (format: `{N}d {N}h {N}m` for durations ≥ 1 day; `{N}h {N}m` for durations ≥ 1 hour; `{N}m {N}s` for under 1 hour).
+- **Application version:** version string and Docker image tag (same values as the About modal).
+All panels use card layout with `{components.service-card-stopped-opacity}` for degraded/stopped states. The health data is sourced from the `/health` endpoint (FR-38) and the admin health API (`GET /api/admin/health`).
+
+**Audit Log sub-section (FR-33):**
+A filterable, paginated table of user-initiated and system-generated actions. Columns: Timestamp, Actor (username or “System”), Action, Target (resource type + name), Result (Success / Failed), IP Address. Default sort: Timestamp descending (newest first). Filters: date range picker (from/to), Actor dropdown (all users + “System”), Action type dropdown. A **Export CSV** button in the sub-section toolbar exports the current filtered view. Pagination: 50 rows per page, prev/next navigation, total count shown. No inline delete — audit entries are immutable. Empty state: `bi-clipboard-check` (32px, muted) + “No audit entries yet.”
+
+---
+
 ## Settings screen
 Sub-navigation: **Appearance / Network Activity / Paths / Cache / Auth & Users / Feature Flags**.
 
@@ -446,19 +473,19 @@ Sub-navigation: **Appearance / Network Activity / Paths / Cache / Auth & Users /
 
 If no services are configured, the named caches list shows an empty state: `bi-database` (32px, muted) + “No service caches yet.” + “Caches appear here once services are created and receive requests.”
 
-> **Auth & Users — not in v1 scope.** See DESIGN.md Settings layout for the canonical placeholder visual spec and the v2 removal gate.
+**Auth & Users sub-nav section:** Provides user account management (FR-31). Visible to Admin-role users only — Standard Users do not see this sub-nav item. Content: a table listing all user accounts (username, role, status), with actions to create a new user (Standard User role; modal form with username + temporary password fields) and deactivate existing accounts. Deactivating a user invalidates their active JWT tokens. v1 supports two roles: Admin and Standard User. Admins cannot deactivate their own account. Empty state: "No users yet — add the first user account."
 
-**Feature Flags section:** **Record Mode enabled** toggle (enables/disables the Record Mode feature globally — when off, the Record button is hidden from the Network Activity page header), **Pipeline Reset API** toggle (enables the `POST /admin/reset` HTTP endpoint on the Fishtank server, allowing clients to trigger a full in-memory state reset equivalent to a service restart without a container restart; disabled by default — enable only in controlled environments. **API contract:** requires valid session cookie; returns `204 No Content`; no request body; idempotent. **v1 limitation:** CI/CD pipelines must first authenticate via `POST /login` to obtain a session cookie before calling this endpoint — a dedicated API-key authentication mode is v2 scope.). **If Record Mode is active when the feature flag is toggled off**, recording stops immediately: the Recording badge is hidden, the activity log retains all rows captured so far, and a warning toast appears: "Record Mode was disabled. Recording stopped."
+**Feature Flags section:** **Record Mode enabled** toggle (enables/disables the Record Mode feature globally — when off, the Record button is hidden from the Network Activity page header), **Pipeline Reset API** toggle (enables the `POST /admin/reset` HTTP endpoint on the Fishtank server, allowing clients to trigger a full in-memory state reset equivalent to a service restart without a container restart; disabled by default — enable only in controlled environments. **API contract:** requires a pre-shared API key configured via `FISHTANK_PIPELINE_RESET_KEY` environment variable, provided as `Authorization: ApiKey {key}` header; returns `204 No Content`; no request body; idempotent. Unauthenticated requests return HTTP 401; requests to a container where no API key is configured return HTTP 403. The API key is distinct from user JWT tokens — it is a CI/CD automation secret and does not require a browser session.). **If Record Mode is active when the feature flag is toggled off**, recording stops immediately: the Recording badge is hidden, the activity log retains all rows captured so far, and a warning toast appears: "Record Mode was disabled. Recording stopped."
 
 **Pipeline Reset API + active recording:** if the Pipeline Reset API endpoint is called while Record Mode is active, recording stops immediately as part of the reset. The Recording badge is hidden, captured rows are retained in the log, and a warning toast appears: "Pipeline reset triggered. Recording stopped."
 
 ## Login screen
-Centered card on plain background (sidebar hidden). Fields: username (`autocomplete="username"`), password (`autocomplete="current-password"`). Primary CTA: "Sign in". **On submit:** CTA shows a spinner + disabled state until the server responds. No "forgot password" (self-hosted; admin resets by setting `FISHTANK_ADMIN_PASSWORD_RESET='{new-bcrypt-hash}'` as a container environment variable and restarting — the system replaces the stored hash on startup). Shows Fishtank logo + version. **Logo gate:** the logo on the login card uses the same placeholder (`bi-droplet-half`) subject to the hard v1 release gate in DESIGN.md Brand & Style — the final custom SVG must be in place before this screen ships. Both fields: `aria-required="true"`. Error on failed login: inline message below the form — "Invalid username or password." Never indicate which field is wrong (prevents username enumeration). On network-level failure (request timeout, server unreachable, 5xx response): inline message — "Unable to connect — check your network and try again." (No enumeration risk — this error carries no field-specific information.) **Rate limiting and account lockout are out of v1 scope** — this is a developer tool deployed on trusted internal networks. **PRD Non-Goal:** “Fishtank v1 does not implement login rate limiting or account lockout — restricted to trusted internal networks.”
+Centered card on plain background (sidebar hidden). Fields: username (`autocomplete="username"`), password (`autocomplete="current-password"`). Primary CTA: "Sign in". **On submit:** CTA shows a spinner + disabled state until the server responds. No "forgot password" (self-hosted; admin resets by setting `FISHTANK_ADMIN_PASSWORD_RESET='{new-bcrypt-hash}'` as a container environment variable and restarting — the system replaces the stored hash on startup). Shows Fishtank logo + version. **Logo gate:** the logo on the login card uses the same placeholder (`bi-droplet-half`) subject to the hard v1 release gate in DESIGN.md Brand & Style — the final custom SVG must be in place before this screen ships. Both fields: `aria-required="true"`. Error on failed login: inline message below the form — "Invalid username or password." Never indicate which field is wrong (prevents username enumeration). On network-level failure (request timeout, server unreachable, 5xx response): inline message — "Unable to connect — check your network and try again." (No enumeration risk — this error carries no field-specific information.) The login endpoint is rate-limited server-side (FR-25): requests exceeding the configured threshold receive HTTP 429 with a `Retry-After` header. The threshold and window are configurable via environment variables. No user-visible rate-limit UI is needed — the error is surfaced as a network-level failure (same inline message as above: “Unable to connect — check your network and try again.”). Account lockout is not implemented in v1.
 
 ## First-run setup screen
 Shown when no admin account exists. Single step: choose admin username + password + confirm password. CTA: "Create admin account". **On submit:** CTA shows a spinner + disabled state until the server responds. After successful submit: redirects to `/services`.
 
-**Maximum admin accounts:** Fishtank v1 supports exactly one admin account. Multi-user management is v2 scope.
+**Admin account:** The setup screen creates exactly one admin account. Additional user accounts (Standard User role) can be created via the Settings → Auth & Users section after setup completes (FR-31).
 
 **Password reset:** admin sets the `FISHTANK_ADMIN_PASSWORD_RESET='{new-bcrypt-hash}'` container environment variable and restarts the container. The system replaces the stored hash on startup and removes the env var from the runtime configuration.
 

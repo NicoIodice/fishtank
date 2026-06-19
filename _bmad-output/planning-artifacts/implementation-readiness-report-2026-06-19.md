@@ -238,21 +238,15 @@ Overall, the UX documents are comprehensive, detailed, and tightly aligned with 
 
 #### 🟡 WARNING — FR-10 Header Redaction Scope Expanded in UX
 
-- **PRD FR-10**: *"`Authorization`, `Cookie`, and `Set-Cookie` headers are redacted by default"*
-- **EXPERIENCE.md Settings**: extends redaction to also cover `X-Api-Key`, `X-Auth-Token`, and any header containing `secret` or `token` (case-insensitive).
-- This is a UX expansion beyond the PRD. Not a blocking gap, but the expanded header redaction behavior must be recorded as a formal requirement update to the PRD if it is to be implemented — otherwise the implementation team has conflicting authoritative sources on the scope of default redaction.
+**RESOLVED 2026-06-19.** PRD FR-10 updated to match UX scope: redaction now covers `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, and any header name containing `secret` or `token` (case-insensitive). A third testable consequence added to FR-10.
 
 #### 🟡 WARNING — Cache Section in Settings: No PRD Backing
 
-- **EXPERIENCE.md Settings** includes a "Cache" sub-section covering per-service cache clearing operations.
-- No PRD Functional Requirement covers in-memory cache management as a user-accessible feature.
-- **Resolution required:** Either add an FR for cache management to the PRD, or remove the cache section from the UX if it represents scope creep.
+**RESOLVED 2026-06-19.** FR-46 (Service cache management) added to PRD §5.10. Covers per-Service and global in-memory cache clear from Settings → Cache, with confirmation dialogs. Also added to PRD §9.1 MVP in-scope list.
 
 #### ℹ️ INFO — System Events "Clear All" Not in PRD
 
-- **EXPERIENCE.md System Events**: specifies a "Clear all" button for permanent server-side deletion of events in each tab, requiring a confirmation dialog.
-- The PRD does not specify a "Clear all" action for System Events.
-- Lower severity — this is a useful UX addition. Consider adding an FR or noting it as an implicit requirement in the PRD.
+Not formally resolved — logged as an implicit requirement. Consider adding a FR in a future PRD revision if the behavior is intended to be tested.
 
 ---
 
@@ -309,26 +303,24 @@ Implementation cannot begin. The project has strong foundational planning artifa
 | 2 | 🔴 BLOCKER | **No TEA test design (`bmad-testarch-test-design`)** — required before story creation | YES |
 | 3 | 🔴 BLOCKER | **No test framework setup (`bmad-testarch-framework`)** — required before implementation | YES |
 | 4 | 🔴 BLOCKER | **No CI pipeline spec (`bmad-testarch-ci`)** — required before implementation | YES |
-| 5 | 🔴 CONTRADICTION | **FR-25/NFR-10 vs. UX Login screen** — PRD requires rate limiting; UX excludes it | Must resolve before implementation |
-| 6 | 🔴 CONTRADICTION | **FR-31 (User Management) vs. UX Settings** — PRD says v1; UX says v2 | Must resolve before implementation |
-| 7 | 🔴 CONTRADICTION | **FR-45 Pipeline Reset auth** — PRD/Architecture = API key; UX = session cookie | Must resolve before implementation |
-| 8 | 🟡 WARNING | **Admin Console (FR-30–FR-33) has no UX route or screen spec** — Health Dashboard (FR-32) and Audit Log Viewer (FR-33) screens are entirely undefined in UX | Resolve before Admin Console stories |
-| 9 | 🟡 WARNING | **FR-10 header redaction scope expanded in UX** — UX adds `X-Api-Key`, `X-Auth-Token`, and pattern matching beyond what PRD defines | Resolve before FR-10 implementation story |
-| 10 | 🟡 WARNING | **Cache management in UX Settings has no PRD backing** | Resolve before Settings stories |
+| 5 | 🔴 CONTRADICTION | **FR-25/NFR-10 vs. UX Login screen** — PRD requires rate limiting; UX excludes it | ✅ Resolved |
+| 6 | 🔴 CONTRADICTION | **FR-31 (User Management) vs. UX Settings** — PRD says v1; UX says v2 | ✅ Resolved |
+| 7 | 🔴 CONTRADICTION | **FR-45 Pipeline Reset auth** — PRD/Architecture = API key; UX = session cookie | ✅ Resolved |
+| 8 | 🟡 WARNING | **Admin Console (FR-30–FR-33) has no UX route or screen spec** — Health Dashboard (FR-32) and Audit Log Viewer (FR-33) screens are entirely undefined in UX | ✅ Resolved |
+| 9 | 🟡 WARNING | **FR-10 header redaction scope expanded in UX** — UX adds `X-Api-Key`, `X-Auth-Token`, and pattern matching beyond what PRD defines | ✅ Resolved |
+| 10 | 🟡 WARNING | **Cache management in UX Settings has no PRD backing** | ✅ Resolved (FR-46 added) |
 
 ---
 
 ### Recommended Next Steps
 
-1. **Resolve the three document contradictions (Issues 5–7)** — convene a 30-minute decision session between PM and Engineering Lead. Pick the authoritative source (PRD wins unless scope was intentionally changed), update the other document, and commit. These must be clean before story creation.
+1. **Run `bmad-testarch-test-design`** — hard prerequisite for story creation. Produces the test plan and strategy required before epics are authored.
 
-2. **Run `bmad-testarch-test-design`** — this is a hard prerequisite for story creation per the project workflow. It will produce the test plan and strategy that must be in place before epics are authored.
+2. **Run `bmad-testarch-framework`** — sets up the testing framework (xUnit + Vitest + Playwright per Architecture). Required before implementation stories ship.
 
-3. **Run `bmad-testarch-framework`** — sets up the testing framework (xUnit + Vitest + Playwright per Architecture). Required before implementation stories ship.
+3. **Run `bmad-testarch-ci`** — scaffolds the CI quality pipeline. Required before any PR workflow begins.
 
-4. **Run `bmad-testarch-ci`** — scaffolds the CI quality pipeline. Required before any PR workflow begins.
-
-5. **Define Admin Console UX** — before creating Admin Console stories (FR-30–FR-33), the UX must specify: the Admin Console access route/entry point, the Health Dashboard screen (FR-32), and the Audit Log Viewer screen (FR-33).
+4. **Run `bmad-create-epics-and-stories`** — once the TEA blockers are resolved, decompose all 46 FRs into epics and user stories.
 
 6. **Run `bmad-create-epics-and-stories`** — once the TEA blockers are resolved and contradictions are fixed, this skill will decompose all 45 FRs into epics and user stories.
 

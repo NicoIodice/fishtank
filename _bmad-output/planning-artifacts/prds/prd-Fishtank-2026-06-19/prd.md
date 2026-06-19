@@ -237,11 +237,12 @@ A user can open the full request/response detail for any logged row. Detail incl
 
 #### FR-10: Sensitive header redaction
 
-`Authorization`, `Cookie`, and `Set-Cookie` headers are redacted by default in all activity log entries stored and displayed. An explicit opt-in setting in Settings enables full header capture for debugging purposes. `[ASSUMPTION: redaction is applied at storage time; captured log entries cannot be un-redacted after the fact.]`
+The following headers are redacted by default in all activity log entries stored and displayed: `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, and any header whose name contains the substring `secret` or `token` (case-insensitive). An explicit opt-in setting in Settings enables full header capture for debugging purposes. `[ASSUMPTION: redaction is applied at storage time; captured log entries cannot be un-redacted after the fact.]`
 
 **Consequences (testable):**
 - Redacted header values display as `[REDACTED]` in row detail.
 - The opt-in capture setting requires an explicit toggle action; the secure default is redaction.
+- Header name matching for the `secret`/`token` pattern is case-insensitive and applies to the header name only, not the header value.
 
 #### FR-11: Auto-refresh configuration
 
@@ -603,6 +604,26 @@ A `POST /admin/reset` endpoint clears the runtime Activity log and in-memory cou
 
 ---
 
+### 5.10 Cache Management
+
+**Description:** Users can inspect and clear the in-memory mapping and response caches for individual Services or all Services simultaneously from the Settings screen. Cache clearing takes effect immediately without a container restart or Resync.
+
+**Functional Requirements:**
+
+#### FR-46: Service cache management
+
+A user can view the current in-memory cache state for each Service (entry count and estimated size) and clear caches at the individual Service level or globally from Settings → Cache.
+
+**Consequences (testable):**
+- The Cache sub-section in Settings lists each configured Service with its current cache entry count and estimated in-memory size.
+- A "Clear All" action clears the in-memory cached mappings and responses for all Services simultaneously; a confirmation dialog is required before execution.
+- A per-Service "Clear" action clears the cache for that Service only; a confirmation dialog is required.
+- Cleared caches are reloaded from disk on the next incoming request to the affected Service — no Resync or container restart is required.
+- If no Services are configured, the Cache sub-section shows an empty state: "No service caches yet — caches appear here once services are created and receive requests."
+- Admin Console access: cache management is available to all authenticated users (Standard User and Admin), not Admin-only.
+
+---
+
 ## 6. Cross-Cutting NFRs
 
 ### Performance
@@ -618,7 +639,7 @@ A `POST /admin/reset` endpoint clears the runtime Activity log and in-memory cou
 
 ### Security
 - **NFR-8:** All API endpoints except `/health` and the login endpoint require authentication. Unauthenticated requests return HTTP 401.
-- **NFR-9:** `Authorization`, `Cookie`, and `Set-Cookie` headers are redacted by default at storage time (FR-10). Full header capture is opt-in only.
+- **NFR-9:** `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, and headers whose name contains `secret` or `token` (case-insensitive) are redacted by default at storage time (FR-10). Full header capture is opt-in only.
 - **NFR-10:** The login endpoint is rate-limited (FR-25). Threshold and window are configurable.
 - **NFR-11:** The CORS policy allows only the origin serving the bundled React UI by default. Additional origins require explicit `ALLOWED_ORIGINS` environment variable configuration.
 - **NFR-12:** The Fishtank container image runs as a non-root user (FR-35).
@@ -689,6 +710,7 @@ A `POST /admin/reset` endpoint clears the runtime Activity log and in-memory cou
 - Management REST API with full UI surface parity
 - OpenAPI specification (served from container + in repository)
 - Pipeline reset endpoint (FR-45)
+- Settings cache management — per-Service and global in-memory cache clear (FR-46)
 - Docker Hub image + public GitHub repository with automated release pipeline
 - `docker-compose.example.yml` and reference K8s `deployment.yaml`
 - `/health` readiness endpoint
