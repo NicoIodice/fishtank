@@ -138,6 +138,42 @@ jobs:
         working-directory: src/client
         run: npx playwright install --with-deps chromium firefox
 
+      - name: Setup .NET SDK 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore .NET dependencies
+        run: dotnet restore src/Fishtank.Api/Fishtank.Api.csproj
+
+      - name: Build .NET API
+        run: dotnet build src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-restore
+
+      - name: Start .NET API (background)
+        run: dotnet run --project src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-build &
+
+      - name: Wait for .NET API
+        run: |
+          echo "Waiting for .NET API at http://localhost:5000..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/health > /dev/null 2>&1 || curl -sf http://localhost:5000 > /dev/null 2>&1; then
+              echo "✅ .NET API ready"
+              exit 0
+            fi
+            echo "  attempt $i/30 — retrying in 2s"
+            sleep 2
+          done
+          echo "❌ .NET API did not start in time"
+          exit 1
+
       - name: Start Vite dev server (background)
         working-directory: src/client
         run: npm run dev &
@@ -208,6 +244,42 @@ jobs:
       - name: Install Playwright browsers
         working-directory: src/client
         run: npx playwright install --with-deps chromium firefox
+
+      - name: Setup .NET SDK 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore .NET dependencies
+        run: dotnet restore src/Fishtank.Api/Fishtank.Api.csproj
+
+      - name: Build .NET API
+        run: dotnet build src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-restore
+
+      - name: Start .NET API (background)
+        run: dotnet run --project src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-build &
+
+      - name: Wait for .NET API
+        run: |
+          echo "Waiting for .NET API at http://localhost:5000..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/health > /dev/null 2>&1 || curl -sf http://localhost:5000 > /dev/null 2>&1; then
+              echo "✅ .NET API ready"
+              exit 0
+            fi
+            echo "  attempt $i/30 — retrying in 2s"
+            sleep 2
+          done
+          echo "❌ .NET API did not start in time"
+          exit 1
 
       - name: Start Vite dev server (background)
         working-directory: src/client
