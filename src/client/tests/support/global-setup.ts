@@ -26,6 +26,7 @@ async function globalSetup(): Promise<void> {
  * Enable by uncommenting the call in globalSetup above, and un-commenting
  * `storageState` in playwright.config.ts.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function seedAuthStorageState(): Promise<void> {
   const browser = await chromium.launch();
   const context = await browser.newContext();
