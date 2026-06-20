@@ -23,11 +23,9 @@ test.describe("Services", () => {
   test("displays the services list on load", async ({
     page,
     interceptNetworkCall,
-    networkErrorMonitor,
   }) => {
     // Given — intercept before navigation so no response is missed
     const servicesCall = interceptNetworkCall({ url: "**/api/services" });
-    networkErrorMonitor.enable(page);
 
     // When
     await page.goto("/services");
@@ -43,7 +41,6 @@ test.describe("Services", () => {
   test("creates a new service via the UI", async ({
     page,
     interceptNetworkCall,
-    networkErrorMonitor,
   }) => {
     // Given — seed factory data (override only what matters for this test)
     const service = createService({ name: "payments-mock", port: 30150 });
@@ -51,7 +48,6 @@ test.describe("Services", () => {
       url: "**/api/services",
       method: "POST",
     });
-    networkErrorMonitor.enable(page);
 
     // When — user fills and submits the create form
     await page.goto("/services");

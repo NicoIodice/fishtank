@@ -83,6 +83,10 @@ export const fishtankAuthProvider: AuthProvider = {
       // file may not exist; ignore
     }
   },
+
+  getBaseUrl() {
+    return process.env.BASE_URL ?? "http://localhost:5173";
+  },
 };
 
 function resolveCredentials(userIdentifier: string): {
