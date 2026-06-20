@@ -97,6 +97,14 @@ const HUB_INVALIDATION_MAP = {
 - All routes defined in `router.tsx` — features export page components only
 - All API calls go through `lib/api.ts` — never raw `fetch` in components or hooks
 
+### `data-testid` — mandatory on every interactive and structural element
+- **Every** interactive element (buttons, inputs, toggles, links, form fields) and every key structural container (list containers, cards, drawers, modals, banners, page headers, empty states) **must** carry a `data-testid` attribute
+- `data-testid` values are **never** used for styling — CSS classes only for style, `data-testid` only for test selectors
+- Canonical `data-testid` values are defined in `_bmad-output/planning-artifacts/ux-designs/ux-Fishtank-2026-06-04/DESIGN.md` under `## data-testid convention` — use those values verbatim; do **not** invent new names
+- **Pattern for dynamic elements:** `{element-type}-{entity-slug-or-id}` (e.g. `service-card-payments-mock`, `service-toggle-payments-mock`)
+- If a story's DESIGN.md spec omits a `data-testid` for an element you are implementing, **add one** following the naming pattern and note it in the PR — never skip silently
+- Playwright E2E tests rely exclusively on `data-testid` selectors — missing attributes will cause E2E test failures
+
 ### SignalR Hub Events (PascalCase past-tense)
 | Hub | Event | Payload |
 |---|---|---|
@@ -219,6 +227,39 @@ Without this, `WebApplicationFactory<Program>` cannot see `Program.cs` (internal
 
 ---
 
+## Definition of Done — Per Story
+
+A story is `done` only when **all** of the following are true:
+
+| # | Gate | Verified by |
+|---|---|---|
+| 1 | All ATDD acceptance tests pass (green) | `playwright test` / `dotnet test` |
+| 2 | All backend integration tests pass | `dotnet test src/Fishtank.Api.IntegrationTests` |
+| 3 | TypeScript builds clean — 0 errors | `npm run build` in `src/client` |
+| 4 | .NET builds clean — 0 errors, 0 warnings | `dotnet build src/Fishtank.slnx` |
+| 5 | Every new interactive/structural UI element has a `data-testid` | Code review — see Frontend Rules |
+| 6 | msw handlers updated in the same PR if any API contract changed | Code review |
+| 7 | No new critical anti-patterns from the Anti-Patterns table below | Code review |
+| 8 | Story status set to `done` in `_bmad-output/implementation-artifacts/sprint-status.yaml` | Manual / agent |
+| 9 | If last story in an epic: epic status set to `done` in `sprint-status.yaml` | Manual / agent |
+
+**Story status lifecycle** (edit `sprint-status.yaml` at each transition):
+- `backlog` → story only exists in `epics.md`
+- `ready-for-dev` → story file created by `bmad-create-story`; epic flips to `in-progress`
+- `in-progress` → set when `bmad-dev-story` is activated; ATDD scaffold must exist first
+- `review` → set when implementation complete; triggers `bmad-code-review` (fresh context recommended)
+- `ready-for-testing` → set when code review passes with no blockers; story waits for `bmad-testarch-automate` to be activated (by agent or manually)
+- `in-test` → set by `bmad-testarch-automate` at activation; test automation runs, coverage and ATDD assertions evaluated
+- `done` → set after all DoD gates pass; if last story in epic, set epic to `done`
+
+**Bug-fix loop** (after test failures in `in-test`):
+- Analyze failing tests → root cause
+- Use `bmad-quick-dev` (targeted fix) — or reopen `bmad-dev-story` if rework is significant (agent decides based on scope)
+- Status reverts: `in-test` → `in-progress` → `review` → `ready-for-testing` → `in-test`
+- Max 2 `bmad-quick-dev` cycles before marking story `blocked` and escalating to Nico
+
+---
+
 ## Testing Rules
 
 ### Layers
@@ -227,7 +268,7 @@ Without this, `WebApplicationFactory<Program>` cannot see `Program.cs` (internal
 | Backend unit | xUnit | `src/Fishtank.Api.UnitTests/` — no I/O |
 | Backend integration | xUnit + WebApplicationFactory | `src/Fishtank.Api.IntegrationTests/` — SQLite `:memory:`, Respawn |
 | Frontend component | Vitest + Testing Library | Co-located `*.test.tsx` in feature folders — msw for API mocking |
-| E2E smoke | Playwright | `.github/e2e/` — runs against built Docker image |
+| E2E smoke | Playwright | `src/client/tests/e2e/` — runs against live stack (Vite dev server + .NET API) |
 
 ### Critical Rules
 - Integration tests use `WebApplicationFactory<Program>` — **never** spin up a real HTTP server manually

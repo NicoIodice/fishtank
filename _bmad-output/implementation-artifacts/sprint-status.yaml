@@ -18,10 +18,12 @@
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
-#   - ready-for-dev: Story file created in stories folder
-#   - in-progress: Developer actively working on implementation
-#   - review: Ready for code review (via Dev's code-review workflow)
-#   - done: Story completed
+#   - ready-for-dev: Story file created by bmad-create-story
+#   - in-progress: Developer actively working on implementation (bmad-dev-story activated)
+#   - review: Implementation complete — awaiting code review (bmad-code-review)
+#   - ready-for-testing: Code review passed — awaiting test lifecycle (bmad-testarch-automate / ATDD run)
+#   - in-test: Test automation skill has picked up the story (tests running / being written)
+#   - done: All DoD gates pass (tests green, code review clean, no anti-patterns)
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
@@ -33,6 +35,8 @@
 # - Stories can be worked in parallel if team capacity allows
 # - Developer creates the next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - After code review passes: status → ready-for-testing; test lifecycle begins
+# - If tests fail post-review: bug-fix cycle (bmad-quick-dev or bmad-dev-story) → back to 'review'
 #
 # DEPENDENCY NOTES (TEA — persistent project requirements):
 # =========================================================

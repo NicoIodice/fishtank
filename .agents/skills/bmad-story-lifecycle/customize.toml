@@ -1,0 +1,36 @@
+# Workflow customization surface for bmad-story-lifecycle.
+# Committed — applies to every developer on this project.
+#
+# Merge rules:
+#   scalars: override wins
+#   arrays (persistent_facts, activation_steps_*): append
+#   arrays-of-tables with `code`/`id`: replace matching items, append new ones.
+
+[workflow]
+
+# Steps to run before the standard activation (config load, greet).
+activation_steps_prepend = []
+
+# Steps to run after greet but before the workflow begins.
+activation_steps_append = []
+
+# Persistent facts loaded as foundational context for every lifecycle run.
+persistent_facts = [
+  "file:{project-root}/**/project-context.md",
+  "file:{project-root}/_bmad-output/planning-artifacts/epics.md",
+]
+
+# Maximum QuickDev fix cycles before HALT (hard limit — do not increase lightly).
+# Override wins.
+quickdev_max_cycles = 2
+
+# Whether to pause and ask the user for confirmation before entering each phase.
+# "none" = fully autonomous (default)
+# "major" = pause before dev-story and test-automate
+# "all"   = pause before every phase
+# Override wins.
+human_checkpoints = "none"
+
+# Scalar: executed after the lifecycle reaches 'done' status.
+# Leave empty for no custom post-completion behavior.
+on_complete = ""

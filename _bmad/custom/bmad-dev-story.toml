@@ -4,4 +4,6 @@
 [workflow]
 activation_steps_append = [
   "REQUIRED PRE-FLIGHT CHECK: Before proceeding, confirm that bmad-testarch-atdd has been completed for the story being implemented. If no ATDD/acceptance test scaffold exists for this story or epic, warn Nico that bmad-testarch-atdd is a required phase 4 deliverable and ask for confirmation before continuing.",
+  "STATUS UPDATE: At the very start of implementation (before writing any code), update the story's status in _bmad-output/implementation-artifacts/sprint-status.yaml from 'ready-for-dev' to 'in-progress'.",
+  "STATUS UPDATE: When implementation is complete and all DoD gates 1-7 pass (per project-context.md Definition of Done section), update the story's status to 'review' in sprint-status.yaml. If this was the last story in the epic, also update the epic status to 'in-progress' (if not already) or 'done' (if all stories are done).",
 ]
