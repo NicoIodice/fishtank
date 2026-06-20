@@ -66,18 +66,18 @@ Execute each entry in `{workflow.activation_steps_append}` in order.
 The orchestrator writes and reads `{implementation_artifacts}/lifecycle-state-{story_key}.yaml` after every phase transition. Schema:
 
 ```yaml
-story_key: ""           # e.g. "1-2-auth-backend"
-epic_id: ""             # e.g. "1"
-current_phase: ""       # phase tag (see Phase Tags below)
-status: active          # active | blocked | done
-blocked_reason: ""      # populated on HALT
+story_key: "" # e.g. "1-2-auth-backend"
+epic_id: "" # e.g. "1"
+current_phase: "" # phase tag (see Phase Tags below)
+status: active # active | blocked | done
+blocked_reason: "" # populated on HALT
 test_design_retries: 0
 validate_retries: 0
 dev_retries: 0
 code_review_retries: 0
 quickdev_cycle: 0
-last_updated: ""        # ISO datetime
-phases_completed: []    # list of completed phase tags
+last_updated: "" # ISO datetime
+phases_completed: [] # list of completed phase tags
 ```
 
 **Phase Tags (in order):** `init` → `preflight-framework` → `preflight-test-design` → `create-story` → `atdd` → `validate` → `dev-story` → `code-review` → `test-automate` → `test-review` → `done`
@@ -86,17 +86,17 @@ phases_completed: []    # list of completed phase tags
 
 ## Exit Criteria Reference
 
-| Phase | Exit Criteria — PASS | Action on FAIL |
-|---|---|---|
-| preflight-framework | `framework-setup-progress.md` exists + `step-05` completed | HALT — not auto-fixable |
-| preflight-test-design | test-design for epic covers story scope + quality gate passes | Auto-create (retry ≤ 2) |
-| create-story | story file exists in `{implementation_artifacts}/`, status `ready-for-dev` | Retry creation |
-| atdd | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
-| validate | `bmad-check-implementation-readiness` scores PASS | Fix spec gaps (retry ≤ 2) |
-| dev-story | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean | Retry dev (retry ≤ 2) |
-| code-review | `bmad-code-review` finds zero BLOCKER items | QuickDev fix → re-review (retry ≤ 1) |
-| test-automate | Coverage targets met; all ATDD assertions pass | QuickDev fix cycle |
-| test-review | `bmad-testarch-test-review` finds zero BLOCKER items | QuickDev fix (cycle ≤ 2) |
+| Phase                 | Exit Criteria — PASS                                                                          | Action on FAIL                        |
+| --------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------- |
+| preflight-framework   | `framework-setup-progress.md` exists + `step-05` completed                                    | HALT — not auto-fixable               |
+| preflight-test-design | test-design for epic covers story scope + quality gate passes                                 | Auto-create (retry ≤ 2)               |
+| create-story          | story file exists in `{implementation_artifacts}/`, status `ready-for-dev`                    | Retry creation                        |
+| atdd                  | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
+| validate              | `bmad-check-implementation-readiness` scores PASS                                             | Fix spec gaps (retry ≤ 2)             |
+| dev-story             | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean                              | Retry dev (retry ≤ 2)                 |
+| code-review           | `bmad-code-review` finds zero BLOCKER items                                                   | QuickDev fix → re-review (retry ≤ 1)  |
+| test-automate         | Coverage targets met; all ATDD assertions pass                                                | QuickDev fix cycle                    |
+| test-review           | `bmad-testarch-test-review` finds zero BLOCKER items                                          | QuickDev fix (cycle ≤ 2)              |
 
 **QuickDev cycle budget:** max 2 per story. When exhausted → HALT, status → `blocked`.
 
@@ -162,6 +162,7 @@ phases_completed: []    # list of completed phase tags
       </action>
       <output>▶ Starting new lifecycle for story: {{story_key}} (epic: {{epic_id}})</output>
     </check>
+
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -183,13 +184,13 @@ phases_completed: []    # list of completed phase tags
       <output>🚫 BLOCKED — Test framework scaffold is missing or incomplete.
 
 Run `bmad-testarch-framework` to completion (step 5 must finish) before this lifecycle can proceed.
-Expected: _bmad-output/test-artifacts/framework-setup-progress.md with 'step-05-validate-and-summary' in stepsCompleted.
+Expected: \_bmad-output/test-artifacts/framework-setup-progress.md with 'step-05-validate-and-summary' in stepsCompleted.
 
 Lifecycle state saved. Re-run this skill after completing the framework setup.</output>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "framework scaffold missing — run bmad-testarch-framework", last_updated → now</action>
-      <action>HALT</action>
-    </check>
-  </step>
+<action>Update lifecycle state: status → blocked, blocked_reason → "framework scaffold missing — run bmad-testarch-framework", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 2: PREFLIGHT — TEST DESIGN FOR EPIC                  -->
@@ -245,11 +246,11 @@ Gaps that could not be resolved automatically:
 {{quality_gate_failures}}
 
 Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and restart this lifecycle.</output>
-        <action>Update lifecycle state: status → blocked, blocked_reason → "test-design quality gate failed after max retries", last_updated → now</action>
-        <action>HALT</action>
-      </check>
-    </check>
-  </step>
+<action>Update lifecycle state: status → blocked, blocked_reason → "test-design quality gate failed after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 3: CREATE STORY                                       -->
@@ -277,6 +278,7 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
 
     <output>✅ Story {{story_key}} created and sprint-status updated.</output>
     <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -316,12 +318,13 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
 
     <check if="atdd_retries >= 2">
       <output>🚫 BLOCKED — ATDD scaffolds could not satisfy exit criteria after 3 attempts.
+
 Issues: {{criteria_failures}}
 Manual review of story acceptance criteria and test scaffolds required.</output>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "ATDD exit criteria failed after max retries", last_updated → now</action>
-      <action>HALT</action>
-    </check>
-  </step>
+<action>Update lifecycle state: status → blocked, blocked_reason → "ATDD exit criteria failed after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 5: VALIDATE                                           -->
@@ -352,12 +355,13 @@ Manual review of story acceptance criteria and test scaffolds required.</output>
 
     <check if="validate_retries >= 2">
       <output>🚫 BLOCKED — Story readiness check failed after 3 attempts.
+
 Remaining blockers: {{blockers}}
 Manual story refinement required before implementation can proceed.</output>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
-      <action>HALT</action>
-    </check>
-  </step>
+<action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 6: DEV STORY                                          -->
@@ -400,13 +404,14 @@ Manual story refinement required before implementation can proceed.</output>
 
     <check if="dev_retries >= 2">
       <output>🚫 BLOCKED — Implementation failed DoD gates after 3 attempts.
+
 Failures: {{gate_failures}}
 Escalating to {{user_name}} for manual intervention.</output>
-      <action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "DoD gate failures after max retries", last_updated → now</action>
-      <action>HALT</action>
-    </check>
-  </step>
+<action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
+<action>Update lifecycle state: status → blocked, blocked_reason → "DoD gate failures after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 7: CODE REVIEW                                        -->
@@ -435,30 +440,29 @@ Escalating to {{user_name}} for manual intervention.</output>
       <action>Increment quickdev_cycle in lifecycle state</action>
       <check if="quickdev_cycle > 2">
         <output>🚫 BLOCKED — QuickDev cycle budget exhausted during code review.
+
 Remaining blockers: {{blockers}}
 Escalating to {{user_name}}.</output>
-        <action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
-        <action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in code-review", last_updated → now</action>
-        <action>HALT</action>
-      </check>
-      <action>Execute bmad-quick-dev for each BLOCKER:
-        - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md
-        - Target: fix the specific BLOCKER items identified in code review
-        - Verify DoD gates 1–4 still pass after fix
-      </action>
-      <action>Update sprint-status.yaml: {{story_key}} → review</action>
-      <goto anchor="code-review" />
-    </check>
+<action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
+<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in code-review", last_updated → now</action>
+<action>HALT</action>
+</check>
+<action>Execute bmad-quick-dev for each BLOCKER: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: fix the specific BLOCKER items identified in code review - Verify DoD gates 1–4 still pass after fix
+</action>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
+<goto anchor="code-review" />
+</check>
 
     <check if="BLOCKER items found AND code_review_retries >= 1">
       <output>🚫 BLOCKED — Code review blockers persist after fix attempt.
+
 Blockers: {{blockers}}
 Escalating to {{user_name}}.</output>
-      <action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "code review blockers after max retries", last_updated → now</action>
-      <action>HALT</action>
-    </check>
-  </step>
+<action>Update sprint-status.yaml: {{story_key}} → in-progress</action>
+<action>Update lifecycle state: status → blocked, blocked_reason → "code review blockers after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 8: TEST AUTOMATE                                      -->
@@ -495,22 +499,20 @@ Escalating to {{user_name}}.</output>
       <action>Increment quickdev_cycle in lifecycle state</action>
       <check if="quickdev_cycle > 2">
         <output>🚫 BLOCKED — QuickDev cycle budget exhausted during test-automate.
+
 Test failures: {{failures}}
 Escalating to {{user_name}}.</output>
-        <action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-automate", last_updated → now</action>
-        <action>HALT</action>
-      </check>
-      <action>Execute bmad-quick-dev to fix the failing tests:
-        - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md
-        - Target: fix specific test failures (code bugs, not test logic)
-        - If failures are in test logic: fix test logic directly without bmad-quick-dev
-      </action>
-      <action>Update sprint-status.yaml: {{story_key}} → review</action>
-      <action>After fix: re-run code review (abbreviated — check only changed files), then return here</action>
-      <action>Update sprint-status.yaml: {{story_key}} → in-test</action>
-      <goto anchor="test-automate" />
-    </check>
-  </step>
+<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-automate", last_updated → now</action>
+<action>HALT</action>
+</check>
+<action>Execute bmad-quick-dev to fix the failing tests: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: fix specific test failures (code bugs, not test logic) - If failures are in test logic: fix test logic directly without bmad-quick-dev
+</action>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
+<action>After fix: re-run code review (abbreviated — check only changed files), then return here</action>
+<action>Update sprint-status.yaml: {{story_key}} → in-test</action>
+<goto anchor="test-automate" />
+</check>
+</step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 9: TEST REVIEW                                        -->
@@ -537,24 +539,24 @@ Escalating to {{user_name}}.</output>
       <action>Increment quickdev_cycle in lifecycle state</action>
       <check if="quickdev_cycle > 2">
         <output>🚫 BLOCKED — QuickDev cycle budget exhausted during test-review.
+
 Test review blockers: {{blockers}}
 Escalating to {{user_name}}.</output>
-        <action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-review", last_updated → now</action>
-        <action>HALT</action>
-      </check>
-      <action>Execute bmad-quick-dev to fix code issues raised by test review:
-        - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md
-        - Target: specific code gaps identified in test review
-      </action>
-      <action>Update sprint-status.yaml: {{story_key}} → review</action>
-      <action>Re-run abbreviated code review on changed files, then update sprint-status → in-test</action>
-      <goto anchor="test-automate" />
-    </check>
+<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-review", last_updated → now</action>
+<action>HALT</action>
+</check>
+<action>Execute bmad-quick-dev to fix code issues raised by test review: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific code gaps identified in test review
+</action>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
+<action>Re-run abbreviated code review on changed files, then update sprint-status → in-test</action>
+<goto anchor="test-automate" />
+</check>
 
     <check if="BLOCKER items found (test quality issues only — no code changes needed)">
       <action>Fix test quality issues directly (improve assertions, add missing edge cases, remove duplicates)</action>
       <goto anchor="test-review" />
     </check>
+
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -572,26 +574,27 @@ Escalating to {{user_name}}.</output>
     <action>Update lifecycle state: status → done, append 'done' to phases_completed, last_updated → now</action>
 
     <output>
+
 ✅ Story {{story_key}} lifecycle complete!
 
 ## Summary
 
-| Phase | Result |
-|---|---|
-| Preflight — Framework | ✅ |
+| Phase                   | Result                                                  |
+| ----------------------- | ------------------------------------------------------- |
+| Preflight — Framework   | ✅                                                      |
 | Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}} |
-| Create Story | ✅ |
-| ATDD | ✅ |
-| Validate | ✅ |
-| Dev Story | ✅ |
-| Code Review | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}} |
-| Test Automate | ✅ |
-| Test Review | ✅ |
+| Create Story            | ✅                                                      |
+| ATDD                    | ✅                                                      |
+| Validate                | ✅                                                      |
+| Dev Story               | ✅                                                      |
+| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}   |
+| Test Automate           | ✅                                                      |
+| Test Review             | ✅                                                      |
 
 **QuickDev cycles used:** {{quickdev_cycle}} of 2
 **Final status:** done
 **Sprint-status updated:** {{story_key}} → done{{epic_all_done ? ", epic-{{epic_id}} → done" : ""}}
-    </output>
-  </step>
+</output>
+</step>
 
 </workflow>
