@@ -44,6 +44,7 @@ Services Management (FR-1–6), Network Activity (FR-7–13), Mock Suggestions &
 ### Technical Constraints & Dependencies
 
 - **WireMock.NET spike gate: RESOLVED** — Multi-service in-process hosting is proven via existing `ServerManager` implementation. A single .NET process can host N independent `WireMockServer` instances on separate ports with independent fault boundaries. Key evolution required: dynamic per-service start/stop at runtime (vs. startup-only in existing code).
+- **EngineStartup port conflict handling:** `EngineStartup.cs` auto-starts all services stored with status `live` in the DB on container boot. If `WireMockServer.Start()` throws `SocketException` (port already in use), catch per-service: update that service's status to `stopped` in the DB, emit a `SystemEvent` with code `ENGINE_PORT_CONFLICT`, and continue starting the remaining services. A single port collision must never crash-loop the container.
 - **SQLite v1 hard constraint:** Single-instance only; no shared volume across multiple Fishtank instances. Postgres is a post-v1 substitution path; ORM/data layer must not foreclose it.
 - **TLS responsibility:** v1 serves plain HTTP; reverse proxy handles TLS.
 - **Port range fixed:** 30100–30199 (max 100 services in v1).
@@ -261,9 +262,15 @@ await db.Database.MigrateAsync();
 #### Auth stack (from PRD FR-24–29 + NFR-8–16)
 
 - **JWT tokens** issued on login, stored in **httpOnly cookies** (NFR-16 — not localStorage/sessionStorage)
-- Cookie settings: `HttpOnly: true`, `SameSite: Strict`, `Secure: true` (when behind TLS reverse proxy)
+- Cookie settings: `HttpOnly: true`, `SameSite: Strict`, `Secure: true` (when behind TLS reverse proxy; conditional in dev — see below)
 - Token lifetime: configurable via env var; default = container lifetime (invalidated on restart — FR-24)
 - No refresh token endpoint in v1 (ASSUMPTION documented in PRD)
+
+**Startup validation:** `FISHTANK_JWT_SECRET` must be ≥ 32 characters; container exits with `SYSTEM_CONFIG_INVALID` if shorter. Validated in `Program.cs` before `AddAuthentication` is called.
+
+**FR-24 restart invalidation — boot-epoch approach:** On startup, write a `BootEpoch` GUID to a single-row `ServerConfig` DB entry (added by migration). Include `boot_epoch` as a JWT claim on login. `JwtBearerOptions.Events.OnTokenValidated` reads the current `BootEpoch` from a singleton `IServerConfigService` and rejects tokens whose `boot_epoch` does not match. New container start → new `BootEpoch` → all prior tokens immediately invalid, satisfying FR-24.
+
+**Conditional `Secure` flag:** `cookieOptions.Secure = app.Environment.IsProduction() || context.Request.IsHttps;` — prevents dev cookies from being silently dropped by the browser when the API serves plain HTTP in development.
 
 **SignalR WebSocket authentication with cookies:** httpOnly cookies are included by browsers in WebSocket upgrade requests. Standard ASP.NET Core JWT cookie auth works with SignalR WebSockets natively — no `accessTokenFactory` or query-string token workaround needed. `SameSite: Strict` is safe because in production the SPA and API are served from the same origin (same container). In development, the Vite proxy ensures requests arrive same-origin to the browser.
 
@@ -283,18 +290,26 @@ builder.Services.AddRateLimiter(options =>
 - Threshold and window configurable via environment variables (FR-36)
 - Returns HTTP 429 with `Retry-After` header (FR-25)
 - No extra NuGet package required (.NET 7+ built-in)
+- **Reverse proxy / ForwardedHeaders:** Register `app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor })` before `UseRateLimiter` in `Program.cs`. Without this, all clients behind a proxy share one rate limit bucket (the proxy IP), making the limiter effectively per-proxy-node rather than per-client.
 
 #### CORS Policy
 
 - Default: allow only the origin serving the bundled React SPA (`http://localhost:{MANAGEMENT_PORT}`)
 - Additional origins via `FISHTANK_ALLOWED_ORIGINS` env var (comma-separated)
 - NFR-11: CORS locked to self-origin by default
+- **Wildcard guard:** Origins parsed from `FISHTANK_ALLOWED_ORIGINS` are validated at startup; if any entry equals `*`, the container exits with `SYSTEM_CONFIG_INVALID`. A wildcard CORS origin combined with `credentials: 'include'` is rejected by browsers, but explicit rejection prevents silent misconfiguration.
 
 #### API Key (pipeline reset endpoint FR-45)
 
 - Pre-shared secret configured via `FISHTANK_PIPELINE_RESET_KEY` env var
 - Distinct from user JWT tokens — CI/CD automation only
 - No key configured → `POST /admin/reset` returns HTTP 403 with descriptive message
+- Empty string treated identically to unset — `ApiKeyMiddleware` must use `string.IsNullOrWhiteSpace(key)` to evaluate absence; an empty `FISHTANK_PIPELINE_RESET_KEY` must not enable the endpoint
+
+#### User Management Business Rules
+
+- **Last active admin guard:** `PUT /api/users/{guid}/deactivate` must verify: if `targetUser.IsAdmin && activeAdminCount <= 1`, throw `ConflictException("ADMIN_LAST_ADMIN_DEACTIVATE", "Cannot deactivate the last active administrator.")` → HTTP 409. Prevents permanent lockout with no recovery path.
+- Self-deactivation is permitted for non-admin users; the guard applies only when the target is the last remaining admin.
 
 ---
 
@@ -365,6 +380,8 @@ All hubs require JWT authentication (cookie forwarded via `HttpContext`).
 
 **Activity log is ephemeral and session-bound by design.** If a WebSocket disconnects and reconnects, missed `ActivityRowAdded` events are gone — there is no re-fetch on reconnect. Refreshing the page starts a fresh log. Historical activity log access is explicitly out of scope for v1. This is a documented trade-off, not an oversight.
 
+**Activity log cap:** `ActivityService` enforces `MAX_ACTIVITY_ROWS = 10_000` (aligned with NFR-4: 10,000 rows at 60 fps). Implemented as a fixed-capacity ring buffer; oldest entries are evicted when the cap is reached. Thread-safe via `lock (_syncRoot)`. Bounds memory for indefinitely-running containers.
+
 #### D5 — Frontend Routing: History mode
 
 - react-router-dom v6+ with `createBrowserRouter`
@@ -413,6 +430,14 @@ const HUB_INVALIDATION_MAP: Record<string, QueryKey[]> = {
 
 **inotify ceiling:** Linux default `fs.inotify.max_user_watches` is 8192. 100 services at ~2 watchers each = 200 — safe under normal conditions. If a host machine runs heavy tooling (VS Code, JetBrains IDEs) that consumes thousands of watches, the ceiling can be hit. README must document: add `--sysctl fs.inotify.max_user_watches=65536` to the `docker run` command if watch exhaustion is observed.
 
+**FSW buffer overflow (Windows):** Set `watcher.InternalBufferSize = 65536` (64 KB) on each `FileSystemWatcher` instance. Register `watcher.Error`: on overflow, log a Serilog warning tagged `ENGINE_FSW_BUFFER_OVERFLOW` and re-arm the watcher. The default 8 KB buffer silently drops events during bulk file copy operations.
+
+**Thread safety:** `_lastKnownModified` must be `ConcurrentDictionary<string, DateTimeOffset>`. FSW callbacks run on thread-pool threads; `ResyncAsync` also reads/writes from an async endpoint handler. A plain `Dictionary<>` produces data races under concurrent access.
+
+**Directory deletion:** Register handlers for `FileSystemWatcher.Deleted` and `Renamed`. If the watched service subdirectory is deleted or moved while the watcher is active, dispose the watcher, update the service status to `stopped` in the DB, and emit a `SystemEvent("ENGINE_SERVICE_DIR_MISSING")`. Track `FISHTANK_MOCKS_ROOT` with a parent-level watcher to re-arm individual service watchers if their directories are recreated.
+
+**Resync concurrency:** `MappingService.ResyncAsync()` acquires a `SemaphoreSlim(1, 1)` guard. Concurrent `POST /api/resync` calls return HTTP 409 `RESYNC_IN_PROGRESS` immediately — not queued. Prevents interleaved `_lastKnownModified` updates. NFR-2 (1 s under 200 files) is measured for a single sequential run.
+
 **Cascade:** FSW events also drive the folder tree refresh signal (sent via `/hubs/activity` or dedicated hub event). Avoids needing full Resync for a simple folder tree update.
 
 #### D8 — Docker base image: Alpine
@@ -438,7 +463,10 @@ RUN addgroup -S fishtank && adduser -S fishtank -G fishtank   # NFR-12: non-root
 WORKDIR /app
 COPY --from=server-build /publish .
 COPY --from=client-build /app/client/dist ./wwwroot
+RUN mkdir -p /app/data && chown fishtank:fishtank /app/data   # Default DB dir must exist before USER switch
 USER fishtank
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s \
+  CMD wget -qO- http://localhost:${FISHTANK_PORT:-5000}/health || exit 1
 ENTRYPOINT ["dotnet", "Fishtank.Api.dll"]
 ```
 
@@ -446,6 +474,8 @@ ENTRYPOINT ["dotnet", "Fishtank.Api.dll"]
 - Non-root user `fishtank` (NFR-12)
 - WireMock.NET is pure managed .NET — no native dependencies, Alpine compatible
 - **Version policy:** Pin `WireMock.Net` to a specific minor version at project init. WireMock.Net has breaking changes between major versions. Upgrade path: patch-only automatically; minor version requires changelog review before bumping.
+- **Data directory:** `/app/data/` is created and owned by `fishtank` before the `USER` switch. If `FISHTANK_DB_PATH` is overridden to a host-mounted path, the volume must be writable by uid 1001 (the `fishtank` user). Document in README and `docker-compose.example.yml`.
+- **HEALTHCHECK:** Wired to `GET /health` (no auth). Required for `depends_on: condition: service_healthy` in `docker-compose.example.yml` and for Docker restart policy to detect a running-but-broken app.
 
 #### D7 — Feature Toggle Broadcast: SignalR
 
@@ -617,8 +647,13 @@ src/client/src/
 // lib/api.ts — all API calls go through this
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, { credentials: 'include', ...options });
-  const body = await res.json();
-  if (!body.success) throw new ApiError(body.error.code, body.error.message);
+  const body = await res.json().catch(() => { throw new ApiError('NETWORK_ERROR', 'Invalid server response'); });
+  if (!body.success) {
+    if (body.error?.code === 'AUTH_UNAUTHENTICATED' && window.location.pathname !== '/login') {
+      window.location.replace('/login');
+    }
+    throw new ApiError(body.error.code, body.error.message);
+  }
   return body.data as T;
 }
 ```
@@ -626,7 +661,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 **Rules:**
 - `credentials: 'include'` always set — JWT in httpOnly cookie
 - Callers receive typed `T` directly — envelope unwrapping happens here only
-- `401` from any call → redirect to `/login` (handled here, not in components)
+- `AUTH_UNAUTHENTICATED` response → redirect to `/login`; guard on `pathname !== '/login'` prevents infinite redirect loop
+- Non-JSON responses (proxy error pages, Docker restart HTML) caught before `body.success` check; throws `ApiError('NETWORK_ERROR', ...)` to preserve typed error contract throughout the app
 
 #### Date/time format
 
@@ -653,6 +689,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 - Payloads: camelCase JSON — same convention as REST responses
 - All hubs require JWT auth (cookie forwarded via `withCredentials`)
 - Reconnect logic lives in `lib/signalr.ts` only — never in feature hooks
+- **On reconnect:** `lib/signalr.ts` must call `queryClient.invalidateQueries([['services'], ['toggles'], ['mappings', 'tree']])` immediately after the connection re-establishes. Compensates for hub events missed during the disconnected window. Activity log rows are intentionally not back-filled (ephemeral by design — see above).
+- **Hub `SendAsync` error isolation (backend):** All `_hub.Clients.All.SendAsync(...)` calls in service layer methods must be wrapped in `try/catch`; log a Serilog warning on failure. Hub delivery failure must never abort or roll back the business operation that triggered it.
 
 #### SignalR → React Query invalidation map
 
@@ -989,6 +1027,9 @@ public record SuggestionDto(
 - `AcceptSuggestionAsync` must be idempotent: if suggestion already accepted, return the existing file path (do not overwrite)
 - Suggestions are ephemeral in-memory (not persisted to DB); cleared on service restart
 - `SuggestedFilePath` is sanitised by `RecordingService` before passing to `MappingService` (no path traversal)
+- **Suggestion cap:** `RecordingService` enforces `MAX_SUGGESTIONS_PER_SERVICE = 200`. On overflow, evict the oldest suggestion (by `ActivityRowId` timestamp) before adding the new one. Prevents unbounded memory growth under high unmatched-request volume.
+- **Missing suggestion → 404:** `AcceptSuggestionAsync` and `DELETE` for an ID not present in the in-memory store (e.g., called after a service restart) must throw `NotFoundException("RECORDING_SUGGESTION_NOT_FOUND")` → HTTP 404, not 500.
+- **Transactional accept:** Mark a suggestion as accepted only after `MappingService.SaveAsync` completes successfully. If `SaveAsync` throws (disk full, permissions error), the suggestion remains in pending state and the typed error propagates to the endpoint. Prevents the accepted-but-not-written inconsistency.
 
 ---
 
@@ -1047,7 +1088,11 @@ Vite builds to `src/client/dist/` → Dockerfile copies to `wwwroot/` → `app.U
 | `FISHTANK_DEBUG_ERRORS` | No | `false` | Include `details` field in error responses |
 
 **Rules:**
-- `FISHTANK_MOCKS_ROOT` and `FISHTANK_JWT_SECRET` are required at runtime; container exits with a descriptive error if either is missing
+- `FISHTANK_MOCKS_ROOT` and `FISHTANK_JWT_SECRET` are required at runtime; container exits with `SYSTEM_CONFIG_INVALID` if either is missing
+- `FISHTANK_JWT_SECRET` must be ≥ 32 characters; container exits with `SYSTEM_CONFIG_INVALID` if shorter
+- `FISHTANK_PORT_RANGE_START` must be < `FISHTANK_PORT_RANGE_END`; `FISHTANK_PORT` must not fall within `[PORT_RANGE_START, PORT_RANGE_END]`; violations exit with `SYSTEM_CONFIG_INVALID`
+- `FISHTANK_PIPELINE_RESET_KEY`, if provided, must be non-empty — empty string is treated as unset (endpoint returns 403)
+- `FISHTANK_ALLOWED_ORIGINS` entries are validated at startup; wildcard `*` is rejected with `SYSTEM_CONFIG_INVALID`
 - Secrets (`FISHTANK_JWT_SECRET`, `FISHTANK_PIPELINE_RESET_KEY`) must never be committed — use Docker secrets or `.env` excluded from version control
 - `GET /api/settings` returns a read-only view of non-secret configuration (port range, rate limit config, version, uptime) — no write API in v1
 
@@ -1098,6 +1143,20 @@ All gaps identified during validation were resolved before this section was save
 - ✅ `.env.example` content fully enumerated (12 `FISHTANK_*` vars with required flags and defaults)
 - ✅ `Exceptions/` folder added with typed subclasses (`NotFoundException`, `ConflictException`, `ValidationException`, `ForbiddenException`) mapping to HTTP status codes
 - ✅ `vite-env.d.ts` added to `src/client/src/`
+
+---
+
+## Deferred Items & Known Trade-offs
+
+Items consciously deferred to v2 or accepted as v1 trade-offs. Recorded here so contributors understand the boundary.
+
+| Item | Classification | Notes |
+|---|---|---|
+| JWT expiry while SignalR hub connected | **v2** | Token is checked only at hub connection time; a long-lived WebSocket can outlast token expiry. v2: add an `IHostedService` that periodically checks active connection claims and disconnects sessions with expired `boot_epoch` or past `exp`. |
+| SQLite downgrade detection | **v2** | A newer-DB + older-binary deploy will exit with an EF migration error. v2: add an explicit version check in `Program.cs` by comparing `__EFMigrationsHistory` row count against the expected migration count before calling `MigrateAsync`, and emit a clear `SYSTEM_DB_VERSION_MISMATCH` error. |
+| Seed file import: slug + port conflict on upsert | **v2** | If an imported seed file specifies the same slug with a different port, the current upsert updates display fields only — port is never silently reassigned. v2: define explicit upsert semantics and surface a conflict resolution prompt in the import flow. |
+| Activity log back-fill after reconnect | **v1 trade-off** | Missed `ActivityRowAdded` events during a hub disconnect are gone by design. Historical log access is out of v1 scope. |
+| Per-request audit completeness for external writes | **v1 trade-off** | `AuditService` covers user-initiated mutations through the service layer. Direct volume-level file edits (external editor, CLI) are tracked via FSW conflict detection but not audited as user actions. |
 
 **No remaining gaps.**
 
