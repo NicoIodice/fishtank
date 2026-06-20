@@ -286,8 +286,17 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
     <action>After creation: verify story file exists in {implementation_artifacts}/ with correct YAML frontmatter (story_key, status: ready-for-dev)</action>
     <action>Verify sprint-status.yaml updated: story → ready-for-dev, epic → in-progress</action>
 
-    <output>✅ Story {{story_key}} created and sprint-status updated.</output>
-    <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+    <check if="story file exists in {implementation_artifacts}/ with status ready-for-dev">
+      <output>✅ Story {{story_key}} created and sprint-status updated.</output>
+      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+    </check>
+
+    <check if="story file missing OR status is not ready-for-dev">
+      <output>🚫 BLOCKED — Story creation failed. Expected: {implementation_artifacts}/{{story_key}}.md with status ready-for-dev.
+Manual fix required: run bmad-create-story directly and verify the output before re-running this lifecycle.</output>
+      <action>Update lifecycle state: status → blocked, blocked_reason → "story creation failed — file missing or incorrect status", last_updated → now</action>
+      <action>HALT</action>
+    </check>
 
   </step>
 
@@ -407,8 +416,8 @@ Manual story refinement required before implementation can proceed.</output>
 
     <check if="any DoD gate fails AND dev_retries < 2">
       <action>Increment dev_retries in lifecycle state, last_updated → now</action>
-      <output>⚠ DoD gate failures: {{gate_failures}}. Fixing ({{dev_retries}} of 2)...</output>
-      <action>Fix the failing gates without invoking bmad-dev-story again — targeted fixes only</action>
+      <output>⚠ DoD gate failures: {{gate_failures}}. Retrying full implementation ({{dev_retries}} of 2)...</output>
+      <action>Apply targeted fixes for the failing gates (e.g. compilation errors, missing dependencies), then re-run the full dev-story step to verify complete implementation</action>
       <goto anchor="dev-story" />
     </check>
 
@@ -560,8 +569,10 @@ Escalating to {{user_name}}.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in nfr", last_updated → now</action>
 <action>HALT</action>
 </check>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
 <action>Execute bmad-quick-dev to fix the NFR gaps: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific NFR BLOCKER items identified in audit - Verify DoD gates 1–4 still pass after fix
 </action>
+<action>Update sprint-status.yaml: {{story_key}} → in-test</action>
 <goto anchor="nfr" />
 </check>
 
@@ -692,14 +703,14 @@ Escalating to {{user_name}}.</output>
 | Preflight — Framework   | ✅                                                      |
 | Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}} |
 | Create Story            | ✅                                                      |
-| ATDD                    | ✅                                                      |
-| Validate                | ✅                                                      |
-| Dev Story               | ✅                                                      |
-| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}   |
-| Test Automate           | ✅                                                      |
-| NFR Audit               | ✅                                                      |
-| Traceability            | ✅                                                      |
-| Test Review             | ✅                                                      |
+| ATDD                    | ✅ {{atdd_retries > 0 ? "(retries: " + atdd_retries + ")" : ""}}          |
+| Validate                | ✅ {{validate_retries > 0 ? "(retries: " + validate_retries + ")" : ""}}  |
+| Dev Story               | ✅ {{dev_retries > 0 ? "(retries: " + dev_retries + ")" : ""}}            |
+| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}                     |
+| Test Automate           | ✅                                                                        |
+| NFR Audit               | ✅ {{nfr_retries > 0 ? "(retries: " + nfr_retries + ")" : ""}}            |
+| Traceability            | ✅ {{trace_retries > 0 ? "(retries: " + trace_retries + ")" : ""}}        |
+| Test Review             | ✅                                                                        |
 
 **QuickDev cycles used:** {{quickdev_cycle}} of 2
 **Final status:** done
