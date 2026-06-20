@@ -10,12 +10,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v0.1.0 (Epic 1: Foundation)
+## [Unreleased] — v0.1.0 (Foundation)
 
 _Theme: Pull the image, log in, confirm the container is healthy._
-
-> Stories in progress: `1-2-database-authentication-backend-and-first-run-logic`,
-> `1-3-react-app-shell-login-and-first-run-setup-screens`
 
 ### Added
 
