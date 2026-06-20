@@ -14,7 +14,7 @@ activation_steps_prepend = []
 # Steps to run after greet but before the workflow begins.
 activation_steps_append = []
 
-# Persistent facts loaded as foundational context for every lifecycle run
+# Persistent facts loaded as foundational context for every lifecycle run.
 persistent_facts = [
   "file:{project-root}/**/project-context.md",
   "file:{project-root}/_bmad-output/planning-artifacts/epics.md",
