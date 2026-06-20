@@ -293,10 +293,11 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
 
     <check if="story file missing OR status is not ready-for-dev">
       <output>🚫 BLOCKED — Story creation failed. Expected: {implementation_artifacts}/{{story_key}}.md with status ready-for-dev.
+
 Manual fix required: run bmad-create-story directly and verify the output before re-running this lifecycle.</output>
-      <action>Update lifecycle state: status → blocked, blocked_reason → "story creation failed — file missing or incorrect status", last_updated → now</action>
-      <action>HALT</action>
-    </check>
+<action>Update lifecycle state: status → blocked, blocked_reason → "story creation failed — file missing or incorrect status", last_updated → now</action>
+<action>HALT</action>
+</check>
 
   </step>
 
@@ -698,19 +699,19 @@ Escalating to {{user_name}}.</output>
 
 ## Summary
 
-| Phase                   | Result                                                  |
-| ----------------------- | ------------------------------------------------------- |
-| Preflight — Framework   | ✅                                                      |
-| Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}} |
-| Create Story            | ✅                                                      |
-| ATDD                    | ✅ {{atdd_retries > 0 ? "(retries: " + atdd_retries + ")" : ""}}          |
-| Validate                | ✅ {{validate_retries > 0 ? "(retries: " + validate_retries + ")" : ""}}  |
-| Dev Story               | ✅ {{dev_retries > 0 ? "(retries: " + dev_retries + ")" : ""}}            |
-| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}                     |
-| Test Automate           | ✅                                                                        |
-| NFR Audit               | ✅ {{nfr_retries > 0 ? "(retries: " + nfr_retries + ")" : ""}}            |
-| Traceability            | ✅ {{trace_retries > 0 ? "(retries: " + trace_retries + ")" : ""}}        |
-| Test Review             | ✅                                                                        |
+| Phase                   | Result                                                                   |
+| ----------------------- | ------------------------------------------------------------------------ |
+| Preflight — Framework   | ✅                                                                       |
+| Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}}                  |
+| Create Story            | ✅                                                                       |
+| ATDD                    | ✅ {{atdd_retries > 0 ? "(retries: " + atdd_retries + ")" : ""}}         |
+| Validate                | ✅ {{validate_retries > 0 ? "(retries: " + validate_retries + ")" : ""}} |
+| Dev Story               | ✅ {{dev_retries > 0 ? "(retries: " + dev_retries + ")" : ""}}           |
+| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}                    |
+| Test Automate           | ✅                                                                       |
+| NFR Audit               | ✅ {{nfr_retries > 0 ? "(retries: " + nfr_retries + ")" : ""}}           |
+| Traceability            | ✅ {{trace_retries > 0 ? "(retries: " + trace_retries + ")" : ""}}       |
+| Test Review             | ✅                                                                       |
 
 **QuickDev cycles used:** {{quickdev_cycle}} of 2
 **Final status:** done
