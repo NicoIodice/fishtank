@@ -390,7 +390,7 @@ So that all subsequent development has a clean, testable foundation with automat
 
 **Given** a push to the main branch,
 **When** the CI pipeline runs,
-**Then** it executes in order: build → unit tests → integration tests → Docker image build → smoke test (container starts and `/health` returns 200) — all must pass (FR-34 partial, FR-40 partial).
+**Then** it executes in order: build → unit tests → integration tests → Docker image build → smoke test (container starts and `/health` returns 200) — all must pass (FR-34 partial, FR-40 partial). **Note:** Epic 1 CI runs on Linux runners only; macOS (Apple Silicon + Intel) and Windows runner validation is added in Epic 6 Story 6.4 — cross-platform failures may not be caught until that story runs.
 
 **Given** the project scaffold,
 **When** `dotnet test` is run,
@@ -423,6 +423,9 @@ So that the management UI is protected and I can set up the initial admin accoun
 **When** `POST /api/auth/setup` is called with a valid username + password,
 **Then** HTTP 200 is returned, exactly one admin account is created, and the response sets a `Set-Cookie` header with an `HttpOnly; SameSite=Strict` JWT token; a second call returns HTTP 409 — setup is a one-time operation (FR-26).
 
+**Given** any password submitted to `POST /api/auth/setup`, `PUT /api/auth/change-password`, or `POST /api/users`,
+**Then** it must be at least 12 characters; shorter passwords return HTTP 400 with error code `AUTH_PASSWORD_TOO_SHORT` and a human-readable message — no character-type requirements in v1 beyond length (FR-26, FR-27, FR-31 security baseline).
+
 **Given** an existing admin account,
 **When** `POST /api/auth/login` is called with correct credentials,
 **Then** HTTP 200 is returned with a `Set-Cookie` header containing the JWT (httpOnly, SameSite: Strict) (FR-24, NFR-16).
@@ -445,7 +448,8 @@ So that the management UI is protected and I can set up the initial admin accoun
 **Then** the JWT cookie is cleared and HTTP 200 is returned (FR-24).
 
 **Given** the `Users` table,
-**Then** it contains: `Id` (GUID PK), `Username` (unique), `PasswordHash`, `Role` (Admin|StandardUser), `IsActive` (bool, default true), `CreatedAt` (DateTimeOffset), `TokenVersion` (int, default 0).
+**Then** it contains: `Id` (GUID PK), `Username` (unique), `PasswordHash`, `Role` (Admin|StandardUser), `IsActive` (bool, default true), `CreatedAt` (DateTimeOffset), `TokenVersion` (int, default 0), `ForcePasswordChange` (bool, default false).
+**And** when `ForcePasswordChange` is true, the login response includes `"forcePasswordChange": true`; the frontend redirects to the password-change form (consistent with the forced-password-change state in Story 1.3); `PUT /api/auth/change-password` resets the flag to false after a successful password update.
 **And** EF Core auto-migrate runs at startup; on failure a structured Serilog error is logged and the app terminates with non-zero exit code (FR-37).
 
 **Given** the CORS policy,
@@ -487,7 +491,13 @@ So that I can access the management UI securely and navigate between all section
 **Then** a password-change form is shown and `/services` is blocked until the password is changed.
 
 **Given** the authenticated app shell,
-**Then** the top bar renders at fixed 44px with: logo slot (`bi-droplet-half` placeholder + "Fishtank" wordmark), About icon (`bi-info-circle`), notification bell stub (`bi-bell`, badge hidden), user avatar with sign-out dropdown (sign-out guard deferred to Epic 4) (UX-DR5).
+**Then** the top bar renders at fixed 44px with: logo slot (`bi-droplet-half` placeholder + "Fishtank" wordmark), About icon (`bi-info-circle`), notification bell stub (`bi-bell`, badge hidden), user avatar with sign-out dropdown (sign-out guard deferred to Epic 4 Story 4.6) (UX-DR5).
+
+**Given** the "Sign out" option in the user avatar dropdown is clicked (with no unsaved state — guard is deferred to Story 4.6),
+**Then** `POST /api/auth/logout` is called; on success the JWT cookie is cleared server-side and the browser navigates to `/login`; on network failure an error toast is shown and the session remains active (FR-24 frontend logout path).
+
+**Given** the About icon (`bi-info-circle`) is clicked,
+**Then** the About modal opens showing: Fishtank version (`FISHTANK_VERSION` env var, or "dev" if unset), Docker tag (`FISHTANK_DOCKER_TAG` env var), build hash (`FISHTANK_BUILD_HASH` env var), documentation link (`FISHTANK_DOCS_URL` env var), changelog link (`FISHTANK_CHANGELOG_URL` env var); any item whose env var is unset is hidden — not rendered as a broken or empty link (UX-DR11).
 
 **Given** desktop (≥1024px),
 **Then** the sidebar is expanded (200px) with all nav items and correct Bootstrap Icons: Services (`bi-server`), Network Activity (`bi-activity`), Mappings (`bi-file-earmark-code`), System Events (`bi-journal-text`), Settings (`bi-gear`), collapse toggle (`bi-chevron-double-left`) at bottom (UX-DR5, UX-DR15).
@@ -497,6 +507,9 @@ So that I can access the management UI securely and navigate between all section
 
 **Given** any viewport,
 **Then** the 4 canonical responsive breakpoints from DESIGN.md are functional: 3-col card grid (≥1024px) → 2-col (640–1023px) → 1-col (<640px); sidebar 200px expanded (≥1024px) → 52px default-collapsed (768–1023px) → hidden hamburger (<768px); Settings sub-nav left-nav (≥768px) → `<select>` (<768px) (UX-DR6).
+
+**Given** the `/settings` route,
+**Then** the Settings page renders with its sub-navigation structure (4 sections): Appearance, Activity, Cache, Mocks Root — sub-nav is a left-nav panel at ≥768px and a `<select>` at <768px; each section shows a placeholder ("Configured in a later story") until populated by the responsible story (Appearance → Story 1.4; Activity → Story 3.3; Cache → Story 2.5; Mocks Root → Story 4.2) (UX-DR5, UX-DR6 Settings sub-nav spec).
 
 **Given** the Clean Light theme (`data-theme="clean-light"` on `<html>`),
 **Then** all CSS custom properties from DESIGN.md Clean Light token block resolve correctly including `--topbar-icon-fg: #1e293b`, `--error-row-bg: rgba(239,68,68,.04)`, `--success-subtle`, `--brand-fg` (UX-DR1).
@@ -592,6 +605,9 @@ So that services can be created, configured, and managed programmatically with t
 
 **Given** `GET /api/services/next-port`,
 **Then** the next available port in 30100–30199 (lowest unassigned) is returned for pre-filling the Add Service form.
+
+**Given** a WireMock engine instance for Service A throws an unhandled exception or fails to start,
+**Then** the management API remains accessible (`GET /health` returns 200) and all other running Services continue serving mock requests unaffected — the fault boundary is per-service (NFR-5). Verified in an integration test that injects a startup failure on Service A while asserting `GET /api/services/{serviceBId}` returns `status: Live` and a test request to Service B's port returns expected mock response.
 
 ---
 
@@ -757,6 +773,9 @@ So that the activity data is available for real-time monitoring and programmatic
 **When** a request is logged,
 **Then** header values are stored as-is (FR-10 opt-in path).
 
+**Given** the header capture opt-in setting (Settings → Activity),
+**Then** it is instance-wide — a single global flag persisted in the database, affecting all services and all authenticated users simultaneously; the setting state is visible to all authenticated users, not Admin-only; toggling it does not retroactively un-redact previously stored `[REDACTED]` values (FR-10 opt-in scope clarification).
+
 **Given** the per-service row cap is reached (configurable default),
 **When** a new entry arrives,
 **Then** the oldest entry is pruned automatically (FR-7).
@@ -805,10 +824,14 @@ So that I can instantly understand what traffic is flowing and whether it was se
 **And** both row highlights may apply simultaneously to the same row.
 
 **Given** the proxy counter pill in the page header,
-**Then** it shows `[bi-arrow-repeat] Proxied: N` (N = full unfiltered log total proxied count); clicking opens a per-service popover; services with 0 proxied requests omitted; empty state: "No proxied requests recorded."; N renders in `#ef4444` if any proxied row has 5xx status (FR-12, EXPERIENCE.md).
+**Then** it shows `[bi-arrow-repeat] Proxied: N` (N = full unfiltered log total proxied count); clicking opens a per-service popover; services with 0 proxied requests omitted; empty state: "No proxied requests recorded."; N renders in `#ef4444` if any proxied row in the current in-memory log has a 5xx status; after a log clear (FR-13) the pill resets to 0 and the error-color state also clears — there is no persistent error indicator separate from the current log rows (FR-12, EXPERIENCE.md).
 
 **Given** the page header element order (EXPERIENCE.md spec),
 **Then** left to right: Hamburger (< 768px only) → Page title (h1) → Refresh icon stub → LIVE/PAUSED stub → Recording badge stub → [flex spacer] → Proxy counter pill → Record button stub → Clear log button.
+
+**Given** the SignalR connection to any hub (`/hubs/services`, `/hubs/events`, `/hubs/activity`) cannot be established or is lost,
+**When** the connection error is detected by the hub connection factory (`signalr.ts`),
+**Then** a fixed-position backend-unreachable banner renders directly below the top bar (`top: 44px`, `position: fixed`, full width) with message: "Connection to Fishtank server lost — retrying…"; the main content area gains `padding-top` equal to the banner height to prevent content overlap; the banner hides automatically when connection is restored — no manual dismiss required (UX-DR11).
 
 ---
 
@@ -988,6 +1011,9 @@ So that I can keep the in-memory mock engine in sync with the filesystem without
 **Given** Resync for a mapping set < 200 files,
 **Then** it completes in under 1 second (NFR-2).
 
+**Given** `POST /api/resync` completes (full success, partial success, or zero-files outcome),
+**Then** `ServicesHub` broadcasts a `ResyncCompleted` event to all connected clients; the frontend hub listener calls `queryClient.invalidateQueries([["mappings"]])` per `HUB_INVALIDATION_MAP`; `HUB_INVALIDATION_MAP` is updated with `ResyncCompleted: [["mappings"]]` — completing the seam contract established in Epic 1 Story 1.3 (Architecture D6, D7).
+
 ---
 
 ### Story 4.4: Save As Mock — Mock Suggestion Modal
@@ -1124,7 +1150,7 @@ So that I can control who has access to the Fishtank instance.
 
 **Given** the "Create User" form,
 **When** a new username + password is submitted,
-**Then** a Standard User account is created (new accounts cannot be created as Admin via this form in v1); the new user appears in the list immediately (FR-31).
+**Then** a Standard User account is created with `ForcePasswordChange: true` — the new user must change their password on first login before accessing any other screen (consistent with the FR-27 forced-change pattern; `ForcePasswordChange` column established in Story 1.2); the new user appears in the list immediately (FR-31).
 
 **Given** the "Deactivate" action on an active user,
 **When** confirmed,
@@ -1213,6 +1239,10 @@ So that I can understand and integrate with the Fishtank Management API without 
 **When** audited against FR-43,
 **Then** every UI operation has a corresponding documented REST endpoint: Service CRUD + start/stop + import, Mapping/Response file CRUD, Resync, Activity log query + clear, System Events query, User management, Feature toggle management (FR-43).
 
+**Given** the complete list of runtime environment variables required by FR-36,
+**When** audited against the README env var reference table and `docker-compose.example.yml`,
+**Then** every env var is documented in both places: management port, database path, Mocks Root path, JWT expiry, admin password, auto-registration toggle, login rate-limit parameters (`FISHTANK_LOGIN_RATE_LIMIT`, `FISHTANK_LOGIN_RATE_WINDOW`), CORS allowed origins, sensitive header capture opt-in (`FISHTANK_CAPTURE_FULL_HEADERS`), feature toggle overrides (`FISHTANK_TOGGLE_{NAME}`), pipeline reset API key (`FISHTANK_PIPELINE_RESET_KEY`) — no env var listed in FR-36 is absent or undocumented (FR-36 completeness gate).
+
 **Given** the OpenAPI spec file,
 **Then** it is committed to the repository (e.g. `docs/openapi.json`) and updated as part of CI on every API change — the committed spec and the served spec are always in sync (FR-44).
 
@@ -1269,7 +1299,7 @@ So that the project is easy to adopt, deploy in any environment, and contribute 
 **Then** at least 5 issues are labeled `good first issue` with clear descriptions, scope, and acceptance criteria — curated by the maintainer (FR-34).
 
 **Given** `README.md`,
-**Then** it contains at the top: animated GIF or screen recording of core workflows; followed by: quick-start (`docker run` in one command), environment variable reference table, links to `CONTRIBUTING.md`, `SECURITY.md`, and the OpenAPI spec URL (FR-34).
+**Then** it contains at the top: animated GIF or screen recording of core workflows; followed by: quick-start (`docker run` in one command), environment variable reference table, links to `CONTRIBUTING.md`, `SECURITY.md`, and the OpenAPI spec URL; and a Linux host configuration note: "`fs.inotify.max_user_watches` must be raised to at least 65536 on Linux hosts running many services — README includes the `sysctl` command to apply this temporarily (`sudo sysctl fs.inotify.max_user_watches=65536`) and persistently (via `/etc/sysctl.d/`)" (FR-34, Architecture D6 IFileWatcher note).
 
 **Given** `.devcontainer/` in the repository,
 **Then** it provides a working devcontainer configuration allowing frontend-only contributors to run the dev environment without the .NET SDK installed (FR-34, Addendum A6).
