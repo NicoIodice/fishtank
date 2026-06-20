@@ -1,7 +1,9 @@
-import { mergeTests, expect } from "@playwright/test";
+import { mergeTests, expect, test as base } from "@playwright/test";
 import { test as apiRequestFixture } from "@seontechnologies/playwright-utils/api-request/fixtures";
-import { test as authFixture } from "@seontechnologies/playwright-utils/auth-session/fixtures";
+import { createAuthFixtures } from "@seontechnologies/playwright-utils/auth-session/fixtures";
 import { test as recurseFixture } from "@seontechnologies/playwright-utils/recurse/fixtures";
+
+const authFixture = base.extend(createAuthFixtures());
 import { test as interceptFixture } from "@seontechnologies/playwright-utils/intercept-network-call/fixtures";
 import { test as networkErrorMonitorFixture } from "@seontechnologies/playwright-utils/network-error-monitor/fixtures";
 import { test as logFixture } from "@seontechnologies/playwright-utils/log/fixtures";
