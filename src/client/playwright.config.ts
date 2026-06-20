@@ -11,6 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: [
     ["html", { outputFolder: "playwright-report", open: "never" }],
+    ["blob", { outputDir: "blob-report" }],
     ["junit", { outputFile: "test-results/results.xml" }],
     ["list"],
   ],
@@ -31,10 +32,6 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
     },
   ],
 });

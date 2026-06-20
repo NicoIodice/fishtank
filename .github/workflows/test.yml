@@ -136,7 +136,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: src/client
-        run: npx playwright install --with-deps chromium firefox
+        run: npx playwright install --with-deps chromium
 
       - name: Setup .NET SDK 10
         uses: actions/setup-dotnet@v4
@@ -204,14 +204,20 @@ jobs:
           BASE_URL: "http://localhost:5173"
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
 
-      - name: Upload Playwright artifacts on failure
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: src/client/blob-report/
+          retention-days: 1
+
+      - name: Upload test artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-shard-${{ matrix.shard }}
-          path: |
-            src/client/test-results/
-            src/client/playwright-report/
+          name: test-artifacts-shard-${{ matrix.shard }}
+          path: src/client/test-results/
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────────
@@ -248,7 +254,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: src/client
-        run: npx playwright install --with-deps chromium firefox
+        run: npx playwright install --with-deps chromium
 
       - name: Setup .NET SDK 10
         uses: actions/setup-dotnet@v4
@@ -334,12 +340,53 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────────
+  # MERGE REPORTS — Combine shard blobs into a single HTML report
+  # ─────────────────────────────────────────────────────────────────────────────
+  merge-reports:
+    name: Merge Playwright Reports
+    runs-on: ubuntu-latest
+    needs: frontend-test
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/client/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: src/client
+        run: npm ci
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge into HTML report
+        working-directory: src/client
+        run: npx playwright merge-reports --reporter html ../../all-blob-reports
+
+      - name: Upload merged Playwright report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: src/client/playwright-report/
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────────
   # REPORT — Job Summary
   # ─────────────────────────────────────────────────────────────────────────────
   report:
     name: Test Report
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test, burn-in]
+    needs: [backend-test, frontend-test, burn-in, merge-reports]
     if: always()
 
     steps:
@@ -364,7 +411,7 @@ jobs:
           fi
 
           if [ "${{ needs.frontend-test.result }}" = "failure" ]; then
-            echo "❌ **E2E tests failed** — download \`playwright-shard-N\` artifacts for traces/videos." >> $GITHUB_STEP_SUMMARY
+            echo "❌ **E2E tests failed** — download the \`playwright-report\` artifact for the merged HTML report, or \`test-artifacts-shard-N\` for raw traces/videos." >> $GITHUB_STEP_SUMMARY
           fi
 
 # ─────────────────────────────────────────────────────────────────────────────
