@@ -12,7 +12,7 @@
 
 services:
   fishtank:
-    image: nicoolodice/fishtank:latest
+    image: nicoiodice/fishtank:latest
     ports:
       - "5000:5000"
     volumes:

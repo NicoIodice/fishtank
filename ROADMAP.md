@@ -3,7 +3,7 @@
 This roadmap maps each planned release to the feature set it delivers. Releases follow [Semantic Versioning](https://semver.org/). Each minor version corresponds to a completed epic.
 
 A tag push (`git tag v0.2.0 && git push --tags`) triggers:
-1. Docker image published to [Docker Hub](https://hub.docker.com/r/nicoolodice/fishtank) as `nicoolodice/fishtank:v0.2.0` and `:latest`
+1. Docker image published to [Docker Hub](https://hub.docker.com/r/nicoiodice/fishtank) as `nicoiodice/fishtank:v0.2.0` and `:latest`
 2. GitHub Release created automatically with changelog and quick-start instructions
 
 ---
@@ -110,7 +110,7 @@ A tag push (`git tag v0.2.0 && git push --tags`) triggers:
 |---|---|
 | OpenAPI spec | Finalized, served at `/openapi/v1.json`, versioned with the app |
 | Pipeline reset endpoint | `POST /admin/reset` — clears activity log + reloads mappings (requires API key) |
-| Demo Docker image | `nicoolodice/fishtank:demo` — pre-seeded with realistic example services |
+| Demo Docker image | `nicoiodice/fishtank:demo` — pre-seeded with realistic example services |
 | Kubernetes manifest | Reference `deployment.yaml` in repository root |
 | Cross-platform CI smoke tests | Linux, macOS (Apple Silicon + Intel), Windows on every release |
 | Custom SVG logo | Final logo replacing the `bi-droplet-half` placeholder (pre-ship gate) |
@@ -136,12 +136,19 @@ Ideas tracked for future minor/patch releases after v1.0:
 
 ## How releases work
 
-1. Merge all stories for an epic into `main`
-2. All CI checks must be green (`test.yml` and `docker.yml` smoke test)
-3. Tag the release: `git tag v0.2.0 && git push --tags`
-4. GitHub Actions automatically:
-   - Builds and pushes `nicoolodice/fishtank:v0.2.0` and `:latest` to Docker Hub (`docker.yml`)
-   - Creates a GitHub Release with auto-generated changelog (`release.yml`)
-5. Announce in release notes (GitHub Release) and update this file if scope changed
+1. **Develop stories** in `story/**` branches created from the release branch (`release/v0.2.0`).
+   CI runs full tests + Docker smoke test on every push.
+2. **Merge each story** via PR: `story/**` → `release/v0.2.0`.
+   Never merge a story branch directly to `main`.
+3. **When all stories are done**, open a PR: `release/v0.2.0` → `main`.
+4. **After the PR merges**, GitHub Actions automatically:
+   - Extracts the version (`v0.2.0`) from the release branch name
+   - Builds the Docker image with `APP_VERSION=v0.2.0`
+   - Pushes `nicoiodice/fishtank:v0.2.0` and `:latest` to Docker Hub
+   - Creates a GitHub Release with auto-generated changelog
+5. **No manual `git tag` needed** — the CI handles tagging.
+6. Update `CHANGELOG.md` by moving `[Unreleased]` entries to `[v0.2.0]`.
 
-See [docs/ci-secrets-checklist.md](docs/ci-secrets-checklist.md) for the Docker Hub setup required before the first release tag.
+> **Hotfixes** follow the same pattern using `hotfix/v0.2.1` branches from `main`.
+
+See [docs/ci-secrets-checklist.md](docs/ci-secrets-checklist.md) for the Docker Hub setup required before the first release.

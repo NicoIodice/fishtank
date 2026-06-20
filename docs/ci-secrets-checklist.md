@@ -8,7 +8,7 @@ Required for `.github/workflows/docker.yml` (push-to-registry job). Triggered on
 
 | Secret | Description | Where to add |
 |--------|-------------|--------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username (e.g. `nicoolodice`) | GitHub → Settings → Secrets and variables → Actions |
+| `DOCKERHUB_USERNAME` | Your Docker Hub username (e.g. `nicoiodice`) | GitHub → Settings → Secrets and variables → Actions |
 | `DOCKERHUB_TOKEN` | Docker Hub access token — generate at hub.docker.com → Account Settings → Security | GitHub → Settings → Secrets and variables → Actions |
 
 **One-time Docker Hub setup:**

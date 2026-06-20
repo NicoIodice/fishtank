@@ -62,7 +62,7 @@ so that the project can build, containerise, and test reliably from the first co
   - [x] README updated with dev setup instructions
 
 - [x] **Task 5: Create docker-compose.example.yml (end-user)** (AC: #9)
-  - [x] Single service: `nicoolodice/fishtank:latest` from Docker Hub
+  - [x] Single service: `nicoiodice/fishtank:latest` from Docker Hub
   - [x] Volume mounts: `./mocks:/mocks`, `./fishtank-data:/data`
   - [x] All configurable environment variables documented (commented out where optional)
   - [x] Port: `5000:5000`; healthcheck with wget; restart: unless-stopped

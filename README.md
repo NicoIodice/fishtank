@@ -8,7 +8,7 @@ A Docker-native WireMock.NET management tool. Run mock services locally, record 
 docker run -p 5000:5000 \
   -e FISHTANK_JWT_SECRET=your-secret-min-32-chars \
   -v ./mocks:/mocks \
-  nicoolodice/fishtank:latest
+  nicoiodice/fishtank:latest
 ```
 
 Then open **http://localhost:5000** in your browser.

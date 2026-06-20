@@ -13,6 +13,9 @@ COPY src/ ./
 RUN dotnet publish Fishtank.Api/Fishtank.Api.csproj -c Release -o /app/publish
 
 # Stage 3: Runtime (Alpine + non-root user)
+# APP_VERSION is injected by docker.yml CI workflow from the release branch name.
+# Defaults to 'dev' for local builds.
+ARG APP_VERSION=dev
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 # libgcc and libstdc++ are required by Microsoft.Data.Sqlite's native binary on Alpine
 RUN apk add --no-cache libgcc libstdc++
@@ -23,4 +26,5 @@ COPY --from=client-build /src/client/dist ./wwwroot
 USER fishtank
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://+:5000
+ENV APP_VERSION=$APP_VERSION
 ENTRYPOINT ["dotnet", "Fishtank.Api.dll"]
