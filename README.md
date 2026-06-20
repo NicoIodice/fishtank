@@ -2,12 +2,25 @@
 
 A Docker-native WireMock.NET management tool. Run mock services locally, record and replay traffic, manage mappings, and observe live network activity — all from a single container.
 
+## Quick start
+
+```bash
+docker run -p 5000:5000 \
+  -e FISHTANK_JWT_SECRET=your-secret-min-32-chars \
+  -v ./mocks:/mocks \
+  nicoolodice/fishtank:latest
+```
+
+Then open **http://localhost:5000** in your browser.
+
+See [`docker-compose.example.yml`](docker-compose.example.yml) for a full deployment reference including persistent storage and all configurable environment variables.
+
 ## Stack
 
 | Layer | Technology |
 |---|---|
 | Backend | C# 13 · .NET 10.0 LTS · ASP.NET Core Minimal APIs · SignalR · EF Core + SQLite |
-| Frontend | React 18 · TypeScript (strict) · Vite · Tailwind CSS v4 · shadcn/ui |
+| Frontend | React 19 · TypeScript · Vite 8 · Tailwind CSS v4 · shadcn/ui |
 | Mock engine | WireMock.NET |
 | Auth | JWT in httpOnly cookies |
 | Logging | Serilog → JSON stdout |
@@ -25,7 +38,7 @@ fishtank/
 ├── global.json                            # Pins .NET SDK to 10.0.301
 ├── Dockerfile                             # Multi-stage: build client → build server → runtime
 ├── docker-compose.yml                     # Dev: .NET API + Vite dev server
-├── docker-compose.example.yml             # End-user deployment
+├── docker-compose.example.yml             # End-user deployment reference
 └── README.md
 ```
 
