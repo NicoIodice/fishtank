@@ -1,6 +1,6 @@
 ---
 name: bmad-story-lifecycle
-description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".' 
+description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
 ---
 
 # Story Lifecycle Orchestrator
@@ -72,6 +72,7 @@ current_phase: "" # phase tag (see Phase Tags below)
 status: active # active | blocked | done
 blocked_reason: "" # populated on HALT
 test_design_retries: 0
+test_design_auto_created: false # set true when preflight auto-creates the test design
 atdd_retries: 0
 validate_retries: 0
 dev_retries: 0
@@ -158,6 +159,7 @@ phases_completed: [] # list of completed phase tags
         status: active
         blocked_reason: ""
         test_design_retries: 0
+        test_design_auto_created: false
         atdd_retries: 0
         validate_retries: 0
         dev_retries: 0
@@ -558,13 +560,10 @@ Escalating to {{user_name}}.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in nfr", last_updated → now</action>
 <action>HALT</action>
 </check>
-      <action>Execute bmad-quick-dev to fix the NFR gaps:
-        - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md
-        - Target: specific NFR BLOCKER items identified in audit
-        - Verify DoD gates 1–4 still pass after fix
-      </action>
-      <goto anchor="nfr" />
-    </check>
+<action>Execute bmad-quick-dev to fix the NFR gaps: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific NFR BLOCKER items identified in audit - Verify DoD gates 1–4 still pass after fix
+</action>
+<goto anchor="nfr" />
+</check>
 
     <check if="nfr_retries >= 2">
       <output>🚫 BLOCKED — NFR audit blockers persist after max fix attempts.
@@ -573,7 +572,7 @@ Blockers: {{blockers}}
 Escalating to {{user_name}}.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "NFR audit blockers after max retries", last_updated → now</action>
 <action>HALT</action>
-    </check>
+</check>
 
   </step>
 
@@ -614,7 +613,7 @@ Coverage gaps: {{gaps}}
 Escalating to {{user_name}}.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "traceability gate failed after max retries", last_updated → now</action>
 <action>HALT</action>
-    </check>
+</check>
 
   </step>
 
@@ -672,8 +671,12 @@ Escalating to {{user_name}}.</output>
 
     <action>Check if {{story_key}} is the last story in epic {{epic_id}} — read sprint-status.yaml and check all stories for that epic</action>
     <check if="all stories in epic {{epic_id}} are done">
+      <action>Set {{epic_all_done}} = true</action>
       <action>Update sprint-status.yaml: epic-{{epic_id}} → done</action>
       <output>🎉 Epic {{epic_id}} is now complete — all stories done!</output>
+    </check>
+    <check if="not all stories in epic {{epic_id}} are done">
+      <action>Set {{epic_all_done}} = false</action>
     </check>
 
     <action>Update lifecycle state: status → done, append 'done' to phases_completed, last_updated → now</action>

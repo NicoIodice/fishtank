@@ -267,6 +267,7 @@ current_phase: ""          # phase tag (see Phase Tags above)
 status: active             # active | blocked | done
 blocked_reason: ""
 test_design_retries: 0
+test_design_auto_created: false
 atdd_retries: 0
 validate_retries: 0
 dev_retries: 0
