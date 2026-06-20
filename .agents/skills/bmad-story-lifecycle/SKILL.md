@@ -1,6 +1,6 @@
 ---
 name: bmad-story-lifecycle
-description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → ATDD → dev → code-review → test-automate → test-review → done. Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
+description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
 ---
 
 # Story Lifecycle Orchestrator
@@ -72,15 +72,19 @@ current_phase: "" # phase tag (see Phase Tags below)
 status: active # active | blocked | done
 blocked_reason: "" # populated on HALT
 test_design_retries: 0
+test_design_auto_created: false # set true when preflight auto-creates the test design
+atdd_retries: 0
 validate_retries: 0
 dev_retries: 0
 code_review_retries: 0
+nfr_retries: 0
+trace_retries: 0
 quickdev_cycle: 0
 last_updated: "" # ISO datetime
 phases_completed: [] # list of completed phase tags
 ```
 
-**Phase Tags (in order):** `init` → `preflight-framework` → `preflight-test-design` → `create-story` → `atdd` → `validate` → `dev-story` → `code-review` → `test-automate` → `test-review` → `done`
+**Phase Tags (in order):** `init` → `preflight-framework` → `preflight-test-design` → `create-story` → `atdd` → `validate` → `dev-story` → `code-review` → `test-automate` → `nfr` → `trace` → `test-review` → `done`
 
 ---
 
@@ -96,6 +100,8 @@ phases_completed: [] # list of completed phase tags
 | dev-story             | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean                              | Retry dev (retry ≤ 2)                 |
 | code-review           | `bmad-code-review` finds zero BLOCKER items                                                   | QuickDev fix → re-review (retry ≤ 1)  |
 | test-automate         | Coverage targets met; all ATDD assertions pass                                                | QuickDev fix cycle                    |
+| nfr                   | `bmad-testarch-nfr` finds zero BLOCKER items (perf / security / reliability)                  | QuickDev fix (cycle ≤ 2)              |
+| trace                 | `bmad-testarch-trace` gate decision is PASS or WAIVED                                         | Add missing coverage (retry ≤ 2)      |
 | test-review           | `bmad-testarch-test-review` finds zero BLOCKER items                                          | QuickDev fix (cycle ≤ 2)              |
 
 **QuickDev cycle budget:** max 2 per story. When exhausted → HALT, status → `blocked`.
@@ -153,9 +159,13 @@ phases_completed: [] # list of completed phase tags
         status: active
         blocked_reason: ""
         test_design_retries: 0
+        test_design_auto_created: false
+        atdd_retries: 0
         validate_retries: 0
         dev_retries: 0
         code_review_retries: 0
+        nfr_retries: 0
+        trace_retries: 0
         quickdev_cycle: 0
         last_updated: {{date}}
         phases_completed: []
@@ -276,8 +286,18 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
     <action>After creation: verify story file exists in {implementation_artifacts}/ with correct YAML frontmatter (story_key, status: ready-for-dev)</action>
     <action>Verify sprint-status.yaml updated: story → ready-for-dev, epic → in-progress</action>
 
-    <output>✅ Story {{story_key}} created and sprint-status updated.</output>
-    <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+    <check if="story file exists in {implementation_artifacts}/ with status ready-for-dev">
+      <output>✅ Story {{story_key}} created and sprint-status updated.</output>
+      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+    </check>
+
+    <check if="story file missing OR status is not ready-for-dev">
+      <output>🚫 BLOCKED — Story creation failed. Expected: {implementation_artifacts}/{{story_key}}.md with status ready-for-dev.
+
+Manual fix required: run bmad-create-story directly and verify the output before re-running this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "story creation failed — file missing or incorrect status", last_updated → now</action>
+<action>HALT</action>
+</check>
 
   </step>
 
@@ -397,8 +417,8 @@ Manual story refinement required before implementation can proceed.</output>
 
     <check if="any DoD gate fails AND dev_retries < 2">
       <action>Increment dev_retries in lifecycle state, last_updated → now</action>
-      <output>⚠ DoD gate failures: {{gate_failures}}. Fixing ({{dev_retries}} of 2)...</output>
-      <action>Fix the failing gates without invoking bmad-dev-story again — targeted fixes only</action>
+      <output>⚠ DoD gate failures: {{gate_failures}}. Retrying full implementation ({{dev_retries}} of 2)...</output>
+      <action>Apply targeted fixes for the failing gates (e.g. compilation errors, missing dependencies), then re-run the full dev-story step to verify complete implementation</action>
       <goto anchor="dev-story" />
     </check>
 
@@ -469,7 +489,7 @@ Escalating to {{user_name}}.</output>
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="9" goal="Expand test automation coverage for the story" tag="test-automate" anchor="test-automate">
     <check if="'test-automate' is in phases_completed">
-      <goto anchor="test-review" />
+      <goto anchor="nfr" />
     </check>
 
     <action>Update sprint-status.yaml: {{story_key}} → in-test</action>
@@ -491,7 +511,7 @@ Escalating to {{user_name}}.</output>
 
     <check if="all verifications pass">
       <output>✅ Test automation complete for {{story_key}}.</output>
-      <action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'test-review', last_updated → now</action>
+      <action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'nfr', last_updated → now</action>
     </check>
 
     <check if="verifications fail (test failures detected)">
@@ -515,9 +535,104 @@ Escalating to {{user_name}}.</output>
 </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 9: TEST REVIEW                                        -->
+  <!-- PHASE 9: NFR AUDIT                                          -->
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="10" goal="Review test quality" tag="test-review" anchor="test-review">
+  <step n="10" goal="Audit NFR evidence (performance, security, reliability)" tag="nfr" anchor="nfr">
+    <check if="'nfr' is in phases_completed">
+      <goto anchor="trace" />
+    </check>
+
+    <action>Update lifecycle state: current_phase → 'nfr', last_updated → now</action>
+
+    <output>🛡 Auditing NFR evidence for {{story_key}} (attempt {{nfr_retries + 1}})...</output>
+
+    <action>Execute the bmad-testarch-nfr workflow in Create mode:
+      - Load: {project-root}/.agents/skills/bmad-testarch-nfr/SKILL.md
+      - Scope: story {{story_key}} — new code paths only
+      - Mode: Create
+      - Audit areas: performance, security, reliability, maintainability
+    </action>
+
+    <check if="zero BLOCKER items found — all audited NFR areas pass">
+      <output>✅ NFR audit passed for {{story_key}}.</output>
+      <action>Update lifecycle state: append 'nfr' to phases_completed, current_phase → 'trace', last_updated → now</action>
+    </check>
+
+    <check if="BLOCKER items found AND nfr_retries < 2">
+      <action>Increment nfr_retries in lifecycle state, last_updated → now</action>
+      <output>⚠ NFR blockers found: {{blockers}}. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>
+      <action>Increment quickdev_cycle in lifecycle state</action>
+      <check if="quickdev_cycle > 2">
+        <output>🚫 BLOCKED — QuickDev cycle budget exhausted during NFR audit.
+
+NFR blockers: {{blockers}}
+Escalating to {{user_name}}.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in nfr", last_updated → now</action>
+<action>HALT</action>
+</check>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
+<action>Execute bmad-quick-dev to fix the NFR gaps: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific NFR BLOCKER items identified in audit - Verify DoD gates 1–4 still pass after fix
+</action>
+<action>Update sprint-status.yaml: {{story_key}} → in-test</action>
+<goto anchor="nfr" />
+</check>
+
+    <check if="nfr_retries >= 2">
+      <output>🚫 BLOCKED — NFR audit blockers persist after max fix attempts.
+
+Blockers: {{blockers}}
+Escalating to {{user_name}}.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "NFR audit blockers after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 10: TRACEABILITY                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <step n="11" goal="Generate traceability matrix and coverage gate" tag="trace" anchor="trace">
+    <check if="'trace' is in phases_completed">
+      <goto anchor="test-review" />
+    </check>
+
+    <action>Update lifecycle state: current_phase → 'trace', last_updated → now</action>
+
+    <output>🗺 Generating traceability matrix for {{story_key}} (attempt {{trace_retries + 1}})...</output>
+
+    <action>Execute the bmad-testarch-trace workflow in Create mode:
+      - Load: {project-root}/.agents/skills/bmad-testarch-trace/SKILL.md
+      - Scope: story {{story_key}} acceptance criteria → test mapping
+      - Mode: Create
+    </action>
+
+    <check if="quality gate decision is PASS or WAIVED">
+      <output>✅ Traceability gate passed for {{story_key}}.</output>
+      <action>Update lifecycle state: append 'trace' to phases_completed, current_phase → 'test-review', last_updated → now</action>
+    </check>
+
+    <check if="quality gate decision is FAIL or CONCERNS AND trace_retries < 2">
+      <action>Increment trace_retries in lifecycle state, last_updated → now</action>
+      <output>⚠ Traceability gaps found: {{gaps}}. Adding missing test coverage ({{trace_retries}} of 2)...</output>
+      <action>Add missing test coverage to close the identified traceability gaps</action>
+      <goto anchor="trace" />
+    </check>
+
+    <check if="trace_retries >= 2">
+      <output>🚫 BLOCKED — Traceability gate failed after max attempts.
+
+Coverage gaps: {{gaps}}
+Escalating to {{user_name}}.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "traceability gate failed after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 11: TEST REVIEW                                       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <step n="12" goal="Review test quality" tag="test-review" anchor="test-review">
     <check if="'test-review' is in phases_completed">
       <goto anchor="done" />
     </check>
@@ -549,6 +664,7 @@ Escalating to {{user_name}}.</output>
 </action>
 <action>Update sprint-status.yaml: {{story_key}} → review</action>
 <action>Re-run abbreviated code review on changed files, then update sprint-status → in-test</action>
+<action>Remove 'test-automate', 'nfr', 'trace' from phases_completed in lifecycle state to force re-execution</action>
 <goto anchor="test-automate" />
 </check>
 
@@ -560,15 +676,19 @@ Escalating to {{user_name}}.</output>
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 10: DONE                                              -->
+  <!-- PHASE 12: DONE                                              -->
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="11" goal="Mark story done and update sprint tracking" tag="done" anchor="done">
+  <step n="13" goal="Mark story done and update sprint tracking" tag="done" anchor="done">
     <action>Update sprint-status.yaml: {{story_key}} → done</action>
 
     <action>Check if {{story_key}} is the last story in epic {{epic_id}} — read sprint-status.yaml and check all stories for that epic</action>
     <check if="all stories in epic {{epic_id}} are done">
+      <action>Set {{epic_all_done}} = true</action>
       <action>Update sprint-status.yaml: epic-{{epic_id}} → done</action>
       <output>🎉 Epic {{epic_id}} is now complete — all stories done!</output>
+    </check>
+    <check if="not all stories in epic {{epic_id}} are done">
+      <action>Set {{epic_all_done}} = false</action>
     </check>
 
     <action>Update lifecycle state: status → done, append 'done' to phases_completed, last_updated → now</action>
@@ -579,17 +699,19 @@ Escalating to {{user_name}}.</output>
 
 ## Summary
 
-| Phase                   | Result                                                  |
-| ----------------------- | ------------------------------------------------------- |
-| Preflight — Framework   | ✅                                                      |
-| Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}} |
-| Create Story            | ✅                                                      |
-| ATDD                    | ✅                                                      |
-| Validate                | ✅                                                      |
-| Dev Story               | ✅                                                      |
-| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}   |
-| Test Automate           | ✅                                                      |
-| Test Review             | ✅                                                      |
+| Phase                   | Result                                                                   |
+| ----------------------- | ------------------------------------------------------------------------ |
+| Preflight — Framework   | ✅                                                                       |
+| Preflight — Test Design | ✅ {{test_design_auto_created ? "(auto-created)" : ""}}                  |
+| Create Story            | ✅                                                                       |
+| ATDD                    | ✅ {{atdd_retries > 0 ? "(retries: " + atdd_retries + ")" : ""}}         |
+| Validate                | ✅ {{validate_retries > 0 ? "(retries: " + validate_retries + ")" : ""}} |
+| Dev Story               | ✅ {{dev_retries > 0 ? "(retries: " + dev_retries + ")" : ""}}           |
+| Code Review             | ✅ {{code_review_retries > 0 ? "(1 fix cycle)" : ""}}                    |
+| Test Automate           | ✅                                                                       |
+| NFR Audit               | ✅ {{nfr_retries > 0 ? "(retries: " + nfr_retries + ")" : ""}}           |
+| Traceability            | ✅ {{trace_retries > 0 ? "(retries: " + trace_retries + ")" : ""}}       |
+| Test Review             | ✅                                                                       |
 
 **QuickDev cycles used:** {{quickdev_cycle}} of 2
 **Final status:** done
