@@ -158,13 +158,16 @@ jobs:
         run: dotnet build src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-restore
 
       - name: Start .NET API (background)
-        run: dotnet run --project src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-build &
+        env:
+          ASPNETCORE_URLS: "http://localhost:5000"
+          ASPNETCORE_ENVIRONMENT: "Development"
+        run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
         run: |
           echo "Waiting for .NET API at http://localhost:5000..."
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:5000/health > /dev/null 2>&1 || curl -sf http://localhost:5000 > /dev/null 2>&1; then
+            if curl -sfL http://localhost:5000/health > /dev/null 2>&1; then
               echo "✅ .NET API ready"
               exit 0
             fi
@@ -172,6 +175,8 @@ jobs:
             sleep 2
           done
           echo "❌ .NET API did not start in time"
+          echo "--- API startup log ---"
+          cat /tmp/api.log || true
           exit 1
 
       - name: Start Vite dev server (background)
@@ -265,13 +270,16 @@ jobs:
         run: dotnet build src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-restore
 
       - name: Start .NET API (background)
-        run: dotnet run --project src/Fishtank.Api/Fishtank.Api.csproj --configuration Release --no-build &
+        env:
+          ASPNETCORE_URLS: "http://localhost:5000"
+          ASPNETCORE_ENVIRONMENT: "Development"
+        run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
         run: |
           echo "Waiting for .NET API at http://localhost:5000..."
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:5000/health > /dev/null 2>&1 || curl -sf http://localhost:5000 > /dev/null 2>&1; then
+            if curl -sfL http://localhost:5000/health > /dev/null 2>&1; then
               echo "✅ .NET API ready"
               exit 0
             fi
@@ -279,6 +287,8 @@ jobs:
             sleep 2
           done
           echo "❌ .NET API did not start in time"
+          echo "--- API startup log ---"
+          cat /tmp/api.log || true
           exit 1
 
       - name: Start Vite dev server (background)
