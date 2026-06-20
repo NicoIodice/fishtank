@@ -210,17 +210,17 @@ Lifecycle state saved. Re-run this skill after completing the framework setup.</
       <goto anchor="create-story" />
     </check>
 
-    <action>Search {{test_artifacts}}/ for files matching test-design-*.md or test-design-epic-{{epic_id}}*.md</action>
-    <action>For each candidate file: check if it references epic {{epic_id}} and contains sections for test scope, risk areas, and layer assignments</action>
+    <action>Search {{test_artifacts}}/ for a file whose name matches EXACTLY the pattern test-design-epic-{{epic_id}}.md or test-design-epic-{{epic_id}}-*.md — ONLY files with the epic-{{epic_id}} prefix qualify. System-level files (e.g. test-design-architecture.md, test-design-progress.md, test-design-qa.md) MUST NOT be accepted as a substitute, even if their content mentions epic {{epic_id}}.</action>
+    <action>For each qualifying per-epic candidate file: check that it explicitly declares epic {{epic_id}} as its scope, contains a risk assessment section with ≥3 risk items, test layer assignments, and ≥1 test scenario per story in the epic</action>
 
-    <check if="valid test-design for epic {{epic_id}} found">
+    <check if="valid per-epic test-design file (test-design-epic-{{epic_id}}*.md) found AND quality check passes">
       <output>✅ Test-design confirmed for Epic {{epic_id}}.</output>
       <action>Update lifecycle state: append 'preflight-test-design' to phases_completed, current_phase → 'create-story', last_updated → now</action>
       <goto anchor="create-story" />
     </check>
 
-    <check if="test-design for epic {{epic_id}} NOT found OR fails quality check">
-      <output>📋 No valid test-design found for Epic {{epic_id}}. Auto-creating now (attempt {{test_design_retries + 1}} of 3)...</output>
+    <check if="no file matching test-design-epic-{{epic_id}}*.md found in {{test_artifacts}}/ OR quality check fails">
+      <output>📋 No valid per-epic test-design found for Epic {{epic_id}} (required filename: test-design-epic-{{epic_id}}.md). Auto-creating now (attempt {{test_design_retries + 1}} of 3)...</output>
 
       <action>Execute the bmad-testarch-test-design workflow in Create mode:
         - Load: {project-root}/.agents/skills/bmad-testarch-test-design/SKILL.md
