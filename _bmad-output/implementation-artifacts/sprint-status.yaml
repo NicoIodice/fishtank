@@ -63,7 +63,7 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # PRE-IMPLEMENTATION GATES (TEA Phase 3 — must complete before story creation)
   # ─────────────────────────────────────────────────────────────────────────────
-  tea-testarch-test-design: backlog      # bmad-testarch-test-design — system-level test plan
+  tea-testarch-test-design: done         # bmad-testarch-test-design — system-level test plan
   tea-testarch-framework: backlog        # bmad-testarch-framework — Playwright/Vitest/xUnit scaffold
   tea-testarch-ci: backlog               # bmad-testarch-ci — CI quality pipeline with test execution
 
