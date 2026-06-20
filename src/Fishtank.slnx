@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Fishtank.Api.IntegrationTests/Fishtank.Api.IntegrationTests.csproj" />
+  <Project Path="Fishtank.Api.UnitTests/Fishtank.Api.UnitTests.csproj" />
+  <Project Path="Fishtank.Api/Fishtank.Api.csproj" />
+</Solution>
