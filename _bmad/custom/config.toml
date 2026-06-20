@@ -1,0 +1,14 @@
+# Team / enterprise overrides for _bmad/config.toml.
+# Committed to the repo — applies to every developer on the project.
+# Tables deep-merge over base config; keyed entries merge by key.
+
+[modules.tea]
+# Pinned explicitly — no codebase exists yet for auto-detect to probe.
+# CI: GitHub Actions (.github/workflows/ci.yml + release.yml)
+# Backend tests: xUnit (unit + integration via Microsoft.AspNetCore.Mvc.Testing)
+# Frontend tests: Vitest + Testing Library + msw
+# E2E smoke tests: Playwright (run against built Docker image, .github/e2e/)
+# Docker registry: Docker Hub (release.yml publishes on git tag)
+ci_platform = "github-actions"
+test_framework = "xunit+vitest+playwright"
+tea_browser_automation = "playwright"

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fishtank — Final 4 Themes</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #e5e7eb;
+    padding: 32px 24px;
+    color: #111;
+  }
+  h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; color: #111; }
+  .subtitle { font-size: 0.78rem; color: #555; margin-bottom: 28px; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+
+  .card { border-radius: 14px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,.13); }
+
+  .card-label {
+    padding: 12px 18px 10px;
+    font-size: 0.75rem; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .badge-default {
+    font-size: 0.62rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px; opacity: .85;
+  }
+  .tagline { font-size: 0.70rem; font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .6; }
+
+  .app { display: flex; height: 270px; font-size: 0.72rem; }
+
+  .sidebar {
+    display: flex; flex-direction: column;
+    width: 152px; min-width: 152px;
+    padding: 14px 0; gap: 1px;
+  }
+  .sidebar-logo {
+    font-size: 0.88rem; font-weight: 700;
+    padding: 0 16px 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 7px; margin: 0 6px;
+    font-size: 0.71rem; cursor: default;
+  }
+  .nav-icon {
+    width: 14px; height: 14px; border-radius: 3px;
+    flex-shrink: 0; opacity: .65;
+  }
+  .nav-sep { height: 1px; margin: 6px 14px; opacity: .15; background: currentColor; }
+
+  .main { flex: 1; display: flex; flex-direction: column; padding: 14px 16px; gap: 10px; overflow: hidden; }
+  .page-title { font-size: 0.87rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .live-label { font-size: 0.65rem; font-weight: 600; letter-spacing: .04em; }
+
+  .toolbar { display: flex; gap: 6px; align-items: center; }
+  .search-box {
+    flex: 1; padding: 5px 10px; border-radius: 6px;
+    font-size: 0.7rem; border: 1px solid; outline: none;
+  }
+  .btn { padding: 5px 12px; border-radius: 6px; font-size: 0.68rem; font-weight: 600; border: none; cursor: default; }
+  .filter-chip {
+    padding: 4px 9px; border-radius: 99px; font-size: 0.64rem;
+    font-weight: 600; border: 1px solid; white-space: nowrap;
+  }
+
+  .table-wrap { flex: 1; overflow: hidden; border-radius: 8px; border: 1px solid; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  col.col-method { width: 52px; }
+  col.col-path   { width: auto; }
+  col.col-status { width: 50px; }
+  col.col-type   { width: 64px; }
+  col.col-ms     { width: 44px; }
+  th {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+    padding: 6px 10px; text-align: left;
+  }
+  td { padding: 5px 10px; font-size: 0.68rem; }
+  .chip {
+    display: inline-block; padding: 1px 7px; border-radius: 99px;
+    font-size: 0.61rem; font-weight: 700;
+  }
+  .method-get    { color: #2563eb; font-weight: 700; font-size: 0.65rem; }
+  .method-post   { color: #059669; font-weight: 700; font-size: 0.65rem; }
+  .method-delete { color: #dc2626; font-weight: 700; font-size: 0.65rem; }
+
+  /* ═══════════════════════════════════════════════════════════
+     THEME 1 — CLEAN LIGHT (default light)
+     Tokens: sidebar=#f1f5f9  accent=#0ea5e9  content=#ffffff
+  ═══════════════════════════════════════════════════════════ */
+  .t1 .card-label          { background: #e2e8f0; color: #1e293b; }
+  .t1 .badge-default       { background: #0ea5e9; color: #fff; }
+  .t1 .sidebar             { background: #f1f5f9; color: #475569; border-right: 1px solid #e2e8f0; }
+  .t1 .sidebar-logo        { color: #0f172a; }
+  .t1 .logo-dot            { background: #0ea5e9; }
+  .t1 .nav-item            { color: #475569; }
+  .t1 .nav-item.active     { background: #e0f2fe; color: #0369a1; }
+  .t1 .nav-icon            { background: currentColor; }
+  .t1 .main                { background: #ffffff; }
+  .t1 .page-title          { color: #0f172a; }
+  .t1 .live-dot            { background: #22c55e; box-shadow: 0 0 0 2px #dcfce7; }
+  .t1 .live-label          { color: #16a34a; }
+  .t1 .search-box          { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+  .t1 .btn                 { background: #0ea5e9; color: #fff; }
+  .t1 .filter-chip         { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+  .t1 .table-wrap          { border-color: #e2e8f0; background: #fff; }
+  .t1 th                   { background: #f8fafc; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+  .t1 td                   { color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+  .t1 tr:last-child td     { border-bottom: none; }
+  .t1 .chip.mock           { background: #e0f2fe; color: #0369a1; }
+  .t1 .chip.proxy          { background: #dcfce7; color: #166534; }
+  .t1 .chip.err            { background: #fee2e2; color: #991b1b; }
+
+  /* ═══════════════════════════════════════════════════════════
+     THEME 2 — DEEP OCEAN (default dark) — full dark content
+     Tokens: sidebar=#0d1b2a  content=#0f2233  accent=#3b82f6
+  ═══════════════════════════════════════════════════════════ */
+  .t2 .card-label          { background: #0a1628; color: #93c5fd; }
+  .t2 .badge-default       { background: #3b82f6; color: #fff; }
+  .t2 .sidebar             { background: #0d1b2a; color: #64748b; border-right: 1px solid rgba(255,255,255,.06); }
+  .t2 .sidebar-logo        { color: #e2e8f0; }
+  .t2 .logo-dot            { background: #3b82f6; }
+  .t2 .nav-item            { color: #64748b; }
+  .t2 .nav-item.active     { background: rgba(59,130,246,.18); color: #93c5fd; }
+  .t2 .nav-icon            { background: currentColor; }
+  .t2 .main                { background: #0f2233; }
+  .t2 .page-title          { color: #e2e8f0; }
+  .t2 .live-dot            { background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,.2); }
+  .t2 .live-label          { color: #4ade80; }
+  .t2 .search-box          { background: #162d42; border-color: rgba(255,255,255,.12); color: #cbd5e1; }
+  .t2 .btn                 { background: #3b82f6; color: #fff; }
+  .t2 .filter-chip         { background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.35); color: #93c5fd; }
+  .t2 .table-wrap          { border-color: rgba(255,255,255,.08); background: #0f2233; }
+  .t2 th                   { background: #0d1b2a; color: #64748b; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .t2 td                   { color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .t2 tr:last-child td     { border-bottom: none; }
+  .t2 .chip.mock           { background: rgba(59,130,246,.2); color: #93c5fd; }
+  .t2 .chip.proxy          { background: rgba(74,222,128,.15); color: #4ade80; }
+  .t2 .chip.err            { background: rgba(248,113,113,.15); color: #f87171; }
+  .t2 .method-get          { color: #60a5fa; }
+  .t2 .method-post         { color: #34d399; }
+  .t2 .method-delete       { color: #f87171; }
+
+  /* ═══════════════════════════════════════════════════════════
+     THEME 3 — EMERALD TERMINAL
+     Tokens: sidebar=#064e3b  content=#f9fafb  accent=#10b981
+  ═══════════════════════════════════════════════════════════ */
+  .t3 .card-label          { background: #052e20; color: #6ee7b7; }
+  .t3 .sidebar             { background: #064e3b; color: #6ee7b7; border-right: 1px solid rgba(255,255,255,.08); }
+  .t3 .sidebar-logo        { color: #ecfdf5; }
+  .t3 .logo-dot            { background: #10b981; }
+  .t3 .nav-item            { color: #6ee7b7; }
+  .t3 .nav-item.active     { background: rgba(16,185,129,.2); color: #34d399; }
+  .t3 .nav-icon            { background: currentColor; }
+  .t3 .main                { background: #f9fafb; }
+  .t3 .page-title          { color: #064e3b; }
+  .t3 .live-dot            { background: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
+  .t3 .live-label          { color: #065f46; }
+  .t3 .search-box          { background: #fff; border-color: #d1fae5; color: #1e293b; }
+  .t3 .btn                 { background: #10b981; color: #fff; }
+  .t3 .filter-chip         { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+  .t3 .table-wrap          { border-color: #d1fae5; background: #fff; }
+  .t3 th                   { background: #f0fdf4; color: #047857; border-bottom: 1px solid #d1fae5; }
+  .t3 td                   { color: #1e293b; border-bottom: 1px solid #f0fdf4; }
+  .t3 tr:last-child td     { border-bottom: none; }
+  .t3 .chip.mock           { background: #d1fae5; color: #065f46; }
+  .t3 .chip.proxy          { background: #dbeafe; color: #1d4ed8; }
+  .t3 .chip.err            { background: #fee2e2; color: #991b1b; }
+
+  /* ═══════════════════════════════════════════════════════════
+     THEME 4 — INK & AMBER
+     Tokens: sidebar=#18181b  content=#ffffff  accent=#f59e0b
+  ═══════════════════════════════════════════════════════════ */
+  .t4 .card-label          { background: #09090b; color: #fcd34d; }
+  .t4 .sidebar             { background: #18181b; color: #71717a; border-right: 1px solid rgba(255,255,255,.07); }
+  .t4 .sidebar-logo        { color: #fafafa; }
+  .t4 .logo-dot            { background: #f59e0b; }
+  .t4 .nav-item            { color: #71717a; }
+  .t4 .nav-item.active     { background: rgba(245,158,11,.15); color: #fbbf24; }
+  .t4 .nav-icon            { background: currentColor; }
+  .t4 .main                { background: #ffffff; }
+  .t4 .page-title          { color: #09090b; }
+  .t4 .live-dot            { background: #22c55e; box-shadow: 0 0 0 2px #dcfce7; }
+  .t4 .live-label          { color: #16a34a; }
+  .t4 .search-box          { background: #fafafa; border-color: #e4e4e7; color: #18181b; }
+  .t4 .btn                 { background: #f59e0b; color: #fff; }
+  .t4 .filter-chip         { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+  .t4 .table-wrap          { border-color: #e4e4e7; background: #fff; }
+  .t4 th                   { background: #fafafa; color: #71717a; border-bottom: 1px solid #e4e4e7; }
+  .t4 td                   { color: #18181b; border-bottom: 1px solid #f4f4f5; }
+  .t4 tr:last-child td     { border-bottom: none; }
+  .t4 .chip.mock           { background: #fef3c7; color: #92400e; }
+  .t4 .chip.proxy          { background: #dcfce7; color: #166534; }
+  .t4 .chip.err            { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+
+<h1>Fishtank — Final 4 Themes</h1>
+<p class="subtitle">Clean Light (default light) · Deep Ocean (default dark, full dark tables) · Emerald Terminal · Ink &amp; Amber</p>
+
+<div class="grid">
+
+  <!-- THEME 1 — CLEAN LIGHT -->
+  <div class="card t1">
+    <div class="card-label">
+      1 — Clean Light
+      <span class="badge-default">Default Light</span>
+      <span class="tagline">Light sidebar · Sky-blue accent</span>
+    </div>
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo"><span class="logo-dot"></span> Fishtank</div>
+        <div class="nav-item active"><span class="nav-icon"></span> Network Activity</div>
+        <div class="nav-item"><span class="nav-icon"></span> Services</div>
+        <div class="nav-item"><span class="nav-icon"></span> Mappings</div>
+        <div class="nav-sep"></div>
+        <div class="nav-item"><span class="nav-icon"></span> Warnings</div>
+        <div class="nav-item"><span class="nav-icon"></span> Settings</div>
+      </div>
+      <div class="main">
+        <div class="page-title">
+          Network Activity
+          <span class="live-dot"></span><span class="live-label">LIVE</span>
+        </div>
+        <div class="toolbar">
+          <input class="search-box" type="text" placeholder="Filter path, method, status…" readonly>
+          <div class="filter-chip">Mock</div>
+          <div class="filter-chip">Proxy</div>
+          <div class="btn">Save as Mock</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <colgroup><col class="col-method"><col class="col-path"><col class="col-status"><col class="col-type"><col class="col-ms"></colgroup>
+            <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Type</th><th>ms</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/account</td><td>200</td><td><span class="chip mock">Mock</span></td><td>4</td></tr>
+              <tr><td><span class="method-post">POST</span></td><td>/api/social/identity</td><td>201</td><td><span class="chip proxy">Proxy</span></td><td>312</td></tr>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/balance</td><td>500</td><td><span class="chip err">Error</span></td><td>8</td></tr>
+              <tr><td><span class="method-delete">DELETE</span></td><td>/api/social/session</td><td>204</td><td><span class="chip mock">Mock</span></td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME 2 — DEEP OCEAN DARK -->
+  <div class="card t2">
+    <div class="card-label">
+      2 — Deep Ocean
+      <span class="badge-default">Default Dark</span>
+      <span class="tagline">Full dark · Navy sidebar + dark tables · Blue accent</span>
+    </div>
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo"><span class="logo-dot"></span> Fishtank</div>
+        <div class="nav-item active"><span class="nav-icon"></span> Network Activity</div>
+        <div class="nav-item"><span class="nav-icon"></span> Services</div>
+        <div class="nav-item"><span class="nav-icon"></span> Mappings</div>
+        <div class="nav-sep"></div>
+        <div class="nav-item"><span class="nav-icon"></span> Warnings</div>
+        <div class="nav-item"><span class="nav-icon"></span> Settings</div>
+      </div>
+      <div class="main">
+        <div class="page-title">
+          Network Activity
+          <span class="live-dot"></span><span class="live-label">LIVE</span>
+        </div>
+        <div class="toolbar">
+          <input class="search-box" type="text" placeholder="Filter path, method, status…" readonly>
+          <div class="filter-chip">Mock</div>
+          <div class="filter-chip">Proxy</div>
+          <div class="btn">Save as Mock</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <colgroup><col class="col-method"><col class="col-path"><col class="col-status"><col class="col-type"><col class="col-ms"></colgroup>
+            <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Type</th><th>ms</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/account</td><td>200</td><td><span class="chip mock">Mock</span></td><td>4</td></tr>
+              <tr><td><span class="method-post">POST</span></td><td>/api/social/identity</td><td>201</td><td><span class="chip proxy">Proxy</span></td><td>312</td></tr>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/balance</td><td>500</td><td><span class="chip err">Error</span></td><td>8</td></tr>
+              <tr><td><span class="method-delete">DELETE</span></td><td>/api/social/session</td><td>204</td><td><span class="chip mock">Mock</span></td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME 3 — EMERALD TERMINAL -->
+  <div class="card t3">
+    <div class="card-label">
+      3 — Emerald Terminal
+      <span class="tagline">Deep green sidebar · Emerald accent · DevOps energy</span>
+    </div>
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo"><span class="logo-dot"></span> Fishtank</div>
+        <div class="nav-item active"><span class="nav-icon"></span> Network Activity</div>
+        <div class="nav-item"><span class="nav-icon"></span> Services</div>
+        <div class="nav-item"><span class="nav-icon"></span> Mappings</div>
+        <div class="nav-sep"></div>
+        <div class="nav-item"><span class="nav-icon"></span> Warnings</div>
+        <div class="nav-item"><span class="nav-icon"></span> Settings</div>
+      </div>
+      <div class="main">
+        <div class="page-title">
+          Network Activity
+          <span class="live-dot"></span><span class="live-label">LIVE</span>
+        </div>
+        <div class="toolbar">
+          <input class="search-box" type="text" placeholder="Filter path, method, status…" readonly>
+          <div class="filter-chip">Mock</div>
+          <div class="filter-chip">Proxy</div>
+          <div class="btn">Save as Mock</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <colgroup><col class="col-method"><col class="col-path"><col class="col-status"><col class="col-type"><col class="col-ms"></colgroup>
+            <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Type</th><th>ms</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/account</td><td>200</td><td><span class="chip mock">Mock</span></td><td>4</td></tr>
+              <tr><td><span class="method-post">POST</span></td><td>/api/social/identity</td><td>201</td><td><span class="chip proxy">Proxy</span></td><td>312</td></tr>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/balance</td><td>500</td><td><span class="chip err">Error</span></td><td>8</td></tr>
+              <tr><td><span class="method-delete">DELETE</span></td><td>/api/social/session</td><td>204</td><td><span class="chip mock">Mock</span></td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME 4 — INK & AMBER -->
+  <div class="card t4">
+    <div class="card-label">
+      4 — Ink &amp; Amber
+      <span class="tagline">Near-black sidebar · Warm amber accent · High contrast</span>
+    </div>
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo"><span class="logo-dot"></span> Fishtank</div>
+        <div class="nav-item active"><span class="nav-icon"></span> Network Activity</div>
+        <div class="nav-item"><span class="nav-icon"></span> Services</div>
+        <div class="nav-item"><span class="nav-icon"></span> Mappings</div>
+        <div class="nav-sep"></div>
+        <div class="nav-item"><span class="nav-icon"></span> Warnings</div>
+        <div class="nav-item"><span class="nav-icon"></span> Settings</div>
+      </div>
+      <div class="main">
+        <div class="page-title">
+          Network Activity
+          <span class="live-dot"></span><span class="live-label">LIVE</span>
+        </div>
+        <div class="toolbar">
+          <input class="search-box" type="text" placeholder="Filter path, method, status…" readonly>
+          <div class="filter-chip">Mock</div>
+          <div class="filter-chip">Proxy</div>
+          <div class="btn">Save as Mock</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <colgroup><col class="col-method"><col class="col-path"><col class="col-status"><col class="col-type"><col class="col-ms"></colgroup>
+            <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Type</th><th>ms</th></tr></thead>
+            <tbody>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/account</td><td>200</td><td><span class="chip mock">Mock</span></td><td>4</td></tr>
+              <tr><td><span class="method-post">POST</span></td><td>/api/social/identity</td><td>201</td><td><span class="chip proxy">Proxy</span></td><td>312</td></tr>
+              <tr><td><span class="method-get">GET</span></td><td>/api/finance/balance</td><td>500</td><td><span class="chip err">Error</span></td><td>8</td></tr>
+              <tr><td><span class="method-delete">DELETE</span></td><td>/api/social/session</td><td>204</td><td><span class="chip mock">Mock</span></td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

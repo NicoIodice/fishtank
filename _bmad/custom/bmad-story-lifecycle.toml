@@ -1,0 +1,7 @@
+# Team override for bmad-story-lifecycle.
+# Committed — applies to every developer on this project.
+
+[workflow]
+activation_steps_append = [
+  "BRANCH CREATION (before preflight-test-design): Before any files are written, ensure branch `story/{story_key}` exists. This runs at the very start of the preflight-test-design phase, immediately after story_key is confirmed. Check with `git branch --list story/{story_key}`. If the branch does NOT exist locally or on origin, create it and push: `git checkout -b story/{story_key}` then `git push -u origin story/{story_key}`. If it already exists (lifecycle resume), switch to it: `git checkout story/{story_key}`. Branch naming convention: `story/{story_key}` — e.g. `story/1-2-user-auth`.",
+]

@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="clean-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fishtank — Interactive Prototype</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — theme system
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --brand:#0ea5e9; --brand-fg:#fff;
+  --sidebar-bg:#f1f5f9; --sidebar-fg:#475569;
+  --sidebar-active-bg:#e0f2fe; --sidebar-active-fg:#0369a1;
+  --topbar-bg:#ffffff; --topbar-border:#e2e8f0;
+  --content-bg:#ffffff; --surface:#f8fafc;
+  --fg:#1e293b; --muted:#64748b;
+  --border:#e2e8f0; --input-bg:#f8fafc; --input-border:#cbd5e1;
+}
+[data-theme="deep-ocean"] {
+  --brand:#3b82f6; --brand-fg:#fff;
+  --sidebar-bg:#0d1b2a; --sidebar-fg:#64748b;
+  --sidebar-active-bg:rgba(59,130,246,.18); --sidebar-active-fg:#93c5fd;
+  --topbar-bg:#0a1628; --topbar-border:rgba(255,255,255,.07);
+  --content-bg:#0f2233; --surface:#0d1b2a;
+  --fg:#cbd5e1; --muted:#475569;
+  --border:rgba(255,255,255,.08); --input-bg:#162d42; --input-border:rgba(255,255,255,.12);
+}
+[data-theme="emerald-terminal"] {
+  --brand:#10b981; --brand-fg:#fff;
+  --sidebar-bg:#064e3b; --sidebar-fg:#6ee7b7;
+  --sidebar-active-bg:rgba(16,185,129,.2); --sidebar-active-fg:#34d399;
+  --topbar-bg:#052e20; --topbar-border:rgba(255,255,255,.08);
+  --content-bg:#f9fafb; --surface:#f0fdf4;
+  --fg:#1e293b; --muted:#64748b;
+  --border:#d1fae5; --input-bg:#fff; --input-border:#a7f3d0;
+}
+[data-theme="ink-amber"] {
+  --brand:#f59e0b; --brand-fg:#fff;
+  --sidebar-bg:#18181b; --sidebar-fg:#71717a;
+  --sidebar-active-bg:rgba(245,158,11,.15); --sidebar-active-fg:#fbbf24;
+  --topbar-bg:#09090b; --topbar-border:rgba(255,255,255,.07);
+  --content-bg:#ffffff; --surface:#fafafa;
+  --fg:#18181b; --muted:#71717a;
+  --border:#e4e4e7; --input-bg:#fafafa; --input-border:#d4d4d8;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;background:#060d16;display:flex;align-items:center;justify-content:center}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+code,pre,.mono{font-family:'Cascadia Code','Fira Code',Consolas,monospace}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP FRAME
+═══════════════════════════════════════════════════════════════ */
+.app{width:1100px;height:680px;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:0 8px 60px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.07)}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOP BAR
+═══════════════════════════════════════════════════════════════ */
+.topbar{height:42px;min-height:42px;background:var(--topbar-bg);border-bottom:1px solid var(--topbar-border);display:flex;align-items:center;padding:0 16px;gap:10px;position:relative;z-index:200}
+.logo{font-size:.9rem;font-weight:800;color:var(--fg);display:flex;align-items:center;gap:7px;text-decoration:none}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--brand)}
+.tb-sp{flex:1}
+.tb-icon{width:30px;height:30px;border-radius:7px;background:rgba(128,128,128,.1);display:flex;align-items:center;justify-content:center;font-size:.82rem;color:var(--muted);position:relative;cursor:pointer;border:1px solid rgba(128,128,128,.1);transition:background .15s}
+.tb-icon:hover{background:rgba(128,128,128,.2)}
+.tb-badge{position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius:50%;background:#ef4444;font-size:.52rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--topbar-bg)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);font-size:.65rem;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid rgba(255,255,255,.1)}
+
+/* ═══════════════════════════════════════════════════════════════
+   BODY ROW
+═══════════════════════════════════════════════════════════════ */
+.body-row{flex:1;display:flex;overflow:hidden}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+.sidebar{width:200px;min-width:200px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px 0;transition:width .2s,min-width .2s;position:relative;z-index:100}
+.sidebar.collapsed{width:52px;min-width:52px}
+.sidebar.collapsed .nav-label{display:none}
+.sidebar.collapsed .nav-badge{display:none}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;border-radius:8px;margin:1px 7px;font-size:.75rem;color:var(--sidebar-fg);cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;position:relative}
+.nav-item:hover{background:rgba(128,128,128,.08);color:var(--fg)}
+.nav-item.active{background:var(--sidebar-active-bg);color:var(--sidebar-active-fg)}
+.nav-icon{font-size:.85rem;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:99px;min-width:18px;text-align:center}
+.nav-sep{height:1px;background:var(--border);margin:8px 14px}
+.sidebar-collapse{margin-top:auto;border-top:1px solid var(--border);padding:10px 14px 0}
+.collapse-btn{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted);cursor:pointer;padding:6px 4px;border-radius:6px;transition:color .15s}
+.collapse-btn:hover{color:var(--fg)}
+.sidebar.collapsed .collapse-arrow{transform:rotate(180deg)}
+.collapse-arrow{transition:transform .2s;display:inline-block}
+/* Collapsed tooltip */
+.sidebar.collapsed .nav-item:hover::after{content:attr(data-label);position:absolute;left:52px;top:50%;transform:translateY(-50%);background:#1e293b;color:#f1f5f9;padding:4px 10px;border-radius:6px;font-size:.72rem;white-space:nowrap;pointer-events:none;z-index:999;border:1px solid rgba(255,255,255,.1)}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════════════ */
+.main{flex:1;display:flex;flex-direction:column;background:var(--content-bg);overflow:hidden}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* Page header */
+.page-hdr{padding:16px 22px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.page-title{font-size:1rem;font-weight:800;color:var(--fg);flex:1}
+.page-sub{font-size:.7rem;color:var(--muted);margin-top:2px}
+
+/* Toolbar */
+.toolbar{display:flex;gap:8px;align-items:center;padding:10px 22px;flex-shrink:0}
+.search{flex:1;padding:7px 12px;border-radius:7px;font-size:.73rem;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg)}
+.search::placeholder{color:var(--muted)}
+
+/* Buttons */
+.btn{padding:7px 14px;border-radius:7px;font-size:.73rem;font-weight:700;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-primary{background:var(--brand);color:var(--brand-fg)}
+.btn-ghost{background:rgba(128,128,128,.08);color:var(--muted);border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.btn-sm{padding:5px 11px;font-size:.68rem;border-radius:6px}
+.btn-xs{padding:3px 8px;font-size:.63rem;border-radius:5px}
+
+/* Scroll area */
+.scroll{flex:1;overflow-y:auto;padding:16px 22px}
+.scroll::-webkit-scrollbar{width:4px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+
+/* Icon buttons */
+.icon-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.82rem;cursor:pointer;transition:background .12s}
+.icon-btn:hover{background:rgba(128,128,128,.1)}
+.icon-btn.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:var(--brand)}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.vt-btn{padding:0 10px;height:32px;background:transparent;border:none;color:var(--muted);font-size:.82rem;cursor:pointer;transition:background .12s}
+.vt-btn:hover{background:rgba(128,128,128,.08)}
+.vt-btn.active{background:rgba(59,130,246,.12);color:var(--brand)}
+
+/* Toggle switch */
+.toggle-wrap{display:flex;align-items:center;gap:6px}
+.toggle{width:34px;height:19px;border-radius:99px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#22c55e}
+.toggle.off{background:#94a3b8}
+.toggle::after{content:'';position:absolute;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{left:17px}
+.toggle.off::after{left:2px}
+.toggle-label{font-size:.68rem;font-weight:600;color:var(--muted);min-width:38px}
+.toggle.on + .toggle-label{color:#16a34a}
+
+/* Status pill */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:.63rem;font-weight:700;flex-shrink:0}
+.pill.live{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
+.pill.stopped{background:rgba(148,163,184,.1);color:#64748b;border:1px solid rgba(148,163,184,.2)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* Chips */
+.chip{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.62rem;font-weight:700}
+.chip-mock{background:#dbeafe;color:#1d4ed8}
+.chip-proxy{background:#dcfce7;color:#166534}
+.chip-err{background:#fee2e2;color:#991b1b}
+.chip-get{background:#dbeafe;color:#1d4ed8}
+.chip-post{background:#d1fae5;color:#065f46}
+.chip-put{background:#fef3c7;color:#92400e}
+.chip-delete{background:#fee2e2;color:#991b1b}
+.chip-patch{background:#ede9fe;color:#5b21b6}
+
+/* Port badge */
+.port-badge{padding:1px 7px;border-radius:5px;font-size:.63rem;font-weight:700;background:rgba(99,102,241,.12);color:#6366f1;border:1px solid rgba(99,102,241,.2);font-family:monospace}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 22px;flex-shrink:0}
+.tab{padding:10px 16px;font-size:.74rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;transition:color .15s}
+.tab:hover{color:var(--fg)}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.tab-count{padding:1px 6px;border-radius:99px;font-size:.6rem;font-weight:700}
+.tc-warn{background:rgba(251,146,60,.15);color:#ea580c}
+.tc-info{background:rgba(59,130,246,.12);color:#2563eb}
+.tc-success{background:rgba(34,197,94,.12);color:#16a34a}
+
+/* ═══════════════════════════════════════════════════════════════
+   SERVICES — CARDS
+═══════════════════════════════════════════════════════════════ */
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.svc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
+.svc-card:hover{border-color:var(--brand)}
+.svc-card.stopped-card{opacity:.7}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sc-name{font-size:.82rem;font-weight:700;color:var(--fg)}
+.sc-desc{font-size:.68rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.sc-meta{display:flex;flex-direction:column;gap:4px}
+.sc-row{display:flex;align-items:center;gap:6px;font-size:.68rem}
+.sc-row-lbl{color:var(--muted);font-weight:600;width:34px;flex-shrink:0;font-size:.63rem;text-transform:uppercase;letter-spacing:.04em}
+.sc-row-val{color:var(--fg);font-family:monospace;font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.sc-footer{display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid var(--border)}
+.sc-link{font-size:.68rem;color:var(--brand);cursor:pointer;font-weight:600}
+.sc-link:hover{text-decoration:underline}
+.sc-sp{flex:1}
+
+/* SERVICES — TABLE */
+.svc-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.svc-table th{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;background:var(--surface);color:var(--muted);border-bottom:1px solid var(--border);text-align:left}
+.svc-table td{padding:8px 12px;font-size:.72rem;color:var(--fg);border-bottom:1px solid var(--border)}
+.svc-table tr:hover td{background:var(--surface)}
+.svc-table .url-cell{font-family:monospace;font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ═══════════════════════════════════════════════════════════════
+   NETWORK ACTIVITY
+═══════════════════════════════════════════════════════════════ */
+.live-indicator{display:flex;align-items:center;gap:6px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.2)}
+.live-lbl{font-size:.63rem;font-weight:700;color:#16a34a;letter-spacing:.05em}
+.rec-badge{padding:3px 9px;border-radius:99px;font-size:.63rem;font-weight:700;background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.25)}
+.filter-chip{padding:4px 10px;border-radius:99px;font-size:.65rem;font-weight:600;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:transparent;transition:background .12s}
+.filter-chip.active{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:var(--brand)}
+.act-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.act-table th{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;background:var(--surface);color:var(--muted);border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;z-index:1}
+.act-table td{padding:6px 10px;font-size:.69rem;color:var(--fg);border-bottom:1px solid var(--border)}
+.act-table tr{cursor:pointer}
+.act-table tr:hover td{background:var(--surface)}
+.act-table .path-cell{font-family:monospace;font-size:.66rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbl-wrap{flex:1;overflow:hidden;border-radius:8px;border:1px solid var(--border)}
+.tbl-scroll{overflow-y:auto;height:100%}
+.tbl-scroll::-webkit-scrollbar{width:4px}
+.tbl-scroll::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAPPINGS — FILE EXPLORER
+═══════════════════════════════════════════════════════════════ */
+.mappings-layout{flex:1;display:flex;overflow:hidden}
+.tree-pane{width:240px;min-width:240px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface)}
+.tree-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tree-header-lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tree{flex:1;overflow-y:auto;padding:8px 0}
+.tree::-webkit-scrollbar{width:3px}
+.tree::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.tree-node{display:flex;align-items:center;gap:6px;padding:5px 12px;font-size:.72rem;color:var(--fg);cursor:pointer;border-radius:0;transition:background .1s;user-select:none}
+.tree-node:hover{background:rgba(128,128,128,.07)}
+.tree-node.active{background:rgba(59,130,246,.1);border-left:2px solid var(--brand);color:var(--brand);padding-left:10px}
+.tree-node .tn-icon{flex-shrink:0;font-size:.78rem;width:16px;text-align:center}
+.tree-node .tn-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.tree-node .tn-arr{font-size:.65rem;color:var(--muted);transition:transform .15s;flex-shrink:0}
+.tree-node .tn-arr.open{transform:rotate(90deg)}
+.tree-children{overflow:hidden;transition:max-height .2s}
+.tree-indent{padding-left:18px}
+
+/* Editor pane */
+.editor-pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ep-hdr{padding:12px 18px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.ep-breadcrumb{font-size:.65rem;color:var(--muted);margin-bottom:8px;font-family:monospace}
+.ep-tabs{display:flex}
+.ep-tab{padding:8px 16px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s}
+.ep-tab:hover{color:var(--fg)}
+.ep-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.ep-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.ep-body::-webkit-scrollbar{width:3px}
+.ep-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.ep-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:var(--surface)}
+.ep-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;flex-direction:column;gap:8px}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.field-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.field-input{padding:7px 10px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.72rem}
+.field-input.mono{font-family:monospace;font-size:.69rem}
+.field-select{padding:7px 10px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.72rem;cursor:pointer}
+.field-textarea{padding:7px 10px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.69rem;font-family:monospace;resize:none;min-height:80px;line-height:1.5}
+.status-opts{display:flex;gap:5px;flex-wrap:wrap}
+.status-opt{padding:4px 10px;border-radius:6px;font-size:.67rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer}
+.status-opt.active{background:rgba(59,130,246,.1);border-color:var(--brand);color:var(--brand)}
+
+/* JSON editor */
+.json-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1;display:flex;flex-direction:column}
+.json-hdr{padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.json-lang{font-size:.62rem;color:var(--muted);font-weight:600}
+.json-body{padding:12px 14px;font-family:monospace;font-size:.69rem;line-height:1.65;color:var(--fg);flex:1;overflow:hidden}
+.jk{color:#93c5fd}.js{color:#86efac}.jn{color:#fb923c}.jp{color:var(--muted)}
+
+/* ═══════════════════════════════════════════════════════════════
+   SYSTEM EVENTS
+═══════════════════════════════════════════════════════════════ */
+.event-list{display:flex;flex-direction:column}
+.event-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.event-item:last-child{border-bottom:none}
+.ev-icon{font-size:.9rem;flex-shrink:0;margin-top:1px}
+.ev-body{flex:1;min-width:0}
+.ev-msg{font-size:.73rem;color:var(--fg);line-height:1.45}
+.ev-msg strong{color:var(--fg);font-weight:700}
+.ev-msg code{font-size:.67rem;color:var(--brand);font-family:monospace}
+.ev-meta{display:flex;gap:8px;margin-top:3px;align-items:center;flex-wrap:wrap}
+.ev-time{font-size:.63rem;color:var(--muted)}
+.ev-svc{font-size:.62rem;font-weight:600;padding:1px 6px;border-radius:4px;background:rgba(99,102,241,.1);color:#6366f1}
+.ev-type{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.et-error{background:rgba(239,68,68,.12);color:#ef4444}
+.et-warn{background:rgba(251,146,60,.12);color:#f97316}
+.et-info{background:rgba(59,130,246,.1);color:#3b82f6}
+.et-success{background:rgba(34,197,94,.1);color:#22c55e}
+.ev-dismiss{font-size:.75rem;color:var(--muted);cursor:pointer;flex-shrink:0;padding:2px 4px;border-radius:4px;transition:color .12s}
+.ev-dismiss:hover{color:var(--fg)}
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════════════════ */
+.settings-layout{flex:1;display:flex;overflow:hidden}
+.settings-nav{width:170px;min-width:170px;padding:12px 0;border-right:1px solid var(--border);background:var(--surface)}
+.sn-item{padding:7px 16px;font-size:.73rem;color:var(--muted);cursor:pointer;border-radius:7px;margin:1px 7px;transition:background .12s}
+.sn-item:hover{background:rgba(128,128,128,.07);color:var(--fg)}
+.sn-item.active{background:rgba(59,130,246,.1);color:var(--brand);font-weight:600}
+.settings-content{flex:1;overflow-y:auto;padding:20px 26px}
+.settings-content::-webkit-scrollbar{width:4px}
+.settings-content::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.s-section-title{font-size:.9rem;font-weight:800;color:var(--fg);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:20px}
+.s-row:last-child{border-bottom:none}
+.s-lbl{font-size:.74rem;font-weight:600;color:var(--fg)}
+.s-desc{font-size:.66rem;color:var(--muted);margin-top:2px}
+.s-ctrl{flex-shrink:0}
+.s-select{padding:5px 10px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;color:var(--fg);font-size:.71rem;cursor:pointer}
+.theme-swatches{display:flex;gap:8px}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;position:relative;overflow:hidden;transition:border-color .15s}
+.swatch:hover{border-color:var(--brand)}
+.swatch.selected{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
+.swatch-l{position:absolute;left:0;top:0;width:50%;height:100%}
+.swatch-r{position:absolute;right:0;top:0;width:50%;height:100%}
+.detail-mode-opts{display:flex;gap:5px}
+.dmo{padding:5px 10px;border-radius:6px;font-size:.67rem;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:background .12s}
+.dmo:hover{background:rgba(128,128,128,.08)}
+.dmo.active{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:var(--brand)}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN / SETUP
+═══════════════════════════════════════════════════════════════ */
+.auth-screen{flex:1;display:flex;align-items:center;justify-content:center;background:var(--content-bg)}
+.auth-card{width:360px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:20px}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;font-size:1.1rem;font-weight:800;color:var(--fg)}
+.auth-title{font-size:.85rem;font-weight:700;color:var(--fg);text-align:center}
+.auth-sub{font-size:.7rem;color:var(--muted);text-align:center}
+.auth-fields{display:flex;flex-direction:column;gap:10px}
+.auth-field{display:flex;flex-direction:column;gap:4px}
+.auth-field label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.auth-field input{padding:9px 12px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:7px;color:var(--fg);font-size:.8rem}
+.auth-submit{width:100%;padding:10px;border-radius:7px;font-size:.8rem;font-weight:700;background:var(--brand);color:var(--brand-fg);border:none;cursor:pointer}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVERLAYS — MODAL
+═══════════════════════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.overlay.hidden{display:none}
+.modal{background:var(--content-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;max-height:90vh}
+.modal-sm{width:400px}
+.modal-md{width:540px}
+.modal-lg{width:700px}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:.82rem;font-weight:700;color:var(--fg)}
+.modal-close{font-size:.9rem;color:var(--muted);cursor:pointer;background:none;border:none;padding:2px 6px;border-radius:4px;transition:color .12s}
+.modal-close:hover{color:var(--fg)}
+.modal-body{padding:18px;overflow-y:auto;flex:1}
+.modal-body::-webkit-scrollbar{width:4px}
+.modal-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATION PANEL
+═══════════════════════════════════════════════════════════════ */
+.notif-panel{position:absolute;top:44px;right:8px;width:360px;background:var(--content-bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:500;display:flex;flex-direction:column;max-height:420px}
+.notif-panel.hidden{display:none}
+.notif-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.notif-title{font-size:.78rem;font-weight:700;color:var(--fg)}
+.notif-list{overflow-y:auto;flex:1}
+.notif-list::-webkit-scrollbar{width:3px}
+.notif-list::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.notif-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--surface)}
+.notif-item.unread{background:rgba(59,130,246,.04)}
+.notif-item:last-child{border-bottom:none}
+.ni-icon{font-size:.82rem;flex-shrink:0;margin-top:1px}
+.ni-body{flex:1;min-width:0}
+.ni-msg{font-size:.7rem;color:var(--fg);line-height:1.4}
+.ni-time{font-size:.62rem;color:var(--muted);margin-top:2px}
+.ni-dismiss{font-size:.72rem;color:var(--muted);cursor:pointer;padding:2px;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════════════
+   USER DROPDOWN
+═══════════════════════════════════════════════════════════════ */
+.user-dropdown{position:absolute;top:44px;right:8px;width:220px;background:var(--content-bg);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:500}
+.user-dropdown.hidden{display:none}
+.ud-info{padding:14px;border-bottom:1px solid var(--border)}
+.ud-name{font-size:.78rem;font-weight:700;color:var(--fg)}
+.ud-role{font-size:.67rem;color:var(--muted)}
+.ud-item{padding:9px 14px;font-size:.73rem;color:var(--fg);cursor:pointer;transition:background .1s}
+.ud-item:hover{background:var(--surface)}
+.ud-item.danger{color:#ef4444}
+
+/* ═══════════════════════════════════════════════════════════════
+   ABOUT MODAL content
+═══════════════════════════════════════════════════════════════ */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.about-item{display:flex;flex-direction:column;gap:3px}
+.about-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.about-val{font-size:.75rem;color:var(--fg);font-family:monospace}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOASTS
+═══════════════════════════════════════════════════════════════ */
+.toast-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:2000}
+.toast{padding:10px 16px;border-radius:8px;font-size:.73rem;font-weight:600;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:slide-in .2s ease;display:flex;align-items:center;gap:8px;min-width:220px}
+.toast-success{background:#16a34a}
+.toast-error{background:#dc2626}
+.toast-info{background:#2563eb}
+@keyframes slide-in{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ═══════════════════════════════════════════════════════════════
+   ROW DETAIL DRAWER (right)
+═══════════════════════════════════════════════════════════════ */
+.drawer{position:absolute;top:0;right:0;bottom:0;width:320px;background:var(--content-bg);border-left:1px solid var(--border);box-shadow:-4px 0 24px rgba(0,0,0,.15);display:flex;flex-direction:column;z-index:150;transform:translateX(0);transition:transform .2s}
+.drawer.hidden{transform:translateX(100%)}
+.drawer-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-title{font-size:.75rem;font-weight:700;color:var(--fg)}
+.drawer-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.drawer-body::-webkit-scrollbar{width:3px}
+.drawer-body::-webkit-scrollbar-thumb{background:rgba(128,128,128,.2);border-radius:99px}
+.dr-row{display:flex;flex-direction:column;gap:3px}
+.dr-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.dr-val{font-size:.69rem;color:var(--fg)}
+.dr-code{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;font-size:.65rem;font-family:monospace;color:var(--fg);white-space:pre;overflow:hidden}
+.drawer-footer{padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOTTOM PANEL
+═══════════════════════════════════════════════════════════════ */
+.bottom-panel{flex-shrink:0;height:200px;border-top:1px solid var(--brand);background:var(--surface);display:flex;flex-direction:column}
+.bottom-panel.hidden{display:none}
+.bp-hdr{padding:7px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.bp-tab{font-size:.65rem;font-weight:600;color:var(--muted);cursor:pointer;padding-bottom:2px;border-bottom:2px solid transparent}
+.bp-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.bp-close{margin-left:auto;font-size:.78rem;color:var(--muted);cursor:pointer;background:none;border:none}
+.bp-body{flex:1;overflow:hidden;padding:8px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bp-section{display:flex;flex-direction:column;gap:4px}
+.bp-section-title{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--brand)}
+.bp-code{background:var(--content-bg);border:1px solid var(--border);border-radius:5px;padding:7px 9px;font-size:.62rem;font-family:monospace;color:var(--fg);white-space:pre;overflow:hidden;flex:1}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIRM DIALOG
+═══════════════════════════════════════════════════════════════ */
+.confirm-body{font-size:.78rem;color:var(--fg);line-height:1.55}
+.confirm-body code{color:var(--brand);font-family:monospace;font-size:.73rem}
+
+/* Tooltip */
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#1e293b;color:#f1f5f9;padding:4px 9px;border-radius:6px;font-size:.65rem;white-space:nowrap;pointer-events:none;z-index:999;border:1px solid rgba(255,255,255,.1)}
+
+/* Unsaved indicator */
+.unsaved-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;margin-left:6px}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     TOAST CONTAINER
+════════════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     CONFIRM OVERLAY
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="confirmOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <span class="modal-title" id="confirmTitle">Confirm</span>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body" id="confirmBody"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirmOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     NOTIFICATION PANEL
+════════════════════════════════════════════════════════════ -->
+<div class="notif-panel hidden" id="notifPanel">
+  <div class="notif-hdr">
+    <span class="notif-title">Notifications</span>
+    <button class="btn-ghost btn btn-xs" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     USER DROPDOWN
+════════════════════════════════════════════════════════════ -->
+<div class="user-dropdown hidden" id="userDropdown">
+  <div class="ud-info">
+    <div class="ud-name">Nico Iodice</div>
+    <div class="ud-role">Administrator</div>
+  </div>
+  <div class="ud-item" onclick="closeAllDropdowns();showScreen('settings')">Settings</div>
+  <div class="ud-item danger" onclick="closeAllDropdowns();showScreen('login')">Sign out</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ABOUT MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="aboutOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <span class="modal-title">About Fishtank</span>
+      <button class="modal-close" onclick="document.getElementById('aboutOverlay').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:16px;font-size:2rem">🐠</div>
+      <div class="about-grid">
+        <div class="about-item"><div class="about-lbl">Version</div><div class="about-val">1.0.0-beta</div></div>
+        <div class="about-item"><div class="about-lbl">Engine</div><div class="about-val">WireMock.NET</div></div>
+        <div class="about-item"><div class="about-lbl">Image</div><div class="about-val">fishtank:1.0.0</div></div>
+        <div class="about-item"><div class="about-lbl">Database</div><div class="about-val">SQLite 3.42</div></div>
+        <div class="about-item"><div class="about-lbl">Volume</div><div class="about-val">/mocks</div></div>
+        <div class="about-item"><div class="about-lbl">Port</div><div class="about-val">9090</div></div>
+      </div>
+      <div style="margin-top:16px;text-align:center"><a href="#" style="font-size:.72rem;color:var(--brand)">GitHub →</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ADD SERVICE MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="addSvcOverlay">
+  <div class="modal modal-md">
+    <div class="modal-hdr">
+      <span class="modal-title">Add Service</span>
+      <button class="modal-close" onclick="document.getElementById('addSvcOverlay').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="field-lbl">Service Name</label><input class="field-input" placeholder="e.g. Finance API"></div>
+        <div class="form-field"><label class="field-lbl">Port</label><input class="field-input mono" placeholder="e.g. 8087"></div>
+        <div class="form-field full"><label class="field-lbl">Description</label><input class="field-input" placeholder="Brief description of this service"></div>
+        <div class="form-field full"><label class="field-lbl">Upstream URL</label><input class="field-input mono" placeholder="https://api.example.com"></div>
+        <div class="form-field full"><label class="field-lbl">Mappings Path</label><input class="field-input mono" value="/mocks/new-service/mappings"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('addSvcOverlay').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addService()">Add Service</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     NEW MAPPING MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="newMappingOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <span class="modal-title">New Mapping File</span>
+      <button class="modal-close" onclick="document.getElementById('newMappingOverlay').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field" style="margin-bottom:12px">
+        <label class="field-lbl">File Name</label>
+        <input class="field-input mono" id="newMappingName" placeholder="e.g. account-get-200.json">
+      </div>
+      <div class="form-field">
+        <label class="field-lbl">Service</label>
+        <select class="field-select" id="newMappingSvc">
+          <option>Finance API — mappings/</option>
+          <option>Social Security — mappings/</option>
+          <option>Payments Gateway — mappings/</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('newMappingOverlay').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="createNewMapping()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     COPY MAPPING MODAL
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="copyMappingOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <span class="modal-title">Copy Mapping</span>
+      <button class="modal-close" onclick="document.getElementById('copyMappingOverlay').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field" style="margin-bottom:12px">
+        <label class="field-lbl">Source File</label>
+        <input class="field-input mono" id="copySource" readonly>
+      </div>
+      <div class="form-field">
+        <label class="field-lbl">New File Name</label>
+        <input class="field-input mono" id="copyDest" placeholder="new-name.json">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('copyMappingOverlay').classList.add('hidden')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="copyMapping()">Copy File</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     ROW DETAIL MODAL (Network Activity)
+════════════════════════════════════════════════════════════ -->
+<div class="overlay hidden" id="rowDetailOverlay">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="rdTitle">GET /api/finance/account</span>
+      <button class="modal-close" onclick="document.getElementById('rowDetailOverlay').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+        <div><div class="dr-lbl">Service</div><div class="dr-val" id="rdSvc">Finance API · 8081</div></div>
+        <div><div class="dr-lbl">Status · Type</div><div class="dr-val" id="rdStatus">200 · <span class="chip chip-mock">Mock</span></div></div>
+        <div><div class="dr-lbl">Duration</div><div class="dr-val" id="rdDuration">4ms</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="dr-lbl" style="margin-bottom:5px">Request</div>
+          <div class="dr-code" id="rdRequest">GET /api/finance/account HTTP/1.1
+Host: localhost:8081
+Accept: application/json</div>
+        </div>
+        <div>
+          <div class="dr-lbl" style="margin-bottom:5px">Response</div>
+          <div class="dr-code" id="rdResponse">HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"accountId":"acc_123",
+ "balance":4200.00,
+ "currency":"EUR"}</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('rowDetailOverlay').classList.add('hidden')">Close</button>
+      <button class="btn btn-primary btn-sm" id="rdSaveMock" onclick="saveMockFromActivity()">Save as Mock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     APP
+════════════════════════════════════════════════════════════ -->
+<div class="app" id="appFrame">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo" onclick="showScreen('services')" style="cursor:pointer"><span class="logo-dot"></span>Fishtank</div>
+    <div class="tb-sp"></div>
+    <div class="tb-icon" data-tip="About" onclick="toggleAbout()">ℹ</div>
+    <div class="tb-icon" data-tip="Notifications" onclick="toggleNotifPanel()" id="bellIcon">🔔<span class="tb-badge" id="bellBadge">4</span></div>
+    <div class="tb-avatar" onclick="toggleUserDropdown()" data-tip="Nico Iodice">NI</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body-row">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="nav-item" id="nav-services" data-label="Services" onclick="showScreen('services')"><span class="nav-icon">🗄</span><span class="nav-label">Services</span></div>
+      <div class="nav-item" id="nav-network" data-label="Network Activity" onclick="showScreen('network')"><span class="nav-icon">📡</span><span class="nav-label">Network Activity</span></div>
+      <div class="nav-item" id="nav-mappings" data-label="Mappings" onclick="showScreen('mappings')"><span class="nav-icon">🗂</span><span class="nav-label">Mappings</span></div>
+      <div class="nav-sep"></div>
+      <div class="nav-item" id="nav-events" data-label="System Events" onclick="showScreen('events')"><span class="nav-icon">📋</span><span class="nav-label">System Events</span><span class="nav-badge" id="sidebarBadge">4</span></div>
+      <div class="nav-item" id="nav-settings" data-label="Settings" onclick="showScreen('settings')"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></div>
+      <div class="sidebar-collapse">
+        <div class="collapse-btn" onclick="toggleSidebar()">
+          <span class="nav-icon" style="font-size:.75rem">◀</span>
+          <span class="nav-label" style="font-size:.7rem">Collapse</span>
+          <span class="collapse-arrow" id="collapseArrow"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="mainArea">
+
+      <!-- ═══════════════════════ SERVICES ═══════════════════════ -->
+      <div class="screen" id="screen-services">
+        <div class="page-hdr">
+          <div><div class="page-title">Services</div><div class="page-sub" id="svcSubtitle">6 services · 5 live · 1 stopped</div></div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+            <div class="view-toggle">
+              <button class="vt-btn active" id="vt-grid" data-tip="Grid view" onclick="setServiceView('grid')">⊞</button>
+              <button class="vt-btn" id="vt-table" data-tip="Table view" onclick="setServiceView('table')">☰</button>
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('addSvcOverlay').classList.remove('hidden')">+ Add Service</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="search" id="svcSearch" placeholder="Search services…" oninput="filterServices()">
+        </div>
+        <div class="scroll" id="svcGridWrap">
+          <div class="services-grid" id="svcGrid"></div>
+        </div>
+        <div class="scroll" id="svcTableWrap" style="display:none;padding:0">
+          <table class="svc-table">
+            <colgroup><col style="width:140px"><col style="width:60px"><col><col style="width:80px"><col style="width:120px"><col style="width:130px"></colgroup>
+            <thead><tr><th>Name</th><th>Port</th><th>Upstream URL</th><th>Status</th><th>Enable</th><th>Actions</th></tr></thead>
+            <tbody id="svcTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ NETWORK ACTIVITY ═══════════════ -->
+      <div class="screen" id="screen-network" style="position:relative">
+        <div class="page-hdr">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="page-title">Network Activity</div>
+            <div class="live-indicator"><div class="live-dot"></div><span class="live-lbl">LIVE</span></div>
+            <span class="rec-badge" id="recBadge" style="display:none">● Recording</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+            <button class="btn btn-ghost btn-sm" id="recBtn" onclick="toggleRecord()">⏺ Record Mode</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearActivity()">Clear</button>
+          </div>
+        </div>
+        <div class="toolbar" style="gap:6px">
+          <input class="search" id="actSearch" placeholder="Filter by path, method, status…" oninput="filterActivity()">
+          <button class="filter-chip" id="fc-mock" onclick="toggleFilter('mock')">Mock</button>
+          <button class="filter-chip" id="fc-proxy" onclick="toggleFilter('proxy')">Proxy</button>
+          <button class="filter-chip" id="fc-error" onclick="toggleFilter('error')">Error</button>
+          <div class="view-toggle" style="margin-left:4px">
+            <button class="vt-btn" data-tip="Modal" onclick="setDetailMode('modal')" id="dm-modal">▣</button>
+            <button class="vt-btn" data-tip="Drawer" onclick="setDetailMode('drawer')" id="dm-drawer">▶</button>
+            <button class="vt-btn" data-tip="Bottom Panel" onclick="setDetailMode('panel')" id="dm-panel">▼</button>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0 22px 12px;gap:0">
+          <div class="tbl-wrap" style="flex:1">
+            <div class="tbl-scroll">
+              <table class="act-table">
+                <colgroup><col style="width:60px"><col><col style="width:55px"><col style="width:70px"><col style="width:50px"><col style="width:80px"></colgroup>
+                <thead><tr><th>Method</th><th>Path</th><th>Status</th><th>Type</th><th>ms</th><th>Action</th></tr></thead>
+                <tbody id="activityBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Bottom panel (inside network screen) -->
+          <div class="bottom-panel hidden" id="bottomPanel">
+            <div class="bp-hdr">
+              <span class="bp-tab active" onclick="switchBpTab('request',this)">Request</span>
+              <span class="bp-tab" onclick="switchBpTab('response',this)" style="margin-left:12px">Response</span>
+              <span class="bp-tab" onclick="switchBpTab('headers',this)" style="margin-left:12px">Headers</span>
+              <button class="bp-close" onclick="document.getElementById('bottomPanel').classList.add('hidden')">✕</button>
+            </div>
+            <div class="bp-body" id="bpBody">
+              <div class="bp-section"><div class="bp-section-title">Request Body</div><div class="bp-code" id="bpLeft"></div></div>
+              <div class="bp-section"><div class="bp-section-title">Response Body</div><div class="bp-code" id="bpRight"></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Right drawer (inside network screen) -->
+        <div class="drawer hidden" id="rightDrawer">
+          <div class="drawer-hdr">
+            <span class="drawer-title" id="drawerTitle">Request Detail</span>
+            <button class="modal-close" onclick="document.getElementById('rightDrawer').classList.add('hidden')">✕</button>
+          </div>
+          <div class="drawer-body" id="drawerBody"></div>
+          <div class="drawer-footer">
+            <button class="btn btn-primary btn-sm" style="width:100%" id="drawerSaveBtn" onclick="saveMockFromActivity()">Save as Mock</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ MAPPINGS ═════════════════════════ -->
+      <div class="screen" id="screen-mappings">
+        <div class="page-hdr">
+          <div><div class="page-title">Mappings</div><div class="page-sub" id="mappingsSubtitle">Select a service to browse files</div></div>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="resyncMappings()">↺ Resync</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('newMappingOverlay').classList.remove('hidden')">+ New Mapping</button>
+            <button class="btn btn-ghost btn-sm" onclick="newResponse()">+ New Response</button>
+          </div>
+        </div>
+        <div class="mappings-layout">
+          <!-- Tree -->
+          <div class="tree-pane">
+            <div class="tree-header">
+              <span class="tree-header-lbl">File Tree</span>
+              <button class="btn btn-ghost btn-xs" onclick="collapseAllTree()">Collapse all</button>
+            </div>
+            <div class="tree" id="fileTree"></div>
+          </div>
+          <!-- Editor -->
+          <div class="editor-pane" id="editorPane">
+            <div class="ep-empty" id="editorEmpty"><span style="font-size:1.5rem">🗂</span>Select a file to view or edit</div>
+            <div id="editorContent" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+              <div class="ep-hdr">
+                <div class="ep-breadcrumb" id="epBreadcrumb"></div>
+                <div class="ep-tabs">
+                  <div class="ep-tab active" id="etab-form" onclick="switchEditorTab('form')">Form</div>
+                  <div class="ep-tab" id="etab-raw" onclick="switchEditorTab('raw')">Raw JSON</div>
+                </div>
+              </div>
+              <div class="ep-body" id="epForm">
+                <div class="form-grid">
+                  <div class="form-field"><label class="field-lbl">Method</label><select class="field-select" id="fMethod"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option></select></div>
+                  <div class="form-field"><label class="field-lbl">Response Status</label><div class="status-opts"><div class="status-opt active" onclick="selectStatus(this,'200')">200</div><div class="status-opt" onclick="selectStatus(this,'201')">201</div><div class="status-opt" onclick="selectStatus(this,'400')">400</div><div class="status-opt" onclick="selectStatus(this,'404')">404</div><div class="status-opt" onclick="selectStatus(this,'500')">500</div></div></div>
+                  <div class="form-field full"><label class="field-lbl">URL Pattern</label><input class="field-input mono" id="fUrl" oninput="markUnsaved()"></div>
+                  <div class="form-field full"><label class="field-lbl">Response Body</label><textarea class="field-textarea" id="fBody" rows="4" oninput="markUnsaved()"></textarea></div>
+                  <div class="form-field"><label class="field-lbl">Content-Type</label><input class="field-input" id="fContentType" oninput="markUnsaved()"></div>
+                  <div class="form-field"><label class="field-lbl">Delay (ms)</label><input class="field-input mono" id="fDelay" value="0" oninput="markUnsaved()"></div>
+                </div>
+              </div>
+              <div class="ep-body" id="epRaw" style="display:none">
+                <div class="json-wrap" style="flex:1">
+                  <div class="json-hdr"><span class="json-lang">JSON — WireMock format</span><button class="btn btn-ghost btn-xs" onclick="copyJson()">Copy</button></div>
+                  <div class="json-body" id="jsonBody"></div>
+                </div>
+              </div>
+              <div class="ep-footer">
+                <button class="btn btn-danger btn-sm" onclick="deleteMappingFile()">Delete</button>
+                <button class="btn btn-ghost btn-sm" onclick="discardChanges()">Discard</button>
+                <button class="btn btn-primary btn-sm" onclick="saveMapping()">Save Mapping</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ SYSTEM EVENTS ════════════════════ -->
+      <div class="screen" id="screen-events">
+        <div class="page-hdr">
+          <div><div class="page-title">System Events</div><div class="page-sub">Warnings, errors and operational info</div></div>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button class="btn btn-ghost btn-sm" onclick="markAllEventsRead()">Mark all read</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmClearEvents()">Clear all</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" id="etab-warn" onclick="switchEventTab('warn')">Warnings &amp; Errors <span class="tab-count tc-warn" id="warnCount">4</span></div>
+          <div class="tab" id="etab-info" onclick="switchEventTab('info')">Info <span class="tab-count tc-info" id="infoCount">4</span></div>
+        </div>
+        <div class="scroll" id="eventsWarn"><div class="event-list" id="warnList"></div></div>
+        <div class="scroll" id="eventsInfo" style="display:none"><div class="event-list" id="infoList"></div></div>
+      </div>
+
+      <!-- ═══════════════════════ SETTINGS ═════════════════════════ -->
+      <div class="screen" id="screen-settings">
+        <div class="page-hdr"><div class="page-title">Settings</div></div>
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <div class="sn-item active" id="sn-appearance" onclick="showSettingsSection('appearance')">Appearance</div>
+            <div class="sn-item" id="sn-network" onclick="showSettingsSection('network')">Network Activity</div>
+            <div class="sn-item" id="sn-paths" onclick="showSettingsSection('paths')">Paths</div>
+            <div class="sn-item" id="sn-auth" onclick="showSettingsSection('auth')">Auth &amp; Users</div>
+            <div class="sn-item" id="sn-flags" onclick="showSettingsSection('flags')">Feature Flags</div>
+          </div>
+          <div class="settings-content">
+            <!-- Appearance -->
+            <div id="ss-appearance">
+              <div class="s-section-title">Appearance</div>
+              <div class="s-row"><div><div class="s-lbl">Theme</div><div class="s-desc">Choose your colour scheme — applies instantly</div></div><div class="s-ctrl"><div class="theme-swatches" id="themeSwatches">
+                <div class="swatch selected" data-theme="clean-light" data-tip="Clean Light" onclick="applyTheme('clean-light',this)"><div class="swatch-l" style="background:#f1f5f9"></div><div class="swatch-r" style="background:#0ea5e9"></div></div>
+                <div class="swatch" data-theme="deep-ocean" data-tip="Deep Ocean" onclick="applyTheme('deep-ocean',this)"><div class="swatch-l" style="background:#0d1b2a"></div><div class="swatch-r" style="background:#3b82f6"></div></div>
+                <div class="swatch" data-theme="emerald-terminal" data-tip="Emerald Terminal" onclick="applyTheme('emerald-terminal',this)"><div class="swatch-l" style="background:#064e3b"></div><div class="swatch-r" style="background:#10b981"></div></div>
+                <div class="swatch" data-theme="ink-amber" data-tip="Ink & Amber" onclick="applyTheme('ink-amber',this)"><div class="swatch-l" style="background:#18181b"></div><div class="swatch-r" style="background:#f59e0b"></div></div>
+              </div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Row detail style</div><div class="s-desc">How request detail opens in Network Activity</div></div><div class="s-ctrl"><div class="detail-mode-opts" id="detailModeOpts">
+                <div class="dmo active" onclick="setDetailModeSetting('modal',this)">Modal</div>
+                <div class="dmo" onclick="setDetailModeSetting('drawer',this)">Right Drawer</div>
+                <div class="dmo" onclick="setDetailModeSetting('panel',this)">Bottom Panel</div>
+              </div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Sidebar default</div><div class="s-desc">Expansion state on load</div></div><div class="s-ctrl"><select class="s-select" onchange="if(this.value==='collapsed')setSidebarCollapsed(true);else setSidebarCollapsed(false)"><option value="expanded">Expanded</option><option value="collapsed">Collapsed</option></select></div></div>
+            </div>
+            <!-- Network Activity -->
+            <div id="ss-network" style="display:none">
+              <div class="s-section-title">Network Activity</div>
+              <div class="s-row"><div><div class="s-lbl">Auto-refresh interval</div><div class="s-desc">Polling interval for live activity log</div></div><div class="s-ctrl"><select class="s-select"><option>1 second</option><option>2 seconds</option><option selected>5 seconds</option><option>Disabled</option></select></div></div>
+              <div class="s-row"><div><div class="s-lbl">Max log entries per service</div><div class="s-desc">Oldest entries pruned automatically</div></div><div class="s-ctrl"><select class="s-select"><option>500</option><option selected>1 000</option><option>5 000</option></select></div></div>
+              <div class="s-row"><div><div class="s-lbl">Sensitive header redaction</div><div class="s-desc">Redact Authorization, Cookie, Set-Cookie headers</div></div><div class="s-ctrl"><div class="toggle on" onclick="toggleEl(this)"></div></div></div>
+            </div>
+            <!-- Paths -->
+            <div id="ss-paths" style="display:none">
+              <div class="s-section-title">Paths</div>
+              <div class="s-row"><div><div class="s-lbl">Mappings Path</div></div><div class="s-ctrl"><input class="field-input mono" style="width:260px" value="/mocks/{service}/mappings"></div></div>
+              <div class="s-row"><div><div class="s-lbl">Responses Path</div></div><div class="s-ctrl"><input class="field-input mono" style="width:260px" value="/mocks/{service}/responses"></div></div>
+              <div class="s-row"><div><div class="s-lbl">Services Path</div></div><div class="s-ctrl"><input class="field-input mono" style="width:260px" value="/mocks"></div></div>
+              <div style="margin-top:14px;text-align:right"><button class="btn btn-primary btn-sm" onclick="showToast('Paths saved.','success')">Save Paths</button></div>
+            </div>
+            <!-- Auth -->
+            <div id="ss-auth" style="display:none">
+              <div class="s-section-title">Auth &amp; Users</div>
+              <div class="s-row"><div><div class="s-lbl">Auto-registration</div><div class="s-desc">Allow new users to self-register</div></div><div class="s-ctrl"><div class="toggle off" onclick="toggleEl(this)"></div></div></div>
+              <div style="margin-top:16px">
+                <table style="width:100%;border-collapse:collapse">
+                  <thead><tr><th style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 0;text-align:left;border-bottom:1px solid var(--border)">Username</th><th style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 0;text-align:left;border-bottom:1px solid var(--border)">Role</th><th style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 0;text-align:left;border-bottom:1px solid var(--border)">Last Login</th></tr></thead>
+                  <tbody><tr><td style="padding:8px 0;font-size:.72rem;color:var(--fg);border-bottom:1px solid var(--border)">nico.iodice</td><td style="padding:8px 0;font-size:.72rem;color:var(--fg);border-bottom:1px solid var(--border)">Admin</td><td style="padding:8px 0;font-size:.72rem;color:var(--muted);border-bottom:1px solid var(--border)">Today 09:00</td></tr></tbody>
+                </table>
+                <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Invite feature coming in v1.1','info')">+ Invite User</button>
+              </div>
+            </div>
+            <!-- Feature Flags -->
+            <div id="ss-flags" style="display:none">
+              <div class="s-section-title">Feature Flags</div>
+              <div class="s-row"><div><div class="s-lbl">Record Mode</div><div class="s-desc">Enable proxied request auto-promotion globally</div></div><div class="s-ctrl"><div class="toggle on" onclick="toggleEl(this)"></div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Mock Suggestions</div><div class="s-desc">Show "Save as Mock" on proxied rows</div></div><div class="s-ctrl"><div class="toggle on" onclick="toggleEl(this)"></div></div></div>
+              <div class="s-row"><div><div class="s-lbl">Pipeline Reset API</div><div class="s-desc">Enable POST /admin/reset endpoint</div></div><div class="s-ctrl"><div class="toggle off" onclick="toggleEl(this)"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ LOGIN ════════════════════════════ -->
+      <div class="screen" id="screen-login">
+        <div class="auth-screen">
+          <div class="auth-card">
+            <div class="auth-logo"><span>🐠</span> Fishtank</div>
+            <div><div class="auth-title">Sign in to your account</div><div class="auth-sub" style="margin-top:4px">Self-hosted mock server manager</div></div>
+            <div class="auth-fields">
+              <div class="auth-field"><label>Username</label><input type="text" value="nico.iodice"></div>
+              <div class="auth-field"><label>Password</label><input type="password" value="••••••••"></div>
+            </div>
+            <button class="auth-submit" onclick="showScreen('services')">Sign in</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body-row -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+let services = [
+  {id:1,name:'Finance API',desc:'Core banking & account data',port:'8081',url:'https://api.finance.gov',live:true,tags:['financial']},
+  {id:2,name:'Social Security',desc:'Identity & verification services',port:'8082',url:'https://api.socialsec.gov',live:true,tags:['identity']},
+  {id:3,name:'Payments Gateway',desc:'Transaction processing',port:'8083',url:'https://pay.stripe.example',live:true,tags:['financial']},
+  {id:4,name:'Logistics API',desc:'Shipping & fulfilment tracking',port:'8084',url:'https://api.logistics.io',live:true,tags:['logistics']},
+  {id:5,name:'Notifications',desc:'Email & SMS dispatch service',port:'8085',url:'https://api.notify.example',live:true,tags:[]},
+  {id:6,name:'Legacy Auth',desc:'Deprecated auth provider (staging only)',port:'8086',url:'https://auth-legacy.internal',live:false,tags:['identity']}
+];
+
+let activityRows = [
+  {method:'GET',path:'/api/finance/account',status:200,type:'mock',ms:4,svc:'Finance API',port:'8081',reqBody:'GET /api/finance/account HTTP/1.1\nHost: localhost:8081\nAccept: application/json',resBody:'HTTP/1.1 200 OK\nContent-Type: application/json\n\n{"accountId":"acc_123","balance":4200.00,"currency":"EUR"}'},
+  {method:'POST',path:'/api/social/identity',status:201,type:'proxy',ms:312,svc:'Social Security',port:'8082',reqBody:'POST /api/social/identity HTTP/1.1\nContent-Type: application/json\n\n{"userId":"abc123","action":"verify"}',resBody:'HTTP/1.1 201 Created\nX-Proxied: true\n\n{"verified":true,"token":"eyJ..."}'},
+  {method:'GET',path:'/api/finance/balance',status:500,type:'error',ms:8,svc:'Finance API',port:'8081',reqBody:'GET /api/finance/balance HTTP/1.1\nHost: localhost:8081',resBody:'HTTP/1.1 500 Internal Server Error\n\n{"error":"Mapping load failed"}'},
+  {method:'DELETE',path:'/api/social/session',status:204,type:'mock',ms:2,svc:'Social Security',port:'8082',reqBody:'DELETE /api/social/session/sess_789 HTTP/1.1',resBody:'HTTP/1.1 204 No Content'},
+  {method:'POST',path:'/api/finance/transfer',status:201,type:'proxy',ms:445,svc:'Finance API',port:'8081',reqBody:'POST /api/finance/transfer HTTP/1.1\nContent-Type: application/json\n\n{"from":"acc_123","to":"acc_456","amount":100}',resBody:'HTTP/1.1 201 Created\n\n{"transferId":"txn_789","status":"pending"}'},
+  {method:'GET',path:'/api/logistics/shipment/12',status:200,type:'mock',ms:3,svc:'Logistics API',port:'8084',reqBody:'GET /api/logistics/shipment/12 HTTP/1.1',resBody:'HTTP/1.1 200 OK\n\n{"shipmentId":"12","status":"in-transit"}'},
+];
+
+let notifications = [
+  {id:1,icon:'🔴',msg:'<strong>Duplicate GUID</strong> — mapping <code>a3f1b2c4</code> in Finance API',time:'Today 14:32',unread:true,type:'error'},
+  {id:2,icon:'🟠',msg:'<strong>Malformed response</strong> — <code>verify-response.json</code> line 14',time:'Today 13:58',unread:true,type:'warn'},
+  {id:3,icon:'🔴',msg:'<strong>Mapping load failed</strong> — missing <code>request.method</code> in refund.json',time:'Today 11:20',unread:true,type:'error'},
+  {id:4,icon:'🟠',msg:'<strong>Config conflict</strong> — seed file service on port 8084 already exists',time:'Yesterday 09:11',unread:true,type:'warn'},
+  {id:5,icon:'✅',msg:'<strong>Mock saved</strong> — GET /api/finance/account',time:'Today 14:45',unread:false,type:'success'},
+  {id:6,icon:'🔄',msg:'<strong>Resync completed</strong> — Finance API: 24 mappings in 142ms',time:'Today 14:30',unread:false,type:'info'},
+];
+
+let warnEvents = [
+  {icon:'🔴',msg:'<strong>Duplicate GUID detected</strong> — mapping <code>a3f1b2c4</code> appears in <code>finance/mappings/accounts.json</code> and <code>finance/mappings/legacy.json</code>',time:'Today 14:32:07',svc:'Finance API',type:'error'},
+  {icon:'🟠',msg:'<strong>Malformed response body</strong> — mapping <code>POST /api/social/verify</code> references <code>verify-response.json</code> which contains invalid JSON at line 14',time:'Today 13:58:41',svc:'Social Security',type:'warn'},
+  {icon:'🔴',msg:'<strong>Mapping load failed</strong> — <code>payments/mappings/refund.json</code> is missing required field <code>request.method</code>',time:'Today 11:20:14',svc:'Payments Gateway',type:'error'},
+  {icon:'🟠',msg:'<strong>Config conflict on import</strong> — seed file defines service <code>logistics</code> on port <code>8084</code> but database already has an entry on that port',time:'Yesterday 09:11:52',svc:'Logistics API',type:'warn'},
+];
+let infoEvents = [
+  {icon:'✅',msg:'<strong>Mock saved</strong> — <code>GET /api/finance/account</code> saved as <code>finance/mappings/account-get-200.json</code>',time:'Today 14:45:02',svc:'Finance API',type:'success'},
+  {icon:'🔄',msg:'<strong>Resync completed</strong> — Finance API reloaded 24 mappings from disk in 142ms',time:'Today 14:30:00',svc:'Finance API',type:'info'},
+  {icon:'⏺',msg:'<strong>Record mode enabled</strong> — proxied requests to Social Security will auto-promote to mappings',time:'Today 13:50:00',svc:'Social Security',type:'info'},
+  {icon:'🚀',msg:'<strong>Fishtank started</strong> — 6 services loaded, 5 live, 1 stopped. SQLite DB ready. Volume mounted at <code>/mocks</code>',time:'Today 09:00:01',svc:'',type:'info'},
+];
+
+let fileTree = {
+  'Finance API': {path:'/mocks/finance', live:true, mappings:['account-get-200.json','account-create-201.json','balance-get-200.json','balance-get-500.json','transfer-post-201.json'], responses:['account-200.json','balance-200.json','transfer-201.json']},
+  'Social Security': {path:'/mocks/social', live:true, mappings:['identity-post-201.json','session-delete-204.json','verify-post-200.json'], responses:['identity-201.json','session-204.json']},
+  'Payments Gateway': {path:'/mocks/payments', live:true, mappings:['charge-post-201.json','refund-post-200.json'], responses:['charge-201.json']},
+  'Logistics API': {path:'/mocks/logistics', live:true, mappings:['shipment-get-200.json'], responses:['shipment-200.json']},
+};
+
+let treeState = {}; // expanded state
+let activeFile = null;
+let unsavedChanges = false;
+let detailMode = 'modal'; // modal | drawer | panel
+let svcView = 'grid'; // grid | table
+let activeFilters = new Set();
+let recordMode = false;
+let currentRow = null;
+let settingsSection = 'appearance';
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.onload = () => {
+  showScreen('services');
+  renderServices();
+  renderActivity();
+  renderFileTree();
+  renderEvents();
+  renderNotifications();
+};
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const s = document.getElementById('screen-'+id);
+  if(s) { s.classList.add('active'); }
+  const n = document.getElementById('nav-'+id);
+  if(n) n.classList.add('active');
+  closeAllDropdowns();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+}
+function setSidebarCollapsed(v) {
+  const sb = document.getElementById('sidebar');
+  if(v) sb.classList.add('collapsed'); else sb.classList.remove('collapsed');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SERVICES
+// ═══════════════════════════════════════════════════════════
+function renderServices(filter='') {
+  const fl = filter.toLowerCase();
+  const filtered = services.filter(s => s.name.toLowerCase().includes(fl) || s.desc.toLowerCase().includes(fl));
+  // Update subtitle
+  const live = services.filter(s=>s.live).length;
+  document.getElementById('svcSubtitle').textContent = `${services.length} services · ${live} live · ${services.length-live} stopped`;
+  // Grid
+  const grid = document.getElementById('svcGrid');
+  grid.innerHTML = filtered.map(svc => `
+    <div class="svc-card ${svc.live?'':'stopped-card'}" id="svccard-${svc.id}">
+      <div class="sc-top">
+        <div><div class="sc-name">${svc.name}</div><div class="sc-desc">${svc.desc}</div></div>
+        <div class="pill ${svc.live?'live':'stopped'}"><span class="pill-dot"></span>${svc.live?'Live':'Stopped'}</div>
+      </div>
+      <div class="sc-meta">
+        <div class="sc-row"><span class="sc-row-lbl">Port</span><span class="port-badge">${svc.port}</span></div>
+        <div class="sc-row"><span class="sc-row-lbl">URL</span><span class="sc-row-val" title="${svc.url}">${svc.url}</span></div>
+      </div>
+      <div class="sc-footer">
+        <span class="sc-link" onclick="editService(${svc.id})">Edit</span>
+        <span class="sc-link" style="margin-left:8px" onclick="goToMappings('${svc.name}')">Mappings</span>
+        <div class="sc-sp"></div>
+        <div class="toggle-wrap" data-tip="${svc.live?'Disable service':'Enable service'}">
+          <div class="toggle ${svc.live?'on':'off'}" onclick="toggleService(${svc.id})"></div>
+          <span class="toggle-label">${svc.live?'Live':'Off'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+  // Table
+  const tbody = document.getElementById('svcTableBody');
+  tbody.innerHTML = filtered.map(svc => `
+    <tr>
+      <td style="font-weight:600;color:var(--fg)">${svc.name}</td>
+      <td><span class="port-badge">${svc.port}</span></td>
+      <td class="url-cell" title="${svc.url}">${svc.url}</td>
+      <td><span class="pill ${svc.live?'live':'stopped'}"><span class="pill-dot"></span>${svc.live?'Live':'Stopped'}</span></td>
+      <td>
+        <div class="toggle-wrap" data-tip="${svc.live?'Disable service':'Enable service'}">
+          <div class="toggle ${svc.live?'on':'off'}" onclick="toggleService(${svc.id})"></div>
+          <span class="toggle-label" style="font-size:.67rem">${svc.live?'Live':'Off'}</span>
+        </div>
+      </td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-xs" onclick="editService(${svc.id})">Edit</button>
+        <button class="btn btn-ghost btn-xs" onclick="goToMappings('${svc.name}')">Mappings</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDeleteService(${svc.id})">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function setServiceView(v) {
+  svcView = v;
+  document.getElementById('vt-grid').classList.toggle('active', v==='grid');
+  document.getElementById('vt-table').classList.toggle('active', v==='table');
+  document.getElementById('svcGridWrap').style.display = v==='grid' ? '' : 'none';
+  document.getElementById('svcTableWrap').style.display = v==='table' ? '' : 'none';
+}
+function filterServices() {
+  renderServices(document.getElementById('svcSearch').value);
+}
+function toggleService(id) {
+  const svc = services.find(s=>s.id===id);
+  svc.live = !svc.live;
+  renderServices(document.getElementById('svcSearch').value);
+  showToast(`${svc.name} ${svc.live?'enabled':'disabled'}.`, svc.live?'success':'info');
+  addInfoEvent(svc.live?'✅':'⏹', `Service <strong>${svc.name}</strong> ${svc.live?'started':'stopped'}`, svc.name, svc.live?'success':'info');
+}
+function editService(id) {
+  const svc = services.find(s=>s.id===id);
+  showToast(`Edit "${svc.name}" — form coming in full implementation.`, 'info');
+}
+function confirmDeleteService(id) {
+  const svc = services.find(s=>s.id===id);
+  showConfirm(`Delete service <code>${svc.name}</code>?`, `This will remove the service definition. Mapping files on disk are not deleted.`, () => {
+    services = services.filter(s=>s.id!==id);
+    renderServices();
+    showToast(`Service "${svc.name}" deleted.`, 'success');
+  });
+}
+function addService() {
+  const name = document.querySelector('#addSvcOverlay .field-input').value || 'New Service';
+  services.push({id: Date.now(), name, desc:'New service', port:'8090', url:'https://example.com', live:true});
+  document.getElementById('addSvcOverlay').classList.add('hidden');
+  renderServices();
+  showToast(`Service "${name}" added.`, 'success');
+}
+function goToMappings(svcName) {
+  showScreen('mappings');
+  // expand that service in tree
+  treeState[svcName] = {expanded:true, mappings:true, responses:false};
+  renderFileTree();
+}
+
+// ═══════════════════════════════════════════════════════════
+// NETWORK ACTIVITY
+// ═══════════════════════════════════════════════════════════
+function renderActivity() {
+  const search = (document.getElementById('actSearch')||{}).value?.toLowerCase()||'';
+  let rows = activityRows;
+  if(activeFilters.size>0) rows = rows.filter(r => activeFilters.has(r.type) || (activeFilters.has('error') && r.status>=400));
+  if(search) rows = rows.filter(r => r.path.toLowerCase().includes(search) || r.method.toLowerCase().includes(search) || String(r.status).includes(search));
+  const tbody = document.getElementById('activityBody');
+  const typeChip = t => t==='mock'?'chip-mock':t==='proxy'?'chip-proxy':'chip-err';
+  const typeLabel = t => t==='mock'?'Mock':t==='proxy'?'Proxy':'Error';
+  const methodCls = m => ({GET:'chip-get',POST:'chip-post',PUT:'chip-put',DELETE:'chip-delete',PATCH:'chip-patch'}[m]||'chip-get');
+  tbody.innerHTML = rows.map((r,i) => `
+    <tr onclick="openRowDetail(${activityRows.indexOf(r)})">
+      <td><span class="chip ${methodCls(r.method)}">${r.method}</span></td>
+      <td class="path-cell">${r.path}</td>
+      <td style="font-family:monospace">${r.status}</td>
+      <td><span class="chip ${typeChip(r.type)}">${typeLabel(r.type)}</span></td>
+      <td style="font-family:monospace">${r.ms}</td>
+      <td>${r.type==='proxy'?`<button class="btn btn-primary btn-xs" onclick="event.stopPropagation();saveMockRow(${activityRows.indexOf(r)})">Save</button>`:''}</td>
+    </tr>`).join('');
+}
+function filterActivity() { renderActivity(); }
+function toggleFilter(f) {
+  const btn = document.getElementById('fc-'+f);
+  if(activeFilters.has(f)) { activeFilters.delete(f); btn.classList.remove('active'); }
+  else { activeFilters.add(f); btn.classList.add('active'); }
+  renderActivity();
+}
+function clearActivity() {
+  showConfirm('Clear all activity?', 'This removes all logged requests from the current view.', () => {
+    activityRows = [];
+    renderActivity();
+    showToast('Activity cleared.', 'info');
+  });
+}
+function toggleRecord() {
+  recordMode = !recordMode;
+  document.getElementById('recBadge').style.display = recordMode ? '' : 'none';
+  document.getElementById('recBtn').textContent = recordMode ? '⏹ Stop Recording' : '⏺ Record Mode';
+  showToast(recordMode ? 'Record mode enabled — proxied requests auto-save.' : 'Record mode disabled.', recordMode?'info':'info');
+  addInfoEvent(recordMode?'⏺':'⏹', recordMode?'<strong>Record mode enabled</strong>':'<strong>Record mode disabled</strong>', 'All Services', 'info');
+}
+function openRowDetail(idx) {
+  currentRow = activityRows[idx];
+  const r = currentRow;
+  const methodCls = m => ({GET:'chip-get',POST:'chip-post',PUT:'chip-put',DELETE:'chip-delete',PATCH:'chip-patch'}[m]||'chip-get');
+  const typeChip = t => t==='mock'?'chip-mock':t==='proxy'?'chip-proxy':'chip-err';
+  const isProxy = r.type === 'proxy';
+  if(detailMode === 'modal') {
+    document.getElementById('rdTitle').textContent = r.method + ' ' + r.path;
+    document.getElementById('rdSvc').textContent = r.svc + ' · ' + r.port;
+    document.getElementById('rdStatus').innerHTML = `${r.status} · <span class="chip ${typeChip(r.type)}">${r.type.charAt(0).toUpperCase()+r.type.slice(1)}</span> · ${r.ms}ms`;
+    document.getElementById('rdRequest').textContent = r.reqBody;
+    document.getElementById('rdResponse').textContent = r.resBody;
+    document.getElementById('rdSaveMock').style.display = isProxy ? '' : 'none';
+    document.getElementById('rowDetailOverlay').classList.remove('hidden');
+  } else if(detailMode === 'drawer') {
+    document.getElementById('rightDrawer').classList.remove('hidden');
+    document.getElementById('drawerTitle').textContent = r.method + ' ' + r.path;
+    document.getElementById('drawerSaveBtn').style.display = isProxy ? '' : 'none';
+    document.getElementById('drawerBody').innerHTML = `
+      <div class="dr-row"><div class="dr-lbl">Service</div><div class="dr-val">${r.svc} · ${r.port}</div></div>
+      <div class="dr-row"><div class="dr-lbl">Status · Type</div><div class="dr-val">${r.status} · <span class="chip ${typeChip(r.type)}">${r.type}</span> · ${r.ms}ms</div></div>
+      <div class="dr-row"><div class="dr-lbl">Request</div><div class="dr-code">${r.reqBody}</div></div>
+      <div class="dr-row"><div class="dr-lbl">Response</div><div class="dr-code">${r.resBody}</div></div>`;
+  } else {
+    const bp = document.getElementById('bottomPanel');
+    bp.classList.remove('hidden');
+    document.getElementById('bpLeft').textContent = r.reqBody;
+    document.getElementById('bpRight').textContent = r.resBody;
+  }
+}
+function switchBpTab(tab, el) {
+  document.querySelectorAll('.bp-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const r = currentRow;
+  if(!r) return;
+  const left = document.getElementById('bpLeft');
+  const right = document.getElementById('bpRight');
+  document.querySelector('.bp-section:first-child .bp-section-title').textContent = tab==='headers'?'Request Headers':'Request Body';
+  document.querySelector('.bp-section:last-child .bp-section-title').textContent = tab==='headers'?'Response Headers':'Response Body';
+  if(tab==='headers') { left.textContent='Accept: application/json\nAuthorization: [REDACTED]'; right.textContent='Content-Type: application/json\nX-Request-Id: abc-123'; }
+  else { left.textContent = r.reqBody; right.textContent = r.resBody; }
+}
+function setDetailMode(m) {
+  detailMode = m;
+  ['modal','drawer','panel'].forEach(x => document.getElementById('dm-'+x).classList.toggle('active', x===m));
+  // sync settings page
+  document.querySelectorAll('.dmo').forEach((d,i) => d.classList.toggle('active', ['modal','drawer','panel'][i]===m));
+  document.getElementById('bottomPanel').classList.add('hidden');
+  document.getElementById('rightDrawer').classList.add('hidden');
+}
+function setDetailModeSetting(m, el) {
+  document.querySelectorAll('.dmo').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  setDetailMode(m);
+}
+function saveMockFromActivity() {
+  if(!currentRow) return;
+  document.getElementById('rowDetailOverlay').classList.add('hidden');
+  document.getElementById('rightDrawer').classList.add('hidden');
+  const r = currentRow;
+  const fname = r.method.toLowerCase() + '-' + r.path.replace(/\//g,'-').replace(/^-/,'') + '-' + r.status + '.json';
+  // Add to file tree
+  const svcKey = Object.keys(fileTree).find(k => k === r.svc);
+  if(svcKey) fileTree[svcKey].mappings.push(fname);
+  showToast(`Mock saved: ${fname}`, 'success');
+  addInfoEvent('✅', `<strong>Mock saved</strong> — <code>${r.method} ${r.path}</code> saved as <code>${fname}</code>`, r.svc, 'success');
+  renderFileTree();
+  // If on mappings screen, highlight new file
+}
+function saveMockRow(idx) {
+  currentRow = activityRows[idx];
+  saveMockFromActivity();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAPPINGS — FILE TREE
+// ═══════════════════════════════════════════════════════════
+function renderFileTree() {
+  const container = document.getElementById('fileTree');
+  let html = '';
+  Object.entries(fileTree).forEach(([svcName, data]) => {
+    const svcOpen = (treeState[svcName]||{}).expanded;
+    const mapOpen = (treeState[svcName]||{}).mappings;
+    const resOpen = (treeState[svcName]||{}).responses;
+    const liveCls = data.live ? 'live' : 'stopped';
+    html += `<div>
+      <div class="tree-node" onclick="toggleTreeNode('${svcName}','svc')">
+        <span class="tn-icon">📁</span>
+        <span class="tn-name">${svcName}</span>
+        <span class="pill ${liveCls}" style="font-size:.55rem;padding:1px 5px;margin-left:4px"><span class="pill-dot"></span>${data.live?'Live':'Off'}</span>
+        <span class="tn-arr ${svcOpen?'open':''}">▶</span>
+      </div>`;
+    if(svcOpen) {
+      // mappings subfolder
+      html += `<div class="tree-indent"><div class="tree-node" onclick="toggleTreeNode('${svcName}','mappings')">
+        <span class="tn-icon">📂</span><span class="tn-name">mappings/</span>
+        <span class="tn-arr ${mapOpen?'open':''}">▶</span>
+      </div>`;
+      if(mapOpen) {
+        html += '<div class="tree-indent">';
+        data.mappings.forEach(f => {
+          const isActive = activeFile && activeFile.svc===svcName && activeFile.type==='mappings' && activeFile.name===f;
+          html += `<div class="tree-node ${isActive?'active':''}" onclick="openFile('${svcName}','mappings','${f}')">
+            <span class="tn-icon">📄</span><span class="tn-name">${f}</span>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      // responses subfolder
+      html += `<div class="tree-node" onclick="toggleTreeNode('${svcName}','responses')">
+        <span class="tn-icon">📂</span><span class="tn-name">responses/</span>
+        <span class="tn-arr ${resOpen?'open':''}">▶</span>
+      </div>`;
+      if(resOpen) {
+        html += '<div class="tree-indent">';
+        data.responses.forEach(f => {
+          const isActive = activeFile && activeFile.svc===svcName && activeFile.type==='responses' && activeFile.name===f;
+          html += `<div class="tree-node ${isActive?'active':''}" onclick="openFile('${svcName}','responses','${f}')">
+            <span class="tn-icon">📄</span><span class="tn-name">${f}</span>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      html += '</div>'; // close indent
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+function toggleTreeNode(svc, type) {
+  if(!treeState[svc]) treeState[svc] = {};
+  if(type==='svc') treeState[svc].expanded = !treeState[svc].expanded;
+  else if(type==='mappings') treeState[svc].mappings = !treeState[svc].mappings;
+  else if(type==='responses') treeState[svc].responses = !treeState[svc].responses;
+  renderFileTree();
+}
+function collapseAllTree() {
+  treeState = {};
+  renderFileTree();
+}
+function openFile(svc, type, name) {
+  if(unsavedChanges) {
+    if(!confirm('You have unsaved changes. Discard them?')) return;
+    unsavedChanges = false;
+  }
+  activeFile = {svc, type, name};
+  document.getElementById('editorEmpty').style.display = 'none';
+  const ec = document.getElementById('editorContent');
+  ec.style.display = 'flex';
+  // Breadcrumb
+  document.getElementById('epBreadcrumb').textContent = `/mocks/${svc.toLowerCase().replace(/ /g,'-')}/${type}/${name}`;
+  // Fill form fields
+  const method = name.includes('get')?'GET':name.includes('post')?'POST':name.includes('put')?'PUT':name.includes('delete')?'DELETE':'GET';
+  const status = name.match(/\d{3}/)?.[0]||'200';
+  const path = '/api/'+svc.toLowerCase().replace(/ /g,'-')+'/'+name.replace(/-\d{3}\.json$/,'').replace(/-/g,'/');
+  document.getElementById('fMethod').value = method;
+  document.getElementById('fUrl').value = path;
+  document.getElementById('fBody').value = '{\n  "id": "abc123",\n  "status": "ok"\n}';
+  document.getElementById('fContentType').value = 'application/json';
+  document.getElementById('fDelay').value = '0';
+  document.querySelectorAll('.status-opt').forEach(o => o.classList.toggle('active', o.textContent===status));
+  // JSON body
+  document.getElementById('jsonBody').innerHTML = `<span class="jp">{</span>
+  <span class="jk">"id"</span><span class="jp">:</span> <span class="js">"${name.replace('.json','')}"</span><span class="jp">,</span>
+  <span class="jk">"request"</span><span class="jp">:</span> <span class="jp">{</span>
+    <span class="jk">"method"</span><span class="jp">:</span> <span class="js">"${method}"</span><span class="jp">,</span>
+    <span class="jk">"url"</span><span class="jp">:</span> <span class="js">"${path}"</span>
+  <span class="jp">},</span>
+  <span class="jk">"response"</span><span class="jp">:</span> <span class="jp">{</span>
+    <span class="jk">"status"</span><span class="jp">:</span> <span class="jn">${status}</span><span class="jp">,</span>
+    <span class="jk">"bodyFileName"</span><span class="jp">:</span> <span class="js">"${svc.toLowerCase().replace(/ /g,'-')}/responses/${name.replace('mapping','response')}"</span>
+  <span class="jp">}</span>
+<span class="jp">}</span>`;
+  document.getElementById('mappingsSubtitle').textContent = `${svc} — ${type}/ — ${name}`;
+  renderFileTree();
+}
+function switchEditorTab(t) {
+  document.getElementById('etab-form').classList.toggle('active', t==='form');
+  document.getElementById('etab-raw').classList.toggle('active', t==='raw');
+  document.getElementById('epForm').style.display = t==='form' ? '' : 'none';
+  document.getElementById('epRaw').style.display = t==='raw' ? '' : 'none';
+}
+function selectStatus(el, val) {
+  document.querySelectorAll('.status-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  markUnsaved();
+}
+function markUnsaved() { unsavedChanges = true; }
+function saveMapping() {
+  unsavedChanges = false;
+  showToast('Mapping saved.', 'success');
+  addInfoEvent('✅', `<strong>Mapping saved</strong> — <code>${activeFile?.name||'file'}</code>`, activeFile?.svc||'', 'success');
+}
+function discardChanges() {
+  if(unsavedChanges) {
+    unsavedChanges = false;
+    if(activeFile) openFile(activeFile.svc, activeFile.type, activeFile.name);
+    showToast('Changes discarded.', 'info');
+  }
+}
+function deleteMappingFile() {
+  if(!activeFile) return;
+  showConfirm(`Delete <code>${activeFile.name}</code>?`, `This removes the file from disk at <code>/mocks/${activeFile.svc.toLowerCase().replace(/ /g,'-')}/${activeFile.type}/${activeFile.name}</code>.`, () => {
+    fileTree[activeFile.svc][activeFile.type] = fileTree[activeFile.svc][activeFile.type].filter(f => f!==activeFile.name);
+    activeFile = null;
+    unsavedChanges = false;
+    document.getElementById('editorEmpty').style.display = '';
+    document.getElementById('editorContent').style.display = 'none';
+    document.getElementById('mappingsSubtitle').textContent = 'Select a service to browse files';
+    renderFileTree();
+    showToast('File deleted.', 'success');
+  });
+}
+function createNewMapping() {
+  const name = document.getElementById('newMappingName').value || 'new-mapping.json';
+  const svcRaw = document.getElementById('newMappingSvc').value;
+  const svc = Object.keys(fileTree).find(k => svcRaw.startsWith(k)) || Object.keys(fileTree)[0];
+  const fname = name.endsWith('.json') ? name : name+'.json';
+  fileTree[svc].mappings.push(fname);
+  document.getElementById('newMappingOverlay').classList.add('hidden');
+  treeState[svc] = {expanded:true, mappings:true};
+  renderFileTree();
+  openFile(svc, 'mappings', fname);
+  showToast(`Mapping file "${fname}" created.`, 'success');
+}
+function newResponse() {
+  document.getElementById('newMappingName').value = '';
+  document.getElementById('newMappingOverlay').classList.remove('hidden');
+}
+function resyncMappings() {
+  showToast('Resync completed — mappings reloaded from disk.', 'success');
+  addInfoEvent('🔄', '<strong>Resync completed</strong> — mappings reloaded from disk', activeFile?.svc||'All Services', 'info');
+}
+function copyMapping() {
+  const dest = document.getElementById('copyDest').value;
+  if(!dest || !activeFile) { document.getElementById('copyMappingOverlay').classList.add('hidden'); return; }
+  const fname = dest.endsWith('.json') ? dest : dest+'.json';
+  fileTree[activeFile.svc][activeFile.type].push(fname);
+  document.getElementById('copyMappingOverlay').classList.add('hidden');
+  renderFileTree();
+  openFile(activeFile.svc, activeFile.type, fname);
+  showToast(`Copied to "${fname}".`, 'success');
+}
+function copyJson() {
+  showToast('JSON copied to clipboard.', 'info');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SYSTEM EVENTS
+// ═══════════════════════════════════════════════════════════
+function renderEvents() {
+  renderWarnList();
+  renderInfoList();
+  document.getElementById('warnCount').textContent = warnEvents.length;
+  document.getElementById('infoCount').textContent = infoEvents.length;
+  // sidebar badge = warn+error count only
+  const errCnt = warnEvents.length;
+  document.getElementById('sidebarBadge').textContent = errCnt;
+  document.getElementById('sidebarBadge').style.display = errCnt > 0 ? '' : 'none';
+}
+function renderWarnList() {
+  document.getElementById('warnList').innerHTML = warnEvents.map((e,i) => `
+    <div class="event-item">
+      <span class="ev-icon">${e.icon}</span>
+      <div class="ev-body">
+        <div class="ev-msg">${e.msg}</div>
+        <div class="ev-meta">
+          <span class="ev-time">${e.time}</span>
+          ${e.svc?`<span class="ev-svc">${e.svc}</span>`:''}
+          <span class="ev-type et-${e.type}">${e.type.toUpperCase()}</span>
+        </div>
+      </div>
+      <span class="ev-dismiss" onclick="dismissWarnEvent(${i})">✕</span>
+    </div>`).join('');
+}
+function renderInfoList() {
+  document.getElementById('infoList').innerHTML = infoEvents.map((e,i) => `
+    <div class="event-item">
+      <span class="ev-icon">${e.icon}</span>
+      <div class="ev-body">
+        <div class="ev-msg">${e.msg}</div>
+        <div class="ev-meta">
+          <span class="ev-time">${e.time}</span>
+          ${e.svc?`<span class="ev-svc">${e.svc}</span>`:''}
+          <span class="ev-type et-${e.type}">${e.type.toUpperCase()}</span>
+        </div>
+      </div>
+      <span class="ev-dismiss" onclick="dismissInfoEvent(${i})">✕</span>
+    </div>`).join('');
+}
+function switchEventTab(t) {
+  document.getElementById('etab-warn').classList.toggle('active', t==='warn');
+  document.getElementById('etab-info').classList.toggle('active', t==='info');
+  document.getElementById('eventsWarn').style.display = t==='warn' ? '' : 'none';
+  document.getElementById('eventsInfo').style.display = t==='info' ? '' : 'none';
+}
+function dismissWarnEvent(i) { warnEvents.splice(i,1); renderEvents(); }
+function dismissInfoEvent(i) { infoEvents.splice(i,1); renderEvents(); }
+function markAllEventsRead() { warnEvents=[]; infoEvents=[]; renderEvents(); showToast('All events cleared.','info'); }
+function confirmClearEvents() {
+  showConfirm('Clear all events?', 'This removes all warnings, errors and info events from the log.', () => {
+    warnEvents=[]; infoEvents=[]; renderEvents(); showToast('All events cleared.','info');
+  });
+}
+function addInfoEvent(icon, msg, svc, type) {
+  const now = 'Just now';
+  infoEvents.unshift({icon, msg, time:now, svc, type});
+  if(type==='error') warnEvents.unshift({icon, msg, time:now, svc, type});
+  renderEvents();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function showSettingsSection(s) {
+  ['appearance','network','paths','auth','flags'].forEach(x => {
+    document.getElementById('ss-'+x).style.display = x===s ? '' : 'none';
+    document.getElementById('sn-'+x).classList.toggle('active', x===s);
+  });
+}
+function applyTheme(theme, el) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  showToast('Theme applied.', 'success');
+}
+function toggleEl(el) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function renderNotifications() {
+  const unread = notifications.filter(n=>n.unread).length;
+  const badge = document.getElementById('bellBadge');
+  badge.textContent = unread;
+  badge.style.display = unread > 0 ? '' : 'none';
+  document.getElementById('notifList').innerHTML = notifications.map((n,i) => `
+    <div class="notif-item ${n.unread?'unread':''}" onclick="readNotif(${i})">
+      <span class="ni-icon">${n.icon}</span>
+      <div class="ni-body">
+        <div class="ni-msg">${n.msg}</div>
+        <div class="ni-time">${n.time}</div>
+      </div>
+      <span class="ni-dismiss" onclick="event.stopPropagation();dismissNotif(${i})">✕</span>
+    </div>`).join('');
+}
+function toggleNotifPanel() {
+  const p = document.getElementById('notifPanel');
+  const ud = document.getElementById('userDropdown');
+  ud.classList.add('hidden');
+  p.classList.toggle('hidden');
+}
+function readNotif(i) { notifications[i].unread = false; renderNotifications(); }
+function dismissNotif(i) { notifications.splice(i,1); renderNotifications(); }
+function markAllRead() { notifications.forEach(n=>n.unread=false); renderNotifications(); }
+
+// ═══════════════════════════════════════════════════════════
+// USER DROPDOWN
+// ═══════════════════════════════════════════════════════════
+function toggleUserDropdown() {
+  const ud = document.getElementById('userDropdown');
+  const p = document.getElementById('notifPanel');
+  p.classList.add('hidden');
+  ud.classList.toggle('hidden');
+}
+function toggleAbout() {
+  closeAllDropdowns();
+  document.getElementById('aboutOverlay').classList.remove('hidden');
+}
+function closeAllDropdowns() {
+  document.getElementById('notifPanel').classList.add('hidden');
+  document.getElementById('userDropdown').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONFIRM DIALOG
+// ═══════════════════════════════════════════════════════════
+let confirmCallback = null;
+function showConfirm(title, body, cb) {
+  document.getElementById('confirmTitle').textContent = title.replace(/<[^>]+>/g,'');
+  document.getElementById('confirmBody').innerHTML = body;
+  confirmCallback = cb;
+  document.getElementById('confirmOverlay').classList.remove('hidden');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.add('hidden'); confirmCallback=null; }
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('confirmOkBtn').onclick = () => { closeConfirm(); if(confirmCallback) confirmCallback(); };
+});
+
+// ═══════════════════════════════════════════════════════════
+// TOASTS
+// ═══════════════════════════════════════════════════════════
+function showToast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(), 300); }, 3000);
+}
+
+// Close dropdowns on click outside
+document.addEventListener('click', e => {
+  if(!e.target.closest('#notifPanel') && !e.target.closest('#bellIcon')) document.getElementById('notifPanel').classList.add('hidden');
+  if(!e.target.closest('#userDropdown') && !e.target.closest('.tb-avatar')) document.getElementById('userDropdown').classList.add('hidden');
+});
+
+// Init confirm button binding
+window.addEventListener('load', () => {
+  document.getElementById('confirmOkBtn').onclick = () => { const cb=confirmCallback; closeConfirm(); if(cb) cb(); };
+  // Copy mapping: set source
+  document.querySelectorAll('.tree-node').forEach(n => n.addEventListener('contextmenu', e => {
+    e.preventDefault();
+  }));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+# generated: 2026-06-20
+# last_updated: 2026-06-20
+# project: Fishtank
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+#
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created by bmad-create-story
+#   - in-progress: Developer actively working on implementation (bmad-dev-story activated)
+#   - review: Implementation complete — awaiting code review (bmad-code-review)
+#   - ready-for-testing: Code review passed — awaiting test lifecycle (bmad-testarch-automate / ATDD run)
+#   - in-test: Test automation skill has picked up the story (tests running / being written)
+#   - done: All DoD gates pass (tests green, code review clean, no anti-patterns)
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer creates the next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - After code review passes: status → ready-for-testing; test lifecycle begins
+# - If tests fail post-review: bug-fix cycle (bmad-quick-dev or bmad-dev-story) → back to 'review'
+#
+# DEPENDENCY NOTES (TEA — persistent project requirements):
+# =========================================================
+# - bmad-testarch-test-design MUST be run before any story-creation tasks begin
+#   (Phase 3 Solutioning deliverable — sets test strategy for all epics)
+# - bmad-testarch-framework MUST be run before story creation (Phase 3 Solutioning)
+# - bmad-testarch-ci MUST be run before story creation (Phase 3 Solutioning)
+# - bmad-testarch-atdd MUST be run before any story-implementation tasks begin
+#   (Phase 4 Implementation deliverable — acceptance tests gate each story)
+# - bmad-testarch-automate MUST run alongside implementation (Phase 4)
+#
+# SPECIAL ITEMS:
+# ==============
+# - Story 1.4 (Additional Themes) is non-blocking — does not gate any Epic 2 story
+# - PSG-1 (Custom SVG Logo) is a hard v1 gate — requires product lead approval
+# - PSG-2 (WCAG 2.1 AA Audit) must be scheduled after Epic 4 closes
+# - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
+
+generated: 2026-06-20
+last_updated: 2026-06-20
+project: Fishtank
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PRE-IMPLEMENTATION GATES (TEA Phase 3 — must complete before story creation)
+  # ─────────────────────────────────────────────────────────────────────────────
+  tea-testarch-test-design: done         # bmad-testarch-test-design — system-level test plan
+  tea-testarch-framework: backlog        # bmad-testarch-framework — Playwright/Vitest/xUnit scaffold
+  tea-testarch-ci: backlog               # bmad-testarch-ci — CI quality pipeline with test execution
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 1: Foundation — Authenticated Shell & Running Container
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-1: backlog
+  1-1-project-scaffold-docker-image-and-ci-pipeline: backlog
+  1-2-database-authentication-backend-and-first-run-logic: backlog
+  1-3-react-app-shell-login-and-first-run-setup-screens: backlog
+  1-4-additional-ui-themes-deep-ocean-emerald-terminal-ink-and-amber: backlog  # non-blocking — does not gate Epic 2
+  1-5-developer-support-tool-docker-wsl: ready-for-dev                         # non-blocking — local dev tool, parallel with any Epic 1 story
+  epic-1-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PRE-IMPLEMENTATION GATE (TEA Phase 4 — must complete before any story impl)
+  # ─────────────────────────────────────────────────────────────────────────────
+  tea-testarch-atdd: backlog             # bmad-testarch-atdd — acceptance tests scaffold (red phase)
+  tea-testarch-automate: backlog         # bmad-testarch-automate — expand coverage alongside impl
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 2: Services Management & System Health
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-2: backlog
+  2-1-wiremock-engine-layer-and-services-api-backend: backlog
+  2-2-services-page-browse-create-and-edit-services: backlog
+  2-3-enable-disable-service-toggle-serviceshub-and-real-time-status: backlog
+  2-4-system-events-screen-and-notification-panel: backlog
+  2-5-settings-service-cache-management: backlog
+  epic-2-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 3: Network Activity & Request Monitoring
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-3: backlog
+  3-1-activity-log-backend-request-capture-and-header-redaction: backlog
+  3-2-network-activity-page-real-time-log-display: backlog
+  3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls: backlog
+  3-4-row-detail-all-three-display-styles: backlog
+  epic-3-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 4: Mappings, Mock Capture & Recording
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-4: backlog
+  4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine: backlog
+  4-2-mappings-file-explorer-and-dual-mode-editor: backlog
+  4-3-resync-ui-with-toast-feedback-and-conflict-banners: backlog
+  4-4-save-as-mock-mock-suggestion-modal: backlog
+  4-5-record-mode-and-cross-screen-recording-indicator: backlog
+  4-6-navigation-guard-and-sign-out-protection: backlog
+  epic-4-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 5: Admin Console & User Management
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-5: backlog
+  5-1-feature-toggles-runtime-control-and-signalr-broadcast: backlog
+  5-2-user-management-create-view-and-deactivate: backlog
+  5-3-health-dashboard-audit-log-and-auto-registration-toggle: backlog
+  epic-5-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # EPIC 6: Release Polish & Distribution
+  # ─────────────────────────────────────────────────────────────────────────────
+  epic-6: backlog
+  6-1-pipeline-reset-endpoint: backlog
+  6-2-openapi-spec-and-management-api-parity-verification: backlog
+  6-3-fishtank-demo-pre-seeded-docker-image: backlog
+  6-4-automated-release-pipeline-k8s-manifest-and-community-resources: backlog
+  epic-6-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PRE-SHIP GATES (block the v1 release tag — schedule after Epic 4 closes)
+  # ─────────────────────────────────────────────────────────────────────────────
+  pre-ship-gate-1-custom-svg-logo: backlog        # PSG-1 — hard gate, product lead approval required
+  pre-ship-gate-2-wcag-21-aa-contrast-audit: backlog  # PSG-2 — schedule after Epic 4 closes
