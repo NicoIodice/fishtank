@@ -90,6 +90,7 @@ src/client/test-results/
 src/client/playwright-report/
 src/client/blob-report/
 src/client/playwright/.cache/
+src/client/playwright/.auth/
 
 # Storybook
 storybook-static/
