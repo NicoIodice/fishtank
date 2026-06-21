@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useBreakpoint } from "@/lib/useBreakpoint";
+import { AppearanceSettings } from "../components/AppearanceSettings";
 
 type SettingsSection = "appearance" | "activity" | "cache" | "mocks-root";
 
@@ -89,7 +90,11 @@ export function SettingsPage() {
         >
           {sections.find((s) => s.id === active)?.label}
         </h2>
-        <p className="text-muted">Configured in a later story.</p>
+        {active === "appearance" ? (
+          <AppearanceSettings />
+        ) : (
+          <p className="text-muted">Configured in a later story.</p>
+        )}
       </section>
     </main>
   );
