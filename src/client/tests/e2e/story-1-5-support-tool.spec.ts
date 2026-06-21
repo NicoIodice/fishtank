@@ -83,11 +83,18 @@ test.describe("Story 1-5: Support Tool — Project-Scoped Teardown (AC-9)", () =
 
   test("AC-9: fishtank_tool.py uses project-scoped compose down for teardown", () => {
     const content = readFileSync(join(TOOLS_DIR, "fishtank_tool.py"), "utf-8");
-    // The teardown option must use 'docker compose ... down' scoped to the fishtank project
+    // PROJECT_NAME must be set to "fishtank" so all compose calls are project-scoped
+    expect(
+      content,
+      "fishtank_tool.py must define PROJECT_NAME = 'fishtank' (AC-9)",
+    ).toMatch(/PROJECT_NAME\s*=\s*["']fishtank["']/);
+    // The teardown command must pass --project-name (via PROJECT_NAME) to compose down.
+    // The command is built as a Python list so "docker","compose" appear as separate items;
+    // match the --project-name flag, the PROJECT_NAME variable, and the down subcommand.
     expect(
       content,
       "fishtank_tool.py teardown must use 'docker compose' down scoped to the fishtank project (AC-9)",
-    ).toMatch(/docker\s+compose.*--project-name\s+fishtank.*down/s);
+    ).toMatch(/--project-name.*PROJECT_NAME.*down/s);
   });
 });
 
