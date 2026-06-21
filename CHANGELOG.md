@@ -28,6 +28,17 @@ _Theme: Pull the image, log in, confirm the container is healthy._
 - **`CHANGELOG.md`** — this file; Keep a Changelog format (`story/1-1`)
 - **Release workflow** — `docker.yml` auto-tags on PR merge from `release/v*.*.*` to `main`; creates GitHub Release; no manual `git tag` needed (`chore`)
 - **`releases.yaml`** — machine-readable release manifest read/written by BMad lifecycle orchestrator (`chore`)
+- **SQLite database + EF Core** — auto-migrated at startup; `Users` table (Id, Username, PasswordHash, Role, IsActive, CreatedAt, TokenVersion, ForcePasswordChange) and `ServerConfig` table (BootEpoch GUID for container-lifetime JWT invalidation) (`story/1-2`)
+- **JWT Bearer authentication** — httpOnly `fishtank_auth` cookie; `OnTokenValidated` checks BootEpoch + TokenVersion to support instant token invalidation; configurable expiry via `FISHTANK_JWT_EXPIRY_HOURS` (`story/1-2`)
+- **`POST /api/auth/setup`** — first-run admin creation; rejects password < 12 chars; returns 409 if already set up (`story/1-2`)
+- **`POST /api/auth/login`** — timing-safe BCrypt verification (work factor 12); returns JWT cookie + `forcePasswordChange` field; rate-limited via `FISHTANK_LOGIN_RATE_LIMIT`/`FISHTANK_LOGIN_RATE_WINDOW`; returns 429 + `Retry-After` on breach (`story/1-2`)
+- **`POST /api/auth/logout`** — increments TokenVersion (invalidates all existing JWTs); clears `fishtank_auth` cookie (`story/1-2`)
+- **`PUT /api/auth/change-password`** — validates new password length; clears `ForcePasswordChange` flag; increments TokenVersion (`story/1-2`)
+- **`FirstRunMiddleware`** — blocks all routes except `/health`, `/api/auth/setup`, and `/openapi*` with 401 `AUTH_SETUP_REQUIRED` until first admin is created (`story/1-2`)
+- **CORS policy** — configurable origins via `FISHTANK_ALLOWED_ORIGINS`; wildcard `*` rejected at startup (`story/1-2`)
+- **Rate limiter** — fixed-window rate limiting on `POST /api/auth/login`; `ForwardedHeaders` middleware ensures per-IP accuracy behind reverse proxies (`story/1-2`)
+- **`ApiResponse` envelope** — all auth endpoints return `{success, data}` or `{success:false, error:{code, message}}` (`story/1-2`)
+- **Serilog structured logging** — CompactJsonFormatter to stdout from startup through request pipeline (`story/1-2`)
 
 ---
 

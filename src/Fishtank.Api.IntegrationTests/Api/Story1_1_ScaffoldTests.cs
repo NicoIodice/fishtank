@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
 using Fishtank.Api.IntegrationTests.Support;
 
@@ -20,6 +21,18 @@ namespace Fishtank.Api.IntegrationTests.Api;
 public class Story1_1_ScaffoldTests : IntegrationTestBase
 {
     public Story1_1_ScaffoldTests(FishtankWebApplicationFactory factory) : base(factory) { }
+
+    /// <summary>
+    /// Story 1.1 tests verify SPA routing behaviour which only works once the
+    /// first-run gate (introduced in Story 1.2) is cleared. Create an admin
+    /// account after each DB reset so the gate does not block these tests.
+    /// </summary>
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync(); // ResetDatabase → clean empty DB
+        await Client.PostAsJsonAsync("/api/auth/setup",
+            new { username = "admin", password = "AdminPassword1!" });
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // AC1 — Placeholder endpoint removed
