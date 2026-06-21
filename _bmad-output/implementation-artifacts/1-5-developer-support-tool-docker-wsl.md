@@ -3,9 +3,10 @@ story_id: "1.5"
 epic: 1
 story_key: 1-5-developer-support-tool-docker-wsl
 story_title: "Developer Support Tool — Docker + WSL Setup"
-status: ready-for-dev
+status: done
 priority: medium
 non_blocking: true   # does not gate stories 1-1 through 1-4 or any Epic 2 story
+baseline_commit: 986e0d2d50cee1892e76ba82243226c6feffdc80
 ---
 
 # Story 1.5: Developer Support Tool — Docker + WSL Setup
@@ -384,3 +385,14 @@ python fishtank_tool.py "$@"
 - Test the tool manually by running each menu option end-to-end before marking done. No automated tests required for this story.
 - Ensure `support/tools/mocks/` and `support/tools/data/` directories exist (or are gitignored with a `.gitkeep`) so Docker volumes mount without error on first run.
 - Add `support/tools/.venv/` and `support/tools/.env` to the root `.gitignore`.
+
+---
+
+## Review Findings
+
+- [x] [Review][Patch] FISHTANK_PORT int() conversion could raise ValueError on invalid .env value [support/tools/fishtank_tool.py:57] — patched: wrapped in try/except ValueError with fallback to 5000
+- [x] [Review][Patch] `requests` ImportError not caught in `_print_health()` when rich/dotenv present but requests absent [support/tools/fishtank_tool.py:_print_health] — patched: wrapped import in try/except ImportError
+- [x] [Review][Patch] `teardown()` `console.input()` raised EOFError on EOF input (no interactive terminal) [support/tools/fishtank_tool.py:teardown] — patched: both input calls wrapped in try/except EOFError
+- [x] [Review][Patch] `install_dependencies()` — pip path fallback did not guard against FileNotFoundError if pip absent from venv [support/tools/fishtank_tool.py:install_dependencies] — patched: added existence check with user-friendly message
+- [x] [Review][Patch] `run.sh` could have CRLF line endings on Windows checkout breaking bash shebang [.gitattributes] — patched: added .gitattributes enforcing `*.sh text eol=lf`
+- [x] [Review][Defer] `to_wsl_path()` defined but not called in current implementation — deferred, may be needed in future Docker volume path handling
