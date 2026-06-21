@@ -7,6 +7,11 @@ name: fishtank
 services:
   app:
     container_name: fishtank-app
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: dev
     image: fishtank:latest
     ports:
       - "${FISHTANK_PORT:-5000}:5000"

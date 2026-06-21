@@ -88,6 +88,23 @@ def run_compose(args: list[str], stream: bool = True) -> int:
     return result.returncode
 
 
+def run_compose_wsl(args: list[str], stream: bool = True) -> int:
+    """Run docker compose inside wsl -d Ubuntu. Paths are auto-converted to WSL format."""
+    compose_file_wsl = to_wsl_path(str(COMPOSE_FILE))
+    cmd = [
+        "wsl", "-d", "Ubuntu", "--",
+        "docker", "compose",
+        "--project-name", PROJECT_NAME,
+        "-f", compose_file_wsl,
+        *args,
+    ]
+    if stream:
+        result = subprocess.run(cmd)
+    else:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.returncode
+
+
 def header() -> None:
     console.print(
         Panel.fit(
@@ -201,12 +218,18 @@ def install_dependencies() -> None:
 
 
 def start_fishtank() -> None:
-    """Option [3]: Start Fishtank container."""
-    console.rule("[cyan1]Starting Fishtank[/cyan1]")
+    """Option [3]: Build and start Fishtank container inside WSL Ubuntu."""
+    console.rule("[cyan1]Build & Start Fishtank[/cyan1]")
 
     # Check if already running
     r = subprocess.run(
-        ["docker", "compose", "--project-name", PROJECT_NAME, "-f", str(COMPOSE_FILE), "ps", "-q"],
+        [
+            "wsl", "-d", "Ubuntu", "--",
+            "docker", "compose",
+            "--project-name", PROJECT_NAME,
+            "-f", to_wsl_path(str(COMPOSE_FILE)),
+            "ps", "-q",
+        ],
         capture_output=True, text=True,
     )
     if r.returncode == 0 and r.stdout.strip():
@@ -215,8 +238,16 @@ def start_fishtank() -> None:
         pause()
         return
 
+    console.print("[bright_yellow]Building Fishtank image (React frontend + .NET backend + SQLite)...[/bright_yellow]")
+    console.print("[grey62]This may take a few minutes on first run.[/grey62]")
+    rc = run_compose_wsl(["build"])
+    if rc != 0:
+        console.print("[bright_red]✘ Build failed — check the output above.[/bright_red]")
+        pause()
+        return
+
     console.print("[bright_yellow]Starting Fishtank container...[/bright_yellow]")
-    rc = run_compose(["up", "-d"])
+    rc = run_compose_wsl(["up", "-d"])
     if rc == 0:
         console.print("[bright_green]✔ Fishtank started.[/bright_green]")
         _print_health()
@@ -397,7 +428,7 @@ def wsl_setup_guide() -> None:
 _MENU_OPTIONS = {
     "1": ("Check prerequisites",           check_prerequisites),
     "2": ("Install / update dependencies", install_dependencies),
-    "3": ("Start Fishtank",                start_fishtank),
+    "3": ("Build & start Fishtank",         start_fishtank),
     "4": ("Stop Fishtank",                 stop_fishtank),
     "5": ("View logs",                     view_logs),
     "6": ("Health check",                  health_check),
