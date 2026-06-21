@@ -1,0 +1,106 @@
+/* AboutModal.module.css */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: var(--z-modal-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-overlay);
+  width: 100%;
+  max-width: 420px;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--content-fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: transparent;
+  color: var(--content-muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.closeBtn:hover {
+  background: var(--content-surface);
+  color: var(--content-fg);
+}
+
+.list {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.row dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--content-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 80px;
+}
+
+.row dd {
+  font-size: 0.875rem;
+  color: var(--content-fg);
+}
+
+.row dd a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+.row dd a:hover {
+  text-decoration: underline;
+}
+
+.row dd code {
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, ui-monospace, monospace;
+  font-size: 0.8125rem;
+}
+
+.muted {
+  color: var(--content-muted) !important;
+}

@@ -39,6 +39,14 @@ _Theme: Pull the image, log in, confirm the container is healthy._
 - **Rate limiter** — fixed-window rate limiting on `POST /api/auth/login`; `ForwardedHeaders` middleware ensures per-IP accuracy behind reverse proxies (`story/1-2`)
 - **`ApiResponse` envelope** — all auth endpoints return `{success, data}` or `{success:false, error:{code, message}}` (`story/1-2`)
 - **Serilog structured logging** — CompactJsonFormatter to stdout from startup through request pipeline (`story/1-2`)
+- **React SPA shell** — Vite 8 + React 19 + TypeScript 6 (strict); `react-router-dom` v7 with lazy-loaded routes; `@tanstack/react-query` v5 for server state; SignalR v10 seam factory (`story/1-3`)
+- **Authentication UI** — Login page with credential validation, inline error messages, and redirect-back-to-origin support; First-Run Setup page creating the initial admin; Change Password page for forced-rotation flow (`story/1-3`)
+- **ProtectedRoute + FirstRunGate** — client-side routing guards: unauthenticated users redirected to `/login`; setup-required users redirected to `/setup`; forced-password-change users redirected to `/setup/change-password` (`story/1-3`)
+- **AppShell layout** — responsive top bar (logo, About modal, notification bell, avatar, sign-out), collapsible sidebar (5 nav items, localStorage-persisted collapse state), mobile hamburger overlay (`story/1-3`)
+- **4-theme CSS system** — `clean-light` (default), `clean-dark`, `high-contrast-light`, `high-contrast-dark`; CSS custom properties (`--color-*`, `--z-*`); theme persisted to localStorage; system-preference fallback (`story/1-3`)
+- **`apiFetch` utility** — typed API client with `credentials: 'include'`, `ApiError` class with typed error codes, non-JSON body handling (nginx 502 HTML), configurable `redirectOn401` (`story/1-3`)
+- **Unit tests** — 16 Vitest tests covering `apiFetch` error handling and `useAuth` hook state management; Vitest + jsdom + `@testing-library/react` configured (`story/1-3`)
+- **ATDD E2E tests** — 10 Playwright tests covering all critical auth and routing acceptance criteria for the app shell (`story/1-3`)
 
 ---
 

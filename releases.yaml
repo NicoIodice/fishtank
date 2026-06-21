@@ -36,7 +36,7 @@ releases:
       - id: "1-2-database-authentication-backend-and-first-run-logic"
         status: "done"
       - id: "1-3-react-app-shell-login-and-first-run-setup-screens"
-        status: "backlog"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.2.0 — Services Management (Epic 2)
