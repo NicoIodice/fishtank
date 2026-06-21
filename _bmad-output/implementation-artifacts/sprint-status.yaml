@@ -74,12 +74,12 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 1: Foundation — Authenticated Shell & Running Container
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-1: in-progress
+  epic-1: done
   1-1-project-scaffold-docker-image-and-ci-pipeline: done
   1-2-database-authentication-backend-and-first-run-logic: done
   1-3-react-app-shell-login-and-first-run-setup-screens: done
   1-4-additional-ui-themes-deep-ocean-emerald-terminal-ink-and-amber: done  # non-blocking — does not gate Epic 2
-  1-5-developer-support-tool-docker-wsl: in-progress                          # non-blocking — local dev tool, parallel with any Epic 1 story
+  1-5-developer-support-tool-docker-wsl: done                                # non-blocking — local dev tool, parallel with any Epic 1 story
   epic-1-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────

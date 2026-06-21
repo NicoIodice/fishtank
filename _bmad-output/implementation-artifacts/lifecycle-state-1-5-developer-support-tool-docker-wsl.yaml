@@ -1,7 +1,7 @@
 story_key: "1-5-developer-support-tool-docker-wsl"
 epic_id: "1"
-current_phase: "dev-story"
-status: active
+current_phase: "done"
+status: complete
 blocked_reason: ""
 test_design_retries: 0
 test_design_auto_created: false
@@ -12,10 +12,17 @@ code_review_retries: 0
 nfr_retries: 0
 trace_retries: 0
 quickdev_cycle: 0
-last_updated: "2026-06-21"
+last_updated: "2026-06-20"
 phases_completed:
   - preflight-framework
   - preflight-test-design
   - create-story
   - atdd
   - validate
+  - dev-story
+  - code-review
+  - test-automate
+  - nfr
+  - trace
+  - test-review
+  - done

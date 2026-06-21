@@ -51,7 +51,10 @@ load_dotenv(_ENV_FILE)
 
 COMPOSE_FILE = _SCRIPT_DIR / "docker-compose.yml"
 PROJECT_NAME = "fishtank"
-FISHTANK_PORT = int(os.getenv("FISHTANK_PORT", "5000"))
+try:
+    FISHTANK_PORT = int(os.getenv("FISHTANK_PORT", "5000"))
+except ValueError:
+    FISHTANK_PORT = 5000
 HEALTH_URL = f"http://localhost:{FISHTANK_PORT}/health"
 
 console = Console()
@@ -183,6 +186,10 @@ def install_dependencies() -> None:
     pip = venv_dir / "Scripts" / "pip.exe"
     if not pip.exists():
         pip = venv_dir / "bin" / "pip"
+    if not pip.exists():
+        console.print("[bright_red]Cannot locate pip in the virtual environment. Try deleting .venv/ and re-running.[/bright_red]")
+        pause()
+        return
 
     console.print(f"[bright_yellow]Installing from {req_file}...[/bright_yellow]")
     result = subprocess.run([str(pip), "install", "-r", str(req_file)])
@@ -247,7 +254,11 @@ def health_check() -> None:
 
 def _print_health() -> None:
     import time
-    import requests  # local import — only needed when health check runs
+    try:
+        import requests  # local import — only needed when health check runs
+    except ImportError:
+        console.print("[bright_red]✘ 'requests' library not installed. Run option [2] to install dependencies.[/bright_red]")
+        return
     try:
         start = time.monotonic()
         resp = requests.get(HEALTH_URL, timeout=5)
@@ -277,13 +288,21 @@ def teardown() -> None:
         "[bright_yellow]⚠ This will remove Fishtank containers and networks.[/bright_yellow]\n"
         "[grey62]Only Fishtank containers are affected. Other projects are untouched.[/grey62]"
     )
-    confirm = console.input("Continue? [y/N]: ").strip().lower()
+    try:
+        confirm = console.input("Continue? [y/N]: ").strip().lower()
+    except EOFError:
+        console.print("[grey62]Teardown cancelled (no input).[/grey62]")
+        pause()
+        return
     if confirm != "y":
         console.print("[grey62]Teardown cancelled.[/grey62]")
         pause()
         return
 
-    volumes_confirm = console.input("Also remove volumes (data + mocks)? [y/N]: ").strip().lower()
+    try:
+        volumes_confirm = console.input("Also remove volumes (data + mocks)? [y/N]: ").strip().lower()
+    except EOFError:
+        volumes_confirm = "n"
     cmd = ["down"]
     if volumes_confirm == "y":
         cmd = ["down", "--volumes"]

@@ -237,6 +237,12 @@ support/tools/.venv/
 # Local environment variables — copy .env.example → .env; never commit real values
 support/tools/.env
 
+# Python bytecode cache
+support/tools/__pycache__/
+support/tools/**/__pycache__/
+support/tools/.pytest_cache/
+support/tools/**/.pytest_cache/
+
 # Runtime volume data — written by Docker at runtime, not part of source
 support/tools/data/*
 !support/tools/data/.gitkeep

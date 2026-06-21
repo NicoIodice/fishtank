@@ -25,10 +25,10 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.1.0"
     epic: "epic-1"
-    status: "in-progress"
+    status: "ready-for-merge"
     branch: "release/v0.1.0"
     started: "2026-06-15"
-    completed: null
+    completed: "2026-06-20"
     released: null
     stories:
       - id: "1-1-project-scaffold-docker-image-and-ci-pipeline"
@@ -40,7 +40,7 @@ releases:
       - id: "1-4-additional-ui-themes-deep-ocean-emerald-terminal-ink-and-amber"
         status: "done"
       - id: "1-5-developer-support-tool-docker-wsl"
-        status: "ready-for-dev"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.2.0 — Services Management (Epic 2)
