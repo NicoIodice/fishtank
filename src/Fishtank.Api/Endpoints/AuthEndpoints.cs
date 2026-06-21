@@ -21,6 +21,10 @@ public static class AuthEndpoints
         // POST /api/auth/setup — creates the one-and-only admin account
         group.MapPost("/setup", SetupHandler);
 
+        // GET /api/auth/me — returns current user info; used by ProtectedRoute
+        group.MapGet("/me", MeHandler)
+             .RequireAuthorization();
+
         // POST /api/auth/login — rate limited (AC-7)
         group.MapPost("/login", LoginHandler)
              .RequireRateLimiting("login");
@@ -78,6 +82,29 @@ public static class AuthEndpoints
 
             _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
         };
+    }
+
+    private static async Task<IResult> MeHandler(HttpContext ctx, FishtankDbContext db)
+    {
+        var userIdClaim = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Results.Json(
+                ApiResponse.Fail("AUTH_UNAUTHORIZED", "Not authenticated."),
+                statusCode: StatusCodes.Status401Unauthorized);
+
+        var user = await db.Users.FindAsync(userId);
+        if (user is null || !user.IsActive)
+            return Results.Json(
+                ApiResponse.Fail("AUTH_UNAUTHORIZED", "Not authenticated."),
+                statusCode: StatusCodes.Status401Unauthorized);
+
+        return Results.Json(ApiResponse.Ok(new
+        {
+            userId = user.Id,
+            username = user.Username,
+            role = user.Role.ToString(),
+            forcePasswordChange = user.ForcePasswordChange,
+        }));
     }
 
     private static async Task<IResult> LoginHandler(
