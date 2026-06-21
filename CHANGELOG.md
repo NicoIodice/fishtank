@@ -45,8 +45,6 @@ _Theme: Pull the image, log in, confirm the container is healthy._
 - **AppShell layout** — responsive top bar (logo, About modal, notification bell, avatar, sign-out), collapsible sidebar (5 nav items, localStorage-persisted collapse state), mobile hamburger overlay (`story/1-3`)
 - **4-theme CSS system** — `clean-light` (default), `clean-dark`, `high-contrast-light`, `high-contrast-dark`; CSS custom properties (`--color-*`, `--z-*`); theme persisted to localStorage; system-preference fallback (`story/1-3`)
 - **`apiFetch` utility** — typed API client with `credentials: 'include'`, `ApiError` class with typed error codes, non-JSON body handling (nginx 502 HTML), configurable `redirectOn401` (`story/1-3`)
-- **Unit tests** — 16 Vitest tests covering `apiFetch` error handling and `useAuth` hook state management; Vitest + jsdom + `@testing-library/react` configured (`story/1-3`)
-- **ATDD E2E tests** — 10 Playwright tests covering all critical auth and routing acceptance criteria for the app shell (`story/1-3`)
 
 ---
 

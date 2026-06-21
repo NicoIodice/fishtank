@@ -19,7 +19,9 @@ export function LoginPage() {
     try {
       await login({ username, password });
       // Redirect back to the page that triggered the login (redirect-back pattern)
-      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/services";
+      const from =
+        (location.state as { from?: { pathname?: string } } | null)?.from
+          ?.pathname ?? "/services";
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {

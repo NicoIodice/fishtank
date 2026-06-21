@@ -326,8 +326,20 @@ Manual fix required: run bmad-create-story directly and verify the output before
 
     <check if="exit criteria pass">
       <output>✅ ATDD scaffolds written and confirmed RED for {{story_key}}.</output>
-      <action>Update lifecycle state: append 'atdd' to phases_completed, current_phase → 'validate', last_updated → now</action>
-    </check>
+      <action>Verify ATDD checklist artifact written to disk: check that {test_artifacts}/atdd-checklist-{{story_key}}.md exists as a file</action>
+      <check if="atdd checklist file does NOT exist on disk">
+        <output>⚠ ATDD phase passed but checklist artifact was not saved to disk. Saving now...</output>
+        <action>Write the ATDD checklist to {test_artifacts}/atdd-checklist-{{story_key}}.md — include: phase gate status table (test file created, ACs referenced, compile clean, tests RED), scaffold file path, list of generated tests with AC mapping, and (if applicable) data-testid contract table</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — ATDD checklist artifact could not be persisted to disk.
+
+Manual action required: save the checklist to \_bmad-output/test-artifacts/atdd-checklist-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "atdd-checklist artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+<action>Update lifecycle state: append 'atdd' to phases_completed, current_phase → 'validate', last_updated → now</action>
+</check>
 
     <check if="exit criteria fail AND atdd_retries < 2">
       <action>Increment atdd_retries in lifecycle state, last_updated → now</action>
@@ -555,8 +567,20 @@ Escalating to {{user_name}}.</output>
 
     <check if="zero BLOCKER items found — all audited NFR areas pass">
       <output>✅ NFR audit passed for {{story_key}}.</output>
-      <action>Update lifecycle state: append 'nfr' to phases_completed, current_phase → 'trace', last_updated → now</action>
-    </check>
+      <action>Verify NFR assessment artifact written to disk: check that {test_artifacts}/nfr-assessment-{{story_key}}.md exists as a file</action>
+      <check if="nfr assessment file does NOT exist on disk">
+        <output>⚠ NFR audit passed but assessment artifact was not saved to disk. Saving now...</output>
+        <action>Write the NFR assessment to {test_artifacts}/nfr-assessment-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), evidence table per NFR category (performance, security, reliability, maintainability), and overall gate decision with rationale</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — NFR assessment artifact could not be persisted to disk.
+
+Manual action required: save the assessment to \_bmad-output/test-artifacts/nfr-assessment-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "nfr-assessment artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+<action>Update lifecycle state: append 'nfr' to phases_completed, current_phase → 'trace', last_updated → now</action>
+</check>
 
     <check if="BLOCKER items found AND nfr_retries < 2">
       <action>Increment nfr_retries in lifecycle state, last_updated → now</action>
@@ -704,6 +728,15 @@ Escalating to {{user_name}}.</output>
     </check>
 
     <action>Update lifecycle state: status → done, append 'done' to phases_completed, last_updated → now</action>
+
+    <!-- CHANGELOG update -->
+    <action>Update CHANGELOG.md under the [Unreleased] section (or the active versioned section if a release is in progress):
+      - Add a bullet point for each user-facing feature, API endpoint, component, or behavior shipped in this story
+      - Format: "- **Feature name** — short description (`story/{{epic_id}}-{{n}}`)" where {{n}} is the story number within the epic
+      - INCLUDE: new UI pages/components, new API endpoints, new config options, new runtime behaviors, security controls, data model changes
+      - EXCLUDE: test files, unit tests, E2E tests, ATDD scaffolds, test framework/tooling configuration — tests are implementation details, not user-facing changelog entries
+      - EXCLUDE: internal code-quality fixes or refactors unless they change observable behavior
+    </action>
 
     <output>
 

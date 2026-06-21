@@ -13,7 +13,9 @@ export function useAuth() {
       try {
         // redirectOn401: false — let ProtectedRoute handle the soft redirect
         // so React Router preserves state.from for redirect-back after login
-        return await apiFetch<AuthUser>('/api/auth/me', { redirectOn401: false })
+        return await apiFetch<AuthUser>("/api/auth/me", {
+          redirectOn401: false,
+        });
       } catch (err) {
         if (err instanceof ApiError && err.code === "AUTH_UNAUTHORIZED") {
           return null;

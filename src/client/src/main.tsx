@@ -14,8 +14,12 @@ try {
   if (stored) {
     document.documentElement.dataset.theme = stored;
   } else {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.dataset.theme = prefersDark ? "deep-ocean" : "clean-light";
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    document.documentElement.dataset.theme = prefersDark
+      ? "deep-ocean"
+      : "clean-light";
   }
 } catch {
   // localStorage unavailable (sandboxed iframe, strict privacy mode)
