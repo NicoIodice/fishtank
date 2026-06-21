@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [v0.1.0] — 2026-06-21 (Foundation)
+## [Unreleased] — v0.1.0 (Foundation)
 
 _Theme: Pull the image, log in, confirm the container is healthy._
 
