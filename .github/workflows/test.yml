@@ -164,6 +164,7 @@ jobs:
           ASPNETCORE_URLS: "http://localhost:5000"
           ASPNETCORE_ENVIRONMENT: "Development"
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
+          FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
@@ -283,6 +284,7 @@ jobs:
           ASPNETCORE_URLS: "http://localhost:5000"
           ASPNETCORE_ENVIRONMENT: "Development"
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
+          FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
