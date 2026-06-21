@@ -45,6 +45,7 @@ _Theme: Pull the image, log in, confirm the container is healthy._
 - **AppShell layout** — responsive top bar (logo, About modal, notification bell, avatar, sign-out), collapsible sidebar (5 nav items, localStorage-persisted collapse state), mobile hamburger overlay (`story/1-3`)
 - **4-theme CSS system** — `clean-light` (default), `clean-dark`, `high-contrast-light`, `high-contrast-dark`; CSS custom properties (`--color-*`, `--z-*`); theme persisted to localStorage; system-preference fallback (`story/1-3`)
 - **`apiFetch` utility** — typed API client with `credentials: 'include'`, `ApiError` class with typed error codes, non-JSON body handling (nginx 502 HTML), configurable `redirectOn401` (`story/1-3`)
+- **Theme picker in Settings → Appearance** — `useTheme` hook reads/writes `data-theme` on `<html>` + `localStorage["fishtank-theme"]`; `AppearanceSettings` component renders 4 radio options (Clean Light, Deep Ocean, Emerald Terminal, Ink & Amber); switching theme is instant with no page reload (`story/1-4`)
 
 ---
 
