@@ -172,10 +172,7 @@ test.describe("Story 1-5: Support Tool — .env.example (AC-12)", () => {
   });
 
   test("AC-12: .env.example documents FISHTANK_PORT", () => {
-    const content = readFileSync(
-      join(TOOLS_DIR, ".env.example"),
-      "utf-8",
-    );
+    const content = readFileSync(join(TOOLS_DIR, ".env.example"), "utf-8");
     expect(
       content,
       ".env.example must document FISHTANK_PORT with a default value (AC-12)",
@@ -183,10 +180,7 @@ test.describe("Story 1-5: Support Tool — .env.example (AC-12)", () => {
   });
 
   test("AC-12: .env.example documents FISHTANK_MOCKS_PATH", () => {
-    const content = readFileSync(
-      join(TOOLS_DIR, ".env.example"),
-      "utf-8",
-    );
+    const content = readFileSync(join(TOOLS_DIR, ".env.example"), "utf-8");
     expect(
       content,
       ".env.example must document FISHTANK_MOCKS_PATH for the mocks volume mount (AC-12)",
@@ -194,10 +188,7 @@ test.describe("Story 1-5: Support Tool — .env.example (AC-12)", () => {
   });
 
   test("AC-12: .env.example documents FISHTANK_DATA_PATH", () => {
-    const content = readFileSync(
-      join(TOOLS_DIR, ".env.example"),
-      "utf-8",
-    );
+    const content = readFileSync(join(TOOLS_DIR, ".env.example"), "utf-8");
     expect(
       content,
       ".env.example must document FISHTANK_DATA_PATH for the data volume mount (AC-12)",
@@ -268,10 +259,7 @@ test.describe("Story 1-5: Support Tool — Code Quality (AC-14)", () => {
   });
 
   test("AC-14: requirements.txt includes rich", () => {
-    const content = readFileSync(
-      join(TOOLS_DIR, "requirements.txt"),
-      "utf-8",
-    );
+    const content = readFileSync(join(TOOLS_DIR, "requirements.txt"), "utf-8");
     expect(
       content,
       "requirements.txt must include 'rich' for colour/panel output (AC-14)",
@@ -279,10 +267,7 @@ test.describe("Story 1-5: Support Tool — Code Quality (AC-14)", () => {
   });
 
   test("AC-14: requirements.txt includes python-dotenv", () => {
-    const content = readFileSync(
-      join(TOOLS_DIR, "requirements.txt"),
-      "utf-8",
-    );
+    const content = readFileSync(join(TOOLS_DIR, "requirements.txt"), "utf-8");
     expect(
       content,
       "requirements.txt must include 'python-dotenv' for .env loading (AC-14)",
