@@ -74,8 +74,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }, [collapsed, mobile]);
 
-  // On mid-size: default collapsed
-  useEffect(() => {
+  const [prevMid, setPrevMid] = useState(mid);
+  // Reset collapse state when viewport transitions to mid-size (render-time update)
+  if (prevMid !== mid) {
+    setPrevMid(mid);
     if (mid) {
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
@@ -84,7 +86,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         setCollapsed(true);
       }
     }
-  }, [mid]);
+  }
 
   if (mobile) {
     return (

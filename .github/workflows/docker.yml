@@ -63,11 +63,15 @@ jobs:
         run: docker build -t fishtank:ci .
 
       - name: Start container
-        run: docker run -d --name fishtank-smoke -p 5000:5000 fishtank:ci
+        run: |
+          docker run -d --name fishtank-smoke -p 5000:5000 \
+            -e FISHTANK_JWT_SECRET=fishtank-smoke-test-only-not-for-production-use \
+            fishtank:ci
 
       - name: Wait for health endpoint
         run: |
-          timeout 30 sh -c 'until curl -sf http://localhost:5000/health; do sleep 1; done'
+          timeout 60 sh -c 'until curl -sf http://localhost:5000/health; do sleep 2; done' || \
+          (echo "=== Container logs ==" && docker logs fishtank-smoke && exit 1)
 
       - name: Assert health response
         run: |

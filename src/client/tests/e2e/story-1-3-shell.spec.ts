@@ -21,8 +21,6 @@ import { test, expect } from "../support/fixtures";
  *   AC-13 — Hamburger visible on mobile viewport (<768px), sidebar hidden
  */
 
-const API_URL = process.env.API_URL ?? "http://localhost:5000";
-
 test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () => {
   // ─────────────────────────────────────────────────────────────────────────
   // AC-1 — Unauthenticated redirect to /login

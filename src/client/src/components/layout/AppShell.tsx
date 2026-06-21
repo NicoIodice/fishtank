@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
@@ -8,11 +8,13 @@ import styles from "./AppShell.module.css";
 export function AppShell() {
   const { mobile } = useBreakpoint();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [prevMobile, setPrevMobile] = useState(mobile);
 
-  // Close the mobile overlay when the breakpoint leaves mobile
-  useEffect(() => {
+  // Close the mobile overlay when the breakpoint leaves mobile (render-time update)
+  if (prevMobile !== mobile) {
+    setPrevMobile(mobile);
     if (!mobile) setMobileSidebarOpen(false);
-  }, [mobile]);
+  }
 
   return (
     <div className={styles.shell} data-testid="app-shell">
