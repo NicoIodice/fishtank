@@ -16,9 +16,11 @@ name: Test Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches-ignore:
+      - main
   pull_request:
-    branches: [main, develop, "release/**"]
+    branches-ignore:
+      - main
   schedule:
     # Weekly burn-in — Sundays 02:00 UTC
     - cron: "0 2 * * 0"

@@ -1,21 +1,38 @@
 name: Docker
 
 on:
-  # Story and release branches: full build + smoke test on every push
+  # Every branch except main: build + smoke test on every push
   push:
-    branches:
-      - "story/**"
-      - "release/**"
-
-  # PRs to release branches (opened / updated): build + smoke test
-  # PRs to main (merged from release/v* or hotfix/v*): smoke test + publish
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - "release/**"
+    branches-ignore:
       - main
 
+  # All PRs (any target): job conditions decide what to run.
+  # - PR to non-main (opened/updated): smoke test
+  # - PR to main (merged from release/v* or hotfix/v*): smoke test + publish
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
 jobs:
+  validate-source-branch:
+    name: Validate PR branch → main
+    runs-on: ubuntu-latest
+    # Only runs when a PR targets main and is not yet merged
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.action != 'closed'
+    steps:
+      - name: Check branch naming rules
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH" =~ ^(release/v|hotfix/v) ]]; then
+            echo "✅ $BRANCH is allowed to target main"
+          else
+            echo "❌ Branch '$BRANCH' may not merge to main."
+            echo "Only release/v* and hotfix/v* branches may open PRs to main."
+            exit 1
+          fi
+
   build-and-smoke:
     name: Build image and run smoke test
     runs-on: ubuntu-latest
@@ -69,6 +86,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main' &&
       (
         startsWith(github.event.pull_request.head.ref, 'release/v') ||
         startsWith(github.event.pull_request.head.ref, 'hotfix/v')
