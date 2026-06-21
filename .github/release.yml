@@ -1,0 +1,54 @@
+# GitHub Release Notes configuration.
+# Controls how auto-generated release notes are grouped when generate_release_notes: true
+# is used in the docker.yml publish job.
+# See: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - duplicate
+      - question
+      - invalid
+      - wontfix
+
+  categories:
+    - title: "🚀 New Features"
+      labels:
+        - feat
+        - feature
+        - enhancement
+
+    - title: "🐛 Bug Fixes"
+      labels:
+        - fix
+        - bug
+        - bugfix
+
+    - title: "🔒 Security"
+      labels:
+        - security
+        - vulnerability
+
+    - title: "🏗️ Infrastructure & CI"
+      labels:
+        - ci
+        - docker
+        - infrastructure
+        - build
+
+    - title: "📦 Dependencies"
+      labels:
+        - dependencies
+        - deps
+
+    - title: "📝 Documentation"
+      labels:
+        - documentation
+        - docs
+
+    - title: "🔧 Maintenance"
+      labels:
+        - chore
+        - refactor
+        - test

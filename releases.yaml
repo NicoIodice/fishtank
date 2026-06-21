@@ -1,0 +1,112 @@
+# Machine-read by the BMad lifecycle orchestrator and bmad-create-story skill.
+# Human reference: see ROADMAP.md for full feature descriptions per release.
+#
+# STATUS DEFINITIONS:
+# ===================
+# Release status:
+#   pending          — Epic not started; release branch does not exist yet
+#   in-progress      — At least one story started; release branch exists
+#   ready-for-merge  — All stories done; awaiting PR: release/vX.Y.Z -> main
+#   released         — Merged to main; Docker image published; GitHub Release created
+#
+# Story status:
+#   backlog          — Story listed but not yet started (no lifecycle run)
+#   in-progress      — Lifecycle orchestrator has started the story
+#   done             — All lifecycle gates passed; story committed to release branch
+#
+# HOTFIX ENTRIES: Use version "vX.Y.Z" where Z > 0, hotfix: true.
+# The lifecycle orchestrator branches hotfix/vX.Y.Z from main.
+
+releases:
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.1.0 — Foundation (Epic 1)
+  # Theme: Pull the image, log in, confirm the container is healthy.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.1.0"
+    epic: "epic-1"
+    status: "in-progress"
+    branch: "release/v0.1.0"
+    started: "2026-06-15"
+    completed: null
+    released: null
+    stories:
+      - id: "1-1-project-scaffold-docker-image-and-ci-pipeline"
+        status: "done"
+      - id: "1-2-database-authentication-backend-and-first-run-logic"
+        status: "backlog"
+      - id: "1-3-react-app-shell-login-and-first-run-setup-screens"
+        status: "backlog"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.2.0 — Services Management (Epic 2)
+  # Theme: Define mock services and have WireMock start serving immediately.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.2.0"
+    epic: "epic-2"
+    status: "pending"
+    branch: "release/v0.2.0"
+    started: null
+    completed: null
+    released: null
+    stories: []  # populated by bmad-create-story when epic-2 first story runs
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.3.0 — Network Activity (Epic 3)
+  # Theme: See every request hitting mock services in real time.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.3.0"
+    epic: "epic-3"
+    status: "pending"
+    branch: "release/v0.3.0"
+    started: null
+    completed: null
+    released: null
+    stories: []
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.4.0 — Mappings & Mock Capture (Epic 4)
+  # Theme: Edit mock files in the browser and record real traffic into stubs.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.4.0"
+    epic: "epic-4"
+    status: "pending"
+    branch: "release/v0.4.0"
+    started: null
+    completed: null
+    released: null
+    stories: []
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.5.0 — Admin Console (Epic 5)
+  # Theme: Manage users, control feature availability, review audit trail.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.5.0"
+    epic: "epic-5"
+    status: "pending"
+    branch: "release/v0.5.0"
+    started: null
+    completed: null
+    released: null
+    stories: []
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v1.0.0 — Release Polish & Distribution (Epic 6)
+  # Theme: Production-ready, cross-platform, documented, community-ready.
+  # PRE-SHIP GATES MUST CLEAR before PR to main is allowed.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v1.0.0"
+    epic: "epic-6"
+    status: "pending"
+    branch: "release/v1.0.0"
+    started: null
+    completed: null
+    released: null
+    pre_ship_gates:
+      - id: "PSG-1"
+        description: "Custom SVG logo — final logo replacing bi-droplet-half placeholder; requires product lead approval"
+        cleared: false
+      - id: "PSG-2"
+        description: "WCAG 2.1 AA audit — full contrast audit across all 4 themes; must be scheduled after Epic 4 closes"
+        cleared: false
+    stories: []

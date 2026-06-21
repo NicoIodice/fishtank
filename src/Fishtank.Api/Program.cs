@@ -1,13 +1,13 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.MapOpenApi();
@@ -15,33 +15,29 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 
 app.MapHealthChecks("/health");
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+// SPA fallback: serve index.html for all non-API routes.
+// Routes matching /api/*, /hubs/*, /health, /openapi are excluded.
+app.MapFallback(async (HttpContext ctx, IWebHostEnvironment env) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var path = ctx.Request.Path.Value ?? string.Empty;
+    if (path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase)
+        || path.Equals("/api", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith("/hubs/", StringComparison.OrdinalIgnoreCase)
+        || path.Equals("/hubs", StringComparison.OrdinalIgnoreCase)
+        || path.Equals("/health", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    ctx.Response.ContentType = "text/html; charset=utf-8";
+    await ctx.Response.SendFileAsync(
+        Path.Combine(env.WebRootPath, "index.html"),
+        ctx.RequestAborted);
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
 
 // Exposes Program for WebApplicationFactory<Program> in integration tests.
 public partial class Program;

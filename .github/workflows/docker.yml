@@ -1,0 +1,157 @@
+name: Docker
+
+on:
+  # Every branch except main: build + smoke test on every push
+  push:
+    branches-ignore:
+      - main
+
+  # All PRs (any target): job conditions decide what to run.
+  # - PR to non-main (opened/updated): smoke test
+  # - PR to main (merged from release/v* or hotfix/v*): smoke test + publish
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  validate-source-branch:
+    name: Validate PR branch → main
+    runs-on: ubuntu-latest
+    # Only runs when a PR targets main and is not yet merged
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.action != 'closed'
+    steps:
+      - name: Check branch naming rules
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH" =~ ^(release/v|hotfix/v) ]]; then
+            echo "✅ $BRANCH is allowed to target main"
+          else
+            echo "❌ Branch '$BRANCH' may not merge to main."
+            echo "Only release/v* and hotfix/v* branches may open PRs to main."
+            exit 1
+          fi
+
+  build-and-smoke:
+    name: Build image and run smoke test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed'
+      ) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        (
+          startsWith(github.event.pull_request.head.ref, 'release/v') ||
+          startsWith(github.event.pull_request.head.ref, 'hotfix/v')
+        )
+      )
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t fishtank:ci .
+
+      - name: Start container
+        run: docker run -d --name fishtank-smoke -p 5000:5000 fishtank:ci
+
+      - name: Wait for health endpoint
+        run: |
+          timeout 30 sh -c 'until curl -sf http://localhost:5000/health; do sleep 1; done'
+
+      - name: Assert health response
+        run: |
+          response=$(curl -s http://localhost:5000/health)
+          echo "Health response: $response"
+          echo "$response" | grep -qi "healthy"
+
+      - name: Stop container
+        if: always()
+        run: |
+          docker stop fishtank-smoke || true
+          docker rm fishtank-smoke || true
+
+  publish:
+    name: Publish to Docker Hub + create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-and-smoke
+    permissions:
+      contents: write
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main' &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'release/v') ||
+        startsWith(github.event.pull_request.head.ref, 'hotfix/v')
+      )
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from branch name
+        id: version
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release/}"
+          VERSION="${VERSION#hotfix/}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $VERSION from branch: $BRANCH"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.VERSION }}
+          tags: |
+            nicoiodice/fishtank:latest
+            nicoiodice/fishtank:${{ steps.version.outputs.VERSION }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "Fishtank ${{ steps.version.outputs.VERSION }}"
+          generate_release_notes: true
+          body: |
+            ## Quick start
+
+            ```bash
+            docker run -p 5000:5000 \
+              -e FISHTANK_JWT_SECRET=your-secret-min-32-chars \
+              -v ./mocks:/mocks \
+              nicoiodice/fishtank:${{ steps.version.outputs.VERSION }}
+            ```
+
+            Then open **http://localhost:5000** in your browser.
+
+            See [`docker-compose.example.yml`](docker-compose.example.yml) for a full deployment reference.
+            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+
+            ## Docker image
+
+            | Tag | Description |
+            |-----|-------------|
+            | `nicoiodice/fishtank:${{ steps.version.outputs.VERSION }}` | This release |
+            | `nicoiodice/fishtank:latest` | Latest stable release |

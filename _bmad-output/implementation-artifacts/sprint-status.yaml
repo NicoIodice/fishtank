@@ -74,8 +74,8 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 1: Foundation — Authenticated Shell & Running Container
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-1: backlog
-  1-1-project-scaffold-docker-image-and-ci-pipeline: backlog
+  epic-1: in-progress
+  1-1-project-scaffold-docker-image-and-ci-pipeline: done
   1-2-database-authentication-backend-and-first-run-logic: backlog
   1-3-react-app-shell-login-and-first-run-setup-screens: backlog
   1-4-additional-ui-themes-deep-ocean-emerald-terminal-ink-and-amber: backlog  # non-blocking — does not gate Epic 2
