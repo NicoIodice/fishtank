@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using Fishtank.Api.Data;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Fishtank.Api.Endpoints;
@@ -30,6 +32,13 @@ public static class AuthEndpoints
         // PUT /api/auth/change-password — requires authentication
         group.MapPut("/change-password", ChangePasswordHandler)
              .RequireAuthorization();
+
+        // GET /api/setup/status — returns needsSetup flag; permitted before first-run
+        app.MapGet("/api/setup/status", async (FishtankDbContext db) =>
+        {
+            var needsSetup = !await db.Users.AnyAsync();
+            return Results.Json(new { success = true, data = new { needsSetup } });
+        });
     }
 
     private static async Task<IResult> SetupHandler(
