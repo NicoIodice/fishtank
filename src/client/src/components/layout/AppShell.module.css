@@ -1,0 +1,22 @@
+/* AppShell.module.css */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  margin-top: var(--topbar-height);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--page-py) var(--page-px);
+  background: var(--content-bg);
+  color: var(--content-fg);
+  overflow-y: auto;
+}

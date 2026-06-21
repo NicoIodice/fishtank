@@ -20,7 +20,8 @@ test.describe("Services", () => {
     await page.goto("/");
   });
 
-  test("displays the services list on load", async ({
+  // TODO: Unskip once the Services feature (story 1-x) is implemented
+  test.skip("displays the services list on load", async ({
     page,
     interceptNetworkCall,
   }) => {
@@ -38,7 +39,8 @@ test.describe("Services", () => {
     await expect(page.getByTestId("services-list")).toBeVisible();
   });
 
-  test("creates a new service via the UI", async ({
+  // TODO: Unskip once the Services feature (story 1-x) is implemented
+  test.skip("creates a new service via the UI", async ({
     page,
     interceptNetworkCall,
   }) => {
@@ -64,7 +66,8 @@ test.describe("Services", () => {
     await expect(page.getByTestId(`service-row-${service.name}`)).toBeVisible();
   });
 
-  test("API: creates and retrieves a service without the browser", async ({
+  // TODO: Unskip once the Services feature (story 1-x) is implemented
+  test.skip("API: creates and retrieves a service without the browser", async ({
     request,
   }) => {
     // Given

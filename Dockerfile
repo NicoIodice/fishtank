@@ -23,6 +23,8 @@ RUN addgroup -S fishtank && adduser -S fishtank -G fishtank
 WORKDIR /app
 COPY --from=server-build /app/publish ./
 COPY --from=client-build /src/client/dist ./wwwroot
+# Create the data directory for SQLite and transfer ownership before switching user
+RUN mkdir -p /app/data && chown -R fishtank:fishtank /app
 USER fishtank
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://+:5000
