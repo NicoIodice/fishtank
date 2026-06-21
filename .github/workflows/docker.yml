@@ -1,17 +1,18 @@
 name: Docker
 
 on:
-  # Story and release branches: full build + smoke test
+  # Story and release branches: full build + smoke test on every push
   push:
     branches:
       - "story/**"
       - "release/**"
 
-  # PR merge from release/v*.*.* or hotfix/v*.*.* to main:
-  # smoke test → auto-tag → publish to Docker Hub → create GitHub Release
+  # PRs to release branches (opened / updated): build + smoke test
+  # PRs to main (merged from release/v* or hotfix/v*): smoke test + publish
   pull_request:
-    types: [closed]
+    types: [opened, synchronize, reopened, closed]
     branches:
+      - "release/**"
       - main
 
 jobs:
@@ -20,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.action != 'closed'
+      ) ||
       (
         github.event_name == 'pull_request' &&
         github.event.pull_request.merged == true &&
