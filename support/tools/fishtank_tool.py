@@ -18,14 +18,9 @@ import sys
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Bootstrap: try to activate the local .venv before loading third-party deps
+# Bootstrap
 # ---------------------------------------------------------------------------
 _SCRIPT_DIR = Path(__file__).resolve().parent
-_VENV_ACTIVATE = _SCRIPT_DIR / ".venv" / "Scripts" / "activate_this.py"
-if not _VENV_ACTIVATE.exists():
-    _VENV_ACTIVATE = _SCRIPT_DIR / ".venv" / "bin" / "activate_this.py"
-if _VENV_ACTIVATE.exists():
-    exec(open(_VENV_ACTIVATE).read(), {"__file__": str(_VENV_ACTIVATE)})  # noqa: S102
 
 try:
     from dotenv import load_dotenv
