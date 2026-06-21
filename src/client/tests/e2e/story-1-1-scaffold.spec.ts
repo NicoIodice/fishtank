@@ -40,7 +40,12 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: { userId: "1", username: "admin", role: "Admin", forcePasswordChange: false },
+          data: {
+            userId: "1",
+            username: "admin",
+            role: "Admin",
+            forcePasswordChange: false,
+          },
         }),
       }),
     );
@@ -69,7 +74,12 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: { userId: "1", username: "admin", role: "Admin", forcePasswordChange: false },
+          data: {
+            userId: "1",
+            username: "admin",
+            role: "Admin",
+            forcePasswordChange: false,
+          },
         }),
       }),
     );
@@ -108,7 +118,12 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: true,
-          data: { userId: "1", username: "admin", role: "Admin", forcePasswordChange: false },
+          data: {
+            userId: "1",
+            username: "admin",
+            role: "Admin",
+            forcePasswordChange: false,
+          },
         }),
       }),
     );
