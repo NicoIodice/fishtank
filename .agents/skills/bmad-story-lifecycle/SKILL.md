@@ -721,6 +721,13 @@ Escalating to {{user_name}}.</output>
     <check if="all stories in epic {{epic_id}} are done">
       <action>Set {{epic_all_done}} = true</action>
       <action>Update sprint-status.yaml: epic-{{epic_id}} → done</action>
+      <action>Rename the active CHANGELOG.md unreleased header to a versioned release header:
+        - Read releases.yaml to find the version string for epic {{epic_id}} (e.g. "v0.1.0") and the release theme (description)
+        - In CHANGELOG.md, replace the line matching `## [Unreleased] — vX.Y.Z (Theme)` with `## [vX.Y.Z] — {{date}} (Theme)` where vX.Y.Z and Theme come from releases.yaml
+        - If no `[Unreleased]` header is found (e.g. already renamed), skip this sub-action
+        - Save CHANGELOG.md
+      </action>
+      <action>Update releases.yaml: set completed = {{date}} for the release matching epic {{epic_id}}</action>
       <output>🎉 Epic {{epic_id}} is now complete — all stories done!</output>
     </check>
     <check if="not all stories in epic {{epic_id}} are done">
