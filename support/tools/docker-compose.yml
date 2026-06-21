@@ -21,6 +21,7 @@ services:
     environment:
       - FISHTANK_DB_PATH=/data/fishtank.db
       - FISHTANK_MOCKS_ROOT=/mocks
+      - FISHTANK_JWT_SECRET=${FISHTANK_JWT_SECRET:-fishtank-local-dev-jwt-secret-change-me-32!!}
       - FISHTANK_ADMIN_PASSWORD=${FISHTANK_ADMIN_PASSWORD:-}
       - FISHTANK_JWT_EXPIRY_MINUTES=${FISHTANK_JWT_EXPIRY_MINUTES:-}
     healthcheck:
