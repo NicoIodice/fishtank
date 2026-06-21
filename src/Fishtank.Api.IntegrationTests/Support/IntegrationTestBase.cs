@@ -33,16 +33,12 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         });
     }
 
-    /// <summary>Override to add per-test setup logic.</summary>
-    public virtual Task InitializeAsync() => Task.CompletedTask;
+    /// <summary>Reset the database before every test for isolation.</summary>
+    public virtual Task InitializeAsync() => Factory.ResetDatabaseAsync();
 
     public virtual async Task DisposeAsync()
     {
         Client.Dispose();
-
-        // TODO: Reset DB state via Respawn checkpoint once DbContext is configured.
-        // await _respawner.ResetAsync(_dbConnection);
-
         await Task.CompletedTask;
     }
 }

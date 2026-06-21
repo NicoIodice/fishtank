@@ -34,7 +34,7 @@ releases:
       - id: "1-1-project-scaffold-docker-image-and-ci-pipeline"
         status: "done"
       - id: "1-2-database-authentication-backend-and-first-run-logic"
-        status: "backlog"
+        status: "done"
       - id: "1-3-react-app-shell-login-and-first-run-setup-screens"
         status: "backlog"
 
