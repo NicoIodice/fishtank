@@ -3,9 +3,10 @@ story_id: "1.5"
 epic: 1
 story_key: 1-5-developer-support-tool-docker-wsl
 story_title: "Developer Support Tool — Docker + WSL Setup"
-status: ready-for-dev
+status: in-progress
 priority: medium
 non_blocking: true   # does not gate stories 1-1 through 1-4 or any Epic 2 story
+baseline_commit: 986e0d2d50cee1892e76ba82243226c6feffdc80
 ---
 
 # Story 1.5: Developer Support Tool — Docker + WSL Setup

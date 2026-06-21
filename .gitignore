@@ -226,3 +226,19 @@ blob-report/
 # SWC / Turbo
 .turbo/
 .swc/
+
+# =============================================================================
+# Support Tool (support/tools/)
+# =============================================================================
+
+# Python virtual environment — created by option [2] Install / update dependencies
+support/tools/.venv/
+
+# Local environment variables — copy .env.example → .env; never commit real values
+support/tools/.env
+
+# Runtime volume data — written by Docker at runtime, not part of source
+support/tools/data/*
+!support/tools/data/.gitkeep
+support/tools/mocks/*
+!support/tools/mocks/.gitkeep

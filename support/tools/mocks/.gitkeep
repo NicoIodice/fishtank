@@ -1,0 +1,3 @@
+# This directory is intentionally empty.
+# Docker will write WireMock stub files here at runtime.
+# Do not commit real mock files to version control.

@@ -1,0 +1,3 @@
+# This directory is intentionally empty.
+# Docker will write the Fishtank SQLite database here at runtime.
+# Do not commit database files to version control.
