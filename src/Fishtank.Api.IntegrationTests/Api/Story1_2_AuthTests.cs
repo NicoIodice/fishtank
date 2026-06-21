@@ -435,6 +435,70 @@ public class Story1_2_AuthTests : IntegrationTestBase
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/auth/me — identity endpoint consumed by ProtectedRoute
+    // This was the root cause of the login-loop bug in story 1-3:
+    // the endpoint was not registered, so ProtectedRoute redirected back to /login
+    // after every successful login. Adding explicit coverage here ensures the
+    // contract between frontend (useAuth hook) and backend cannot regress silently.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "GET /api/auth/me without JWT cookie returns 401 AUTH_UNAUTHORIZED")]
+    public async Task Me_NoCookie_Returns401_AuthUnauthorized()
+    {
+        // Given: admin account exists (so the first-run gate is cleared)
+        await Client.PostAsJsonAsync("/api/auth/setup",
+            new { username = "admin", password = "AdminPassword1!" });
+
+        // Create a new client with no auth cookie
+        var unauthClient = Factory.CreateClient(new() { AllowAutoRedirect = false });
+
+        // When
+        var response = await unauthClient.GetAsync("/api/auth/me");
+
+        // Then
+        response.StatusCode.Should().Be(
+            HttpStatusCode.Unauthorized,
+            "GET /api/auth/me must return 401 without a JWT cookie");
+
+        var body = await response.Content.ReadAsStringAsync();
+        var json = JsonDocument.Parse(body).RootElement;
+        json.GetProperty("success").GetBoolean().Should().BeFalse();
+        json.GetProperty("error").GetProperty("code").GetString()
+            .Should().Be("AUTH_UNAUTHORIZED",
+                "unauthenticated /me must return AUTH_UNAUTHORIZED — used by useAuth hook to treat the user as logged-out");
+    }
+
+    [Fact(DisplayName = "GET /api/auth/me with valid JWT cookie returns 200 with user data")]
+    public async Task Me_WithValidCookie_Returns200_WithUserData()
+    {
+        // Given: admin account exists and we are logged in
+        await Client.PostAsJsonAsync("/api/auth/setup",
+            new { username = "admin", password = "AdminPassword1!" });
+        await Client.PostAsJsonAsync("/api/auth/login",
+            new { username = "admin", password = "AdminPassword1!" });
+        // Client now holds the fishtank_auth cookie
+
+        // When
+        var response = await Client.GetAsync("/api/auth/me");
+
+        // Then
+        response.StatusCode.Should().Be(
+            HttpStatusCode.OK,
+            "GET /api/auth/me with a valid JWT cookie must return 200");
+
+        var body = await response.Content.ReadAsStringAsync();
+        var json = JsonDocument.Parse(body).RootElement;
+        json.GetProperty("success").GetBoolean().Should().BeTrue();
+
+        var data = json.GetProperty("data");
+        data.GetProperty("username").GetString().Should().Be("admin");
+        data.GetProperty("role").GetString().Should().Be("Admin");
+        data.TryGetProperty("userId", out _).Should().BeTrue("response must include userId");
+        data.TryGetProperty("forcePasswordChange", out _)
+            .Should().BeTrue("response must include forcePasswordChange — read by ProtectedRoute");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-13 — Response envelope on all auth endpoints
     // RED:  Endpoints return 404 (not mapped) — no envelope
     // GREEN: All auth endpoints return {"success":bool,"data":...} or {"success":false,"error":{...}}

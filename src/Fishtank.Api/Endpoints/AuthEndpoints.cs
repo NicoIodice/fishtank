@@ -22,8 +22,9 @@ public static class AuthEndpoints
         group.MapPost("/setup", SetupHandler);
 
         // GET /api/auth/me — returns current user info; used by ProtectedRoute
-        group.MapGet("/me", MeHandler)
-             .RequireAuthorization();
+        // No RequireAuthorization() — the handler checks ctx.User manually so it
+        // can return our standard JSON envelope on 401 (bare framework 401 has no body)
+        group.MapGet("/me", MeHandler);
 
         // POST /api/auth/login — rate limited (AC-7)
         group.MapPost("/login", LoginHandler)
