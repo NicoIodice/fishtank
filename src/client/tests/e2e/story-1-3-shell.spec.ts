@@ -234,15 +234,49 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     page,
   }) => {
     // Given: fresh instance with needsSetup=true
+    // The setup/status mock is STATEFUL: returns needsSetup:true before setup,
+    // needsSetup:false after — this mirrors what the real backend returns and
+    // ensures FirstRunGate does not redirect back to /setup after navigation.
+    let setupComplete = false;
+
     await page.route("**/api/setup/status", (route) =>
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: true } }),
+        body: JSON.stringify({
+          success: true,
+          data: { needsSetup: !setupComplete },
+        }),
       }),
     );
-    await page.route("**/api/auth/setup", (route) =>
-      route.fulfill({
+    await page.route("**/api/auth/me", (route) => {
+      if (setupComplete) {
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: true,
+            data: {
+              userId: "1",
+              username: "admin",
+              role: "Admin",
+              forcePasswordChange: false,
+            },
+          }),
+        });
+      }
+      return route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: { code: "AUTH_UNAUTHORIZED", message: "Not authenticated" },
+        }),
+      });
+    });
+    await page.route("**/api/auth/setup", (route) => {
+      setupComplete = true;
+      return route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
@@ -253,8 +287,8 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
           "Set-Cookie":
             "fishtank_auth=test-jwt; HttpOnly; SameSite=Strict; Path=/",
         },
-      }),
-    );
+      });
+    });
 
     // When: user fills in the setup form with valid data
     await page.goto("/setup");
@@ -262,8 +296,13 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await page.getByTestId("setup-password-input").fill("SecurePassw0rd!");
     await page.getByTestId("setup-submit-button").click();
 
-    // Then: navigated to /services
+    // Then: navigated to /services and the app shell renders (not the setup form)
     await expect(page).toHaveURL(/\/services/, { timeout: 10_000 });
+    await expect(page.getByTestId("setup-page")).not.toBeVisible({
+      message:
+        "After setup the app must NOT return to /setup with an empty form " +
+        "(regression guard for the stale-cache redirect loop).",
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────

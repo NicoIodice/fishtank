@@ -14,8 +14,12 @@ export function useSetup() {
         redirectOn401: false,
       }),
     onSuccess: () => {
+      // Write the new value directly so FirstRunGate does not redirect back to
+      // /setup before a background refetch completes (stale-while-revalidate
+      // would otherwise serve the old needsSetup:true during the gap between
+      // navigate() and the refetch response).
+      qc.setQueryData(["setup-status"], { needsSetup: false });
       void qc.invalidateQueries({ queryKey: ["auth", "me"] });
-      void qc.invalidateQueries({ queryKey: ["setup-status"] });
     },
   });
 }
