@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { chromium } from "@playwright/test";
 import {
   authStorageInit,
@@ -12,7 +13,6 @@ async function globalSetup(): Promise<void> {
   // Initialise auth-session storage directory
   authStorageInit();
   configureAuthSession({
-    authStoragePath: "./playwright/.auth",
     debug: process.env.DEBUG_AUTH === "true",
   });
   setAuthProvider(fishtankAuthProvider);

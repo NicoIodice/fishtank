@@ -51,11 +51,11 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
       await expect(page).toHaveURL(/\/login/, {
         timeout: 10_000,
       });
-      await expect(page.getByTestId("login-page")).toBeVisible({
-        message:
-          "Unauthenticated navigation to /services must redirect to /login " +
+      await expect(
+        page.getByTestId("login-page"),
+        "Unauthenticated navigation to /services must redirect to /login " +
           "and render the login page (data-testid='login-page').",
-      });
+      ).toBeVisible();
     },
   );
 
@@ -85,11 +85,11 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await expect(page).toHaveURL(/\/setup/, {
       timeout: 10_000,
     });
-    await expect(page.getByTestId("setup-page")).toBeVisible({
-      message:
-        "On a fresh instance (needsSetup=true) any route must redirect to /setup " +
+    await expect(
+      page.getByTestId("setup-page"),
+      "On a fresh instance (needsSetup=true) any route must redirect to /setup " +
         "and render the setup page (data-testid='setup-page').",
-    });
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -134,24 +134,22 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
       await page.getByTestId("login-submit-button").click();
 
       // Then: inline error message displayed
-      await expect(page.getByTestId("login-error-message")).toBeVisible({
-        message:
-          "Inline error message must appear on invalid credentials (data-testid='login-error-message').",
-      });
+      await expect(
+        page.getByTestId("login-error-message"),
+        "Inline error message must appear on invalid credentials (data-testid='login-error-message').",
+      ).toBeVisible();
 
       // And: username field retains its value
-      await expect(page.getByTestId("login-username-input")).toHaveValue(
-        "admin",
-        {
-          message:
-            "Username field must retain its value after a failed login attempt.",
-        },
-      );
+      await expect(
+        page.getByTestId("login-username-input"),
+        "Username field must retain its value after a failed login attempt.",
+      ).toHaveValue("admin");
 
       // And: password field is cleared
-      await expect(page.getByTestId("login-password-input")).toHaveValue("", {
-        message: "Password field must be cleared after a failed login attempt.",
-      });
+      await expect(
+        page.getByTestId("login-password-input"),
+        "Password field must be cleared after a failed login attempt.",
+      ).toHaveValue("");
     },
   );
 
@@ -229,11 +227,11 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
 
     // Then: navigated to /services and the app shell renders (not the setup form)
     await expect(page).toHaveURL(/\/services/, { timeout: 10_000 });
-    await expect(page.getByTestId("setup-page")).not.toBeVisible({
-      message:
-        "After setup the app must NOT return to /setup with an empty form " +
+    await expect(
+      page.getByTestId("setup-page"),
+      "After setup the app must NOT return to /setup with an empty form " +
         "(regression guard for the stale-cache redirect loop).",
-    });
+    ).not.toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -251,28 +249,28 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await page.goto("/services");
 
     // Then: top bar renders
-    await expect(page.getByTestId("top-bar")).toBeVisible({
-      message:
-        "Top bar must render in the authenticated app shell (data-testid='top-bar').",
-    });
+    await expect(
+      page.getByTestId("top-bar"),
+      "Top bar must render in the authenticated app shell (data-testid='top-bar').",
+    ).toBeVisible();
 
     // And: all child elements are visible
-    await expect(page.getByTestId("topbar-logo")).toBeVisible({
-      message:
-        "Logo must be visible in the top bar (data-testid='topbar-logo').",
-    });
-    await expect(page.getByTestId("topbar-about-button")).toBeVisible({
-      message:
-        "About button must be visible in the top bar (data-testid='topbar-about-button').",
-    });
-    await expect(page.getByTestId("topbar-bell-button")).toBeVisible({
-      message:
-        "Notification bell must be visible in the top bar (data-testid='topbar-bell-button').",
-    });
-    await expect(page.getByTestId("topbar-avatar-button")).toBeVisible({
-      message:
-        "User avatar button must be visible in the top bar (data-testid='topbar-avatar-button').",
-    });
+    await expect(
+      page.getByTestId("topbar-logo"),
+      "Logo must be visible in the top bar (data-testid='topbar-logo').",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("topbar-about-button"),
+      "About button must be visible in the top bar (data-testid='topbar-about-button').",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("topbar-bell-button"),
+      "Notification bell must be visible in the top bar (data-testid='topbar-bell-button').",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("topbar-avatar-button"),
+      "User avatar button must be visible in the top bar (data-testid='topbar-avatar-button').",
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -309,10 +307,10 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await page.getByTestId("topbar-about-button").click();
 
     // Then: About modal is visible
-    await expect(page.getByTestId("about-modal")).toBeVisible({
-      message:
-        "About modal must open when the About button is clicked (data-testid='about-modal').",
-    });
+    await expect(
+      page.getByTestId("about-modal"),
+      "About modal must open when the About button is clicked (data-testid='about-modal').",
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -331,10 +329,10 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await page.goto("/services");
 
     // Then: sidebar renders
-    await expect(page.getByTestId("sidebar")).toBeVisible({
-      message:
-        "Sidebar must render in the authenticated app shell (data-testid='sidebar').",
-    });
+    await expect(
+      page.getByTestId("sidebar"),
+      "Sidebar must render in the authenticated app shell (data-testid='sidebar').",
+    ).toBeVisible();
 
     // And: all 5 nav items are visible
     for (const item of [
@@ -344,9 +342,10 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
       "sidebar-nav-events",
       "sidebar-nav-settings",
     ]) {
-      await expect(page.getByTestId(item)).toBeVisible({
-        message: `Nav item must be visible (data-testid='${item}').`,
-      });
+      await expect(
+        page.getByTestId(item),
+        `Nav item must be visible (data-testid='${item}').`,
+      ).toBeVisible();
     }
   });
 
@@ -366,15 +365,15 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
     await page.goto("/services");
 
     // Then: hamburger button is visible
-    await expect(page.getByTestId("hamburger-button")).toBeVisible({
-      message:
-        "Hamburger button must be visible on mobile viewport <768px (data-testid='hamburger-button').",
-    });
+    await expect(
+      page.getByTestId("hamburger-button"),
+      "Hamburger button must be visible on mobile viewport <768px (data-testid='hamburger-button').",
+    ).toBeVisible();
 
     // And: sidebar is not visible (hidden behind hamburger)
-    await expect(page.getByTestId("sidebar")).not.toBeVisible({
-      message:
-        "Sidebar must be hidden on mobile viewport <768px; only accessible via hamburger.",
-    });
+    await expect(
+      page.getByTestId("sidebar"),
+      "Sidebar must be hidden on mobile viewport <768px; only accessible via hamburger.",
+    ).not.toBeVisible();
   });
 });

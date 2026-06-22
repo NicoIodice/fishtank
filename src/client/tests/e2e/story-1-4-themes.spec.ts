@@ -88,28 +88,30 @@ test.describe("Story 1-4: Additional UI Themes", () => {
 
     // Navigate to Appearance section (it is the default active section)
     const appearanceSection = page.getByTestId("settings-appearance");
-    await expect(appearanceSection).toBeVisible({
-      message:
-        "Settings → Appearance section must render a container with " +
+    await expect(
+      appearanceSection,
+      "Settings → Appearance section must render a container with " +
         "data-testid='settings-appearance'. " +
         "Currently shows placeholder text — AppearanceSettings component not yet wired.",
-    });
+    ).toBeVisible();
 
     // All 4 theme radio buttons must be present
-    await expect(page.getByTestId("theme-option-clean-light")).toBeVisible({
-      message: "Clean Light theme radio option must be present.",
-    });
-    await expect(page.getByTestId("theme-option-deep-ocean")).toBeVisible({
-      message: "Deep Ocean theme radio option must be present.",
-    });
-    await expect(page.getByTestId("theme-option-emerald-terminal")).toBeVisible(
-      {
-        message: "Emerald Terminal theme radio option must be present.",
-      },
-    );
-    await expect(page.getByTestId("theme-option-ink-amber")).toBeVisible({
-      message: "Ink & Amber theme radio option must be present.",
-    });
+    await expect(
+      page.getByTestId("theme-option-clean-light"),
+      "Clean Light theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-deep-ocean"),
+      "Deep Ocean theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-emerald-terminal"),
+      "Emerald Terminal theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-ink-amber"),
+      "Ink & Amber theme radio option must be present.",
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
