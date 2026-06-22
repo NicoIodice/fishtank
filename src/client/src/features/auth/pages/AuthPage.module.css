@@ -1,0 +1,112 @@
+/* AuthPage.module.css — shared styles for auth pages (login, setup, change-password) */
+
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  background: var(--content-bg);
+  padding: 24px 16px;
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--content-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--content-fg);
+}
+
+.wordmark {
+  color: var(--content-fg);
+  font-weight: 700;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--content-fg);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--content-muted);
+  margin: -12px 0 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--content-fg);
+}
+
+.field input {
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--content-fg);
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.field input:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.fieldHint {
+  font-size: 0.75rem;
+  color: var(--content-muted);
+}
+
+.error {
+  font-size: 0.875rem;
+  color: var(--error);
+  background: var(--error-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 10px;
+  background: var(--brand);
+  color: var(--brand-fg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitButton:hover:not(:disabled) {
+  filter: brightness(0.92);
+}

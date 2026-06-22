@@ -16,15 +16,17 @@ name: Test Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches-ignore:
+      - main
   pull_request:
-    branches: [main, develop]
+    branches-ignore:
+      - main
   schedule:
     # Weekly burn-in — Sundays 02:00 UTC
     - cron: "0 2 * * 0"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: true
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -92,7 +94,7 @@ jobs:
 
       - name: Upload TRX results
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: backend-test-results
           path: "**/*.trx"
@@ -161,6 +163,8 @@ jobs:
         env:
           ASPNETCORE_URLS: "http://localhost:5000"
           ASPNETCORE_ENVIRONMENT: "Development"
+          FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
+          FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
@@ -206,7 +210,7 @@ jobs:
 
       - name: Upload blob report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: blob-report-${{ matrix.shard }}
           path: src/client/blob-report/
@@ -214,7 +218,7 @@ jobs:
 
       - name: Upload test artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-artifacts-shard-${{ matrix.shard }}
           path: src/client/test-results/
@@ -279,6 +283,8 @@ jobs:
         env:
           ASPNETCORE_URLS: "http://localhost:5000"
           ASPNETCORE_ENVIRONMENT: "Development"
+          FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
+          FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
@@ -331,7 +337,7 @@ jobs:
 
       - name: Upload burn-in failure artifacts
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: burn-in-failures
           path: |
@@ -374,7 +380,7 @@ jobs:
         run: npx playwright merge-reports --reporter html ../../all-blob-reports
 
       - name: Upload merged Playwright report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: src/client/playwright-report/

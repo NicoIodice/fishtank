@@ -1,0 +1,33 @@
+# support/tools/docker-compose.yml
+# Project-scoped to 'fishtank' — teardown ONLY affects Fishtank containers.
+# NEVER use 'docker rm -f $(docker ps -aq)' — that removes ALL containers.
+# Use: docker compose --project-name fishtank down
+name: fishtank
+
+services:
+  app:
+    container_name: fishtank-app
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: dev
+    image: fishtank:latest
+    ports:
+      - "${FISHTANK_PORT:-5000}:5000"
+    volumes:
+      - "${FISHTANK_MOCKS_PATH:-./mocks}:/mocks"
+      - "${FISHTANK_DATA_PATH:-./data}:/data"
+    environment:
+      - FISHTANK_DB_PATH=/data/fishtank.db
+      - FISHTANK_MOCKS_ROOT=/mocks
+      - FISHTANK_JWT_SECRET=${FISHTANK_JWT_SECRET:-fishtank-local-dev-jwt-secret-change-me-32!!}
+      - FISHTANK_ADMIN_PASSWORD=${FISHTANK_ADMIN_PASSWORD:-}
+      - FISHTANK_JWT_EXPIRY_MINUTES=${FISHTANK_JWT_EXPIRY_MINUTES:-}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped

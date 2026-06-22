@@ -1,0 +1,154 @@
+/* ============================================================
+   theme.css — Fishtank design tokens
+   4 theme blocks + prefers-reduced-motion block
+   ============================================================ */
+
+/* ── Base / :root defaults (= Clean Light values) ─────────── */
+:root {
+  /* Brand */
+  --brand: #0ea5e9;
+  --brand-rgb: 14, 165, 233;
+  --brand-fg: #ffffff;
+
+  /* Sidebar */
+  --sidebar-bg: #f1f5f9;
+  --sidebar-fg: #475569;
+  --sidebar-active-bg: #e0f2fe;
+  --sidebar-active-fg: #0369a1;
+
+  /* Topbar */
+  --topbar-bg: #ffffff;
+  --topbar-border: #e2e8f0;
+  --topbar-icon-fg: #1e293b;
+
+  /* Content */
+  --content-bg: #ffffff;
+  --content-surface: #f8fafc;
+  --content-fg: #1e293b;
+  --content-muted: #64748b;
+
+  /* Borders & inputs */
+  --border: #e2e8f0;
+  --input-bg: #f8fafc;
+  --input-border: #cbd5e1;
+
+  /* Status (theme-invariant) */
+  --success: #22c55e;
+  --success-subtle: #dcfce7;
+  --warning: #f59e0b;
+  --warning-subtle: #fef3c7;
+  --error: #ef4444;
+  --error-subtle: #fee2e2;
+  --info: #3b82f6;
+  --info-subtle: #dbeafe;
+
+  /* Error row */
+  --error-row-bg: rgba(239, 68, 68, 0.04);
+
+  /* HTTP method chip colors */
+  --method-get: #3b82f6;
+  --method-get-bg: #dbeafe;
+  --method-post: #10b981;
+  --method-post-bg: #d1fae5;
+  --method-put: #d97706;
+  --method-put-bg: #fde68a;
+  --method-delete: #ef4444;
+  --method-delete-bg: #fee2e2;
+  --method-patch: #8b5cf6;
+  --method-patch-bg: #ede9fe;
+  --method-other-bg: #f1f5f9;
+  --method-other-fg: #475569;
+
+  /* Port badge */
+  --port-badge-bg: #ede9fe;
+  --port-badge-fg: #6d28d9;
+
+  /* Activity type icons */
+  --icon-mock-color: #3b82f6;
+  --icon-proxy-color: #10b981;
+
+  /* Notification badge (invariant) */
+  --badge-bg: #ef4444;
+  --badge-fg: #ffffff;
+
+  /* Shadows */
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-overlay: 0 8px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Clean Light ─────────────────────────────────────────── */
+[data-theme="clean-light"] {
+  --sidebar-bg: #f1f5f9;   --sidebar-fg: #475569;
+  --sidebar-active-bg: #e0f2fe;  --sidebar-active-fg: #0369a1;
+  --topbar-bg: #ffffff;    --topbar-border: #e2e8f0;
+  --content-bg: #ffffff;   --content-surface: #f8fafc;
+  --content-fg: #1e293b;   --content-muted: #64748b;
+  --border: #e2e8f0;       --brand: #0ea5e9;   --brand-rgb: 14, 165, 233;
+  --input-bg: #f8fafc;     --input-border: #cbd5e1;
+  --topbar-icon-fg: #1e293b;
+  --error-row-bg: rgba(239, 68, 68, 0.04);
+  --success-subtle: #dcfce7;
+  --brand-fg: #ffffff;
+}
+
+/* ── Deep Ocean ─────────────────────────────────────────── */
+[data-theme="deep-ocean"] {
+  --sidebar-bg: #0d1b2a;   --sidebar-fg: #94a3b8;
+  --sidebar-active-bg: rgba(59, 130, 246, 0.18);  --sidebar-active-fg: #93c5fd;
+  --topbar-bg: #0a1628;    --topbar-border: rgba(255, 255, 255, 0.07);
+  --content-bg: #0f2233;   --content-surface: #0d1b2a;
+  --content-fg: #cbd5e1;   --content-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);  --brand: #3b82f6;   --brand-rgb: 59, 130, 246;
+  --input-bg: #162d42;     --input-border: rgba(255, 255, 255, 0.12);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.40);
+  --shadow-overlay: 0 8px 40px rgba(0, 0, 0, 0.60);
+  --topbar-icon-fg: #cbd5e1;
+  --error-row-bg: rgba(239, 68, 68, 0.10);
+  --success-subtle: #dcfce7;
+  --brand-fg: #ffffff;
+}
+
+/* ── Emerald Terminal ───────────────────────────────────── */
+[data-theme="emerald-terminal"] {
+  --sidebar-bg: #064e3b;   --sidebar-fg: #6ee7b7;
+  --sidebar-active-bg: rgba(16, 185, 129, 0.2);  --sidebar-active-fg: #34d399;
+  --topbar-bg: #052e20;    --topbar-border: rgba(255, 255, 255, 0.08);
+  --content-bg: #f9fafb;   --content-surface: #f0fdf4;
+  --content-fg: #1e293b;   --content-muted: #64748b;
+  --border: #d1fae5;       --brand: #10b981;   --brand-rgb: 16, 185, 129;
+  --input-bg: #ffffff;     --input-border: #a7f3d0;
+  --topbar-icon-fg: #ffffff;
+  --error-row-bg: rgba(239, 68, 68, 0.04);
+  --success-subtle: #dcfce7;
+  --brand-fg: #ffffff;
+}
+
+/* ── Ink & Amber ─────────────────────────────────────────── */
+[data-theme="ink-amber"] {
+  --sidebar-bg: #18181b;   --sidebar-fg: #a1a1aa;
+  --sidebar-active-bg: rgba(245, 158, 11, 0.15); --sidebar-active-fg: #fbbf24;
+  --topbar-bg: #09090b;    --topbar-border: rgba(255, 255, 255, 0.07);
+  --content-bg: #ffffff;   --content-surface: #fafafa;
+  --content-fg: #18181b;   --content-muted: #52525b;
+  --border: #e4e4e7;       --brand: #f59e0b;   --brand-rgb: 245, 158, 11;
+  --input-bg: #fafafa;     --input-border: #d4d4d8;
+  --topbar-icon-fg: #ffffff;
+  --error-row-bg: rgba(239, 68, 68, 0.04);
+  --success-subtle: #dcfce7;
+  --brand-fg: #ffffff;
+}
+
+/* ── prefers-reduced-motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .collapse-chevron,
+  .live-pulse,
+  .bottom-sheet,
+  .toast,
+  .notification-badge,
+  .refresh-icon,
+  .recording-cross-screen {
+    transition: none !important;
+    animation: none !important;
+  }
+}
