@@ -7,6 +7,8 @@ export interface DataTableColumn<T> {
   width?: string;
   sortable?: boolean;
   cell: (row: T) => ReactNode;
+  /** Raw value used for sorting; falls back to String(cell(row)) if omitted. */
+  sortValue?: (row: T) => string | number;
   ariaLabel?: (row: T) => string;
 }
 
@@ -57,11 +59,11 @@ export function DataTable<T>({
     ? [...rows].sort((a, b) => {
         const col = columns.find((c) => c.key === sortKey);
         if (!col) return 0;
-        const aVal = col.cell(a);
-        const bVal = col.cell(b);
-        const aStr = typeof aVal === "string" ? aVal : String(aVal ?? "");
-        const bStr = typeof bVal === "string" ? bVal : String(bVal ?? "");
-        return sortAsc ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+        const aRaw = col.sortValue ? col.sortValue(a) : col.cell(a);
+        const bRaw = col.sortValue ? col.sortValue(b) : col.cell(b);
+        const aStr = typeof aRaw === "number" ? String(aRaw) : typeof aRaw === "string" ? aRaw : "";
+        const bStr = typeof bRaw === "number" ? String(bRaw) : typeof bRaw === "string" ? bRaw : "";
+        return sortAsc ? aStr.localeCompare(bStr, undefined, { numeric: true, sensitivity: "base" }) : bStr.localeCompare(aStr, undefined, { numeric: true, sensitivity: "base" });
       })
     : rows;
 

@@ -75,6 +75,7 @@ export function ServicesPage() {
       header: "Name",
       width: "30%",
       sortable: true,
+      sortValue: (s) => s.name,
       cell: (s) => <span style={{ fontWeight: 600 }}>{s.name}</span>,
     },
     {
@@ -82,6 +83,7 @@ export function ServicesPage() {
       header: "Port",
       width: "80px",
       sortable: true,
+      sortValue: (s) => s.port,
       cell: (s) => (
         <span style={{ fontFamily: "monospace", fontSize: "0.75rem" }}>
           :{s.port}
@@ -116,6 +118,7 @@ export function ServicesPage() {
       header: "External URL",
       width: "25%",
       sortable: true,
+      sortValue: (s) => s.externalUrl,
       cell: (s) => (
         <span
           style={{
