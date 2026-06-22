@@ -6,3 +6,5 @@
 _bmad
 _bmad-output
 docs
+src/client/dist
+src/client/dist-ssr
