@@ -10,6 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — v0.2.0 (Services Management)
+
+_Theme: Define mock services and have WireMock start serving requests immediately._
+
+---
+
 ## [v0.1.0] — 2026-06-20 (Foundation)
 
 _Theme: Pull the image, log in, confirm the container is healthy._

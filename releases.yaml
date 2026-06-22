@@ -48,12 +48,14 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.2.0"
     epic: "epic-2"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v0.2.0"
-    started: null
+    started: "2026-06-22"
     completed: null
     released: null
-    stories: []  # populated by bmad-create-story when epic-2 first story runs
+    stories:
+      - id: "2-1-wiremock-engine-layer-and-services-api-backend"
+        status: "in-progress"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)
