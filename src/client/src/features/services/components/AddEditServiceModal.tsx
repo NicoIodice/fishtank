@@ -4,6 +4,7 @@ import {
   useCreateService,
   useUpdateService,
 } from "../hooks/useServices";
+import { useAppSettings } from "@/features/settings/hooks/useAppSettings";
 import type { Service } from "../types/service";
 import { ApiError } from "@/lib/api";
 import styles from "./AddEditServiceModal.module.css";
@@ -63,6 +64,9 @@ export function AddEditServiceModal({
     return () => clearTimeout(timer);
   }, [values.name]);
 
+  const { data: appSettings } = useAppSettings();
+  const mocksHostPath = appSettings?.mocksHostPath ?? "mocks";
+
   const slug = generateSlug(debouncedName);
   const originalSlug = service ? generateSlug(service.name) : null;
   const slugChanged =
@@ -71,7 +75,7 @@ export function AddEditServiceModal({
     slug !== originalSlug &&
     slug.length >= 2;
   const mocksRootPreview =
-    slug.length >= 2 ? `/app/mocks/${slug}` : "/app/mocks/...";
+    slug.length >= 2 ? `${mocksHostPath}/${slug}` : `${mocksHostPath}/...`;
 
   // Next port pre-fill (Add mode only)
   const { data: nextPort } = useNextPort();

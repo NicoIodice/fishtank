@@ -113,7 +113,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   className={({ isActive }) =>
                     `${styles.navItem} ${isActive ? styles.active : ""}`
                   }
-                  aria-current={undefined}
                   data-testid={item.testId}
                   onClick={onMobileClose}
                 >
@@ -121,7 +120,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     <>
                       <i className={`bi ${item.icon}`} aria-hidden="true" />
                       <span className={styles.label}>{item.label}</span>
-                      {isActive && <span className="sr-only">(current)</span>}
                     </>
                   )}
                 </NavLink>
@@ -157,7 +155,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   {!collapsed && (
                     <span className={styles.label}>{item.label}</span>
                   )}
-                  {isActive && <span className="sr-only">(current)</span>}
                 </>
               )}
             </NavLink>

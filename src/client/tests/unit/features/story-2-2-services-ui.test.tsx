@@ -194,15 +194,18 @@ describe("ServiceCard — AC-3: card content rendering", () => {
 
 describe("AddEditServiceModal — AC-5, AC-8: form validation and slug-change warning", () => {
   beforeEach(() => {
-    // Mock fetch to avoid real API calls (next-port, create/update)
+    // Mock fetch to avoid real API calls (next-port, settings, create/update)
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          success: true,
-          data: 30100,
-        }),
+      vi.fn().mockImplementation((url: string) => {
+        const data =
+          typeof url === "string" && url.includes("/api/settings")
+            ? { mocksHostPath: "mocks" }
+            : 30100;
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, data }),
+        });
       }),
     );
   });
@@ -399,7 +402,7 @@ describe("AddEditServiceModal — AC-5, AC-8: form validation and slug-change wa
     await waitFor(
       () => {
         const preview = screen.getByTestId("readonly-mocks-root");
-        expect(preview.textContent).toContain("/app/mocks/test-service");
+        expect(preview.textContent).toContain("mocks/test-service");
       },
       { timeout: 500 },
     );

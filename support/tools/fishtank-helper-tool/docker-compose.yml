@@ -1,4 +1,4 @@
-# support/tools/docker-compose.yml
+# support/tools/fishtank-helper-tool/docker-compose.yml
 # Project-scoped to 'fishtank' — teardown ONLY affects Fishtank containers.
 # NEVER use 'docker rm -f $(docker ps -aq)' — that removes ALL containers.
 # Use: docker compose --project-name fishtank down
@@ -8,7 +8,7 @@ services:
   app:
     container_name: fishtank-app
     build:
-      context: ../../
+      context: ../../../
       dockerfile: Dockerfile
       args:
         APP_VERSION: dev

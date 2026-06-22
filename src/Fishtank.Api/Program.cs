@@ -226,6 +226,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
+app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 
