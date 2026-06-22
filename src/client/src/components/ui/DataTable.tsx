@@ -61,9 +61,27 @@ export function DataTable<T>({
         if (!col) return 0;
         const aRaw = col.sortValue ? col.sortValue(a) : col.cell(a);
         const bRaw = col.sortValue ? col.sortValue(b) : col.cell(b);
-        const aStr = typeof aRaw === "number" ? String(aRaw) : typeof aRaw === "string" ? aRaw : "";
-        const bStr = typeof bRaw === "number" ? String(bRaw) : typeof bRaw === "string" ? bRaw : "";
-        return sortAsc ? aStr.localeCompare(bStr, undefined, { numeric: true, sensitivity: "base" }) : bStr.localeCompare(aStr, undefined, { numeric: true, sensitivity: "base" });
+        const aStr =
+          typeof aRaw === "number"
+            ? String(aRaw)
+            : typeof aRaw === "string"
+              ? aRaw
+              : "";
+        const bStr =
+          typeof bRaw === "number"
+            ? String(bRaw)
+            : typeof bRaw === "string"
+              ? bRaw
+              : "";
+        return sortAsc
+          ? aStr.localeCompare(bStr, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            })
+          : bStr.localeCompare(aStr, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
       })
     : rows;
 

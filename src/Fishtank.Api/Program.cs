@@ -245,6 +245,12 @@ app.MapFallback(async (HttpContext ctx, IWebHostEnvironment env) =>
         return;
     }
 
+    if (env.WebRootPath is null)
+    {
+        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
     ctx.Response.ContentType = "text/html; charset=utf-8";
     await ctx.Response.SendFileAsync(
         Path.Combine(env.WebRootPath, "index.html"),

@@ -264,8 +264,8 @@ export function AddEditServiceModal({
               <i className="bi bi-exclamation-triangle" aria-hidden="true" />
               <span>
                 Renaming this service will change its Slug from{" "}
-                <strong>{originalSlug}</strong> to <strong>{slug}</strong>.
-                The Mocks Root directory will need to be renamed to match.
+                <strong>{originalSlug}</strong> to <strong>{slug}</strong>. The
+                Mocks Root directory will need to be renamed to match.
               </span>
             </div>
           )}
@@ -274,9 +274,7 @@ export function AddEditServiceModal({
           <div className={styles.fieldGroup}>
             <label htmlFor="svc-desc" className={styles.label}>
               Description{" "}
-              <span
-                style={{ color: "var(--content-muted)", fontWeight: 400 }}
-              >
+              <span style={{ color: "var(--content-muted)", fontWeight: 400 }}>
                 (optional)
               </span>
             </label>
@@ -317,11 +315,7 @@ export function AddEditServiceModal({
               data-testid="input-service-url"
             />
             {errors.externalUrl && (
-              <span
-                id="svc-url-error"
-                className={styles.errorMsg}
-                role="alert"
-              >
+              <span id="svc-url-error" className={styles.errorMsg} role="alert">
                 {errors.externalUrl}
               </span>
             )}
@@ -366,9 +360,7 @@ export function AddEditServiceModal({
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
               Mocks Root{" "}
-              <span
-                style={{ color: "var(--content-muted)", fontWeight: 400 }}
-              >
+              <span style={{ color: "var(--content-muted)", fontWeight: 400 }}>
                 (computed, read-only)
               </span>
             </label>
@@ -385,9 +377,7 @@ export function AddEditServiceModal({
           <div className={styles.fieldGroup}>
             <label htmlFor="svc-tags" className={styles.label}>
               Tags{" "}
-              <span
-                style={{ color: "var(--content-muted)", fontWeight: 400 }}
-              >
+              <span style={{ color: "var(--content-muted)", fontWeight: 400 }}>
                 (optional)
               </span>
             </label>

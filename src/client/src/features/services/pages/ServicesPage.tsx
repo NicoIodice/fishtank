@@ -95,9 +95,7 @@ export function ServicesPage() {
       header: "Status",
       width: "90px",
       cell: (s) => (
-        <span
-          style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
-        >
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
           <span
             style={{
               width: 8,
@@ -198,7 +196,11 @@ export function ServicesPage() {
       <div className={styles.toolbar}>
         <div className={styles.toolbarLeft}>
           <h1 className="page-title">Services</h1>
-          <div className={styles.viewToggle} role="group" aria-label="View mode">
+          <div
+            className={styles.viewToggle}
+            role="group"
+            aria-label="View mode"
+          >
             <button
               className={`${styles.viewBtn} ${viewMode === "grid" ? styles.viewBtnActive : ""}`}
               onClick={() => handleViewModeChange("grid")}
@@ -317,13 +319,16 @@ export function ServicesPage() {
       )}
 
       {/* Card grid */}
-      {!isLoading && !isError && filteredServices.length > 0 && viewMode === "grid" && (
-        <div className={styles.cardGrid} data-testid="services-grid">
-          {filteredServices.map((svc) => (
-            <ServiceCard key={svc.id} service={svc} onEdit={openEdit} />
-          ))}
-        </div>
-      )}
+      {!isLoading &&
+        !isError &&
+        filteredServices.length > 0 &&
+        viewMode === "grid" && (
+          <div className={styles.cardGrid} data-testid="services-grid">
+            {filteredServices.map((svc) => (
+              <ServiceCard key={svc.id} service={svc} onEdit={openEdit} />
+            ))}
+          </div>
+        )}
 
       {/* Table view */}
       {!isLoading &&
@@ -349,4 +354,3 @@ export function ServicesPage() {
     </main>
   );
 }
-

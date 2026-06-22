@@ -42,7 +42,11 @@ export function useCreateService() {
 export function useUpdateService() {
   const qc = useQueryClient();
 
-  return useMutation<Service, Error, { id: string; payload: UpdateServicePayload }>({
+  return useMutation<
+    Service,
+    Error,
+    { id: string; payload: UpdateServicePayload }
+  >({
     mutationFn: ({ id, payload }) =>
       apiFetch<Service>(`/api/services/${id}`, {
         method: "PUT",
