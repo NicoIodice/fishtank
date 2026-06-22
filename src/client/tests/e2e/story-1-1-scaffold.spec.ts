@@ -26,71 +26,27 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   test("AC4: root path renders the app shell top bar", async ({ page }) => {
-    // Given: authenticated session (no users-exist gate, valid auth)
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/");
 
     // Then: the app shell top bar is visible (not the Vite placeholder)
-    await expect(page.getByTestId("top-bar")).toBeVisible({
-      message:
-        "The root path must render the Fishtank app shell top bar (data-testid='top-bar'). " +
+    await expect(
+      page.getByTestId("top-bar"),
+      "The root path must render the Fishtank app shell top bar (data-testid='top-bar'). " +
         "If the Vite placeholder is shown, the React shell has not been implemented yet.",
-    });
+    ).toBeVisible();
   });
 
   test("AC4: root path renders the app shell sidebar", async ({ page }) => {
-    // Given: authenticated session
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/");
 
     // Then: the sidebar navigation is visible
-    await expect(page.getByTestId("sidebar")).toBeVisible({
-      message:
-        "The root path must render the sidebar navigation (data-testid='sidebar'). " +
+    await expect(
+      page.getByTestId("sidebar"),
+      "The root path must render the sidebar navigation (data-testid='sidebar'). " +
         "If the Vite placeholder is shown, the React shell has not been implemented yet.",
-    });
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -104,37 +60,15 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
   test("AC3c: direct navigation to /services renders the React shell", async ({
     page,
   }) => {
-    // Given: authenticated session, user navigates directly to a client-side route
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/services");
 
     // Then: the React shell is visible (not a 404 or blank page)
-    await expect(page.getByTestId("top-bar")).toBeVisible({
-      message:
-        "Direct navigation to /services must render the app shell, not a 404 page. " +
+    await expect(
+      page.getByTestId("top-bar"),
+      "Direct navigation to /services must render the app shell, not a 404 page. " +
         "The SPA fallback (MapFallbackToFile) must be configured on the backend.",
-    });
+    ).toBeVisible();
 
     // And: no browser-level 404 error (page title is not 'Page not found')
     await expect(page).not.toHaveTitle(/404|not found/i);
@@ -154,10 +88,10 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
 
     // Then: the Vite placeholder content is not visible
     // (the "Get started" heading or Vite/React logo combo is the placeholder)
-    await expect(page.getByText("Get started")).not.toBeVisible({
-      message:
-        "The Vite placeholder ('Get started' heading) must not be shown. " +
+    await expect(
+      page.getByText("Get started"),
+      "The Vite placeholder ('Get started' heading) must not be shown. " +
         "Replace App.tsx with the Fishtank app shell before shipping.",
-    });
+    ).not.toBeVisible();
   });
 });

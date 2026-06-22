@@ -1,5 +1,6 @@
 using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
+using Fishtank.Api.Engine;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -57,10 +58,24 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         // Apply migrations if not already applied (idempotent)
         await db.Database.MigrateAsync();
 
-        // Clear all data
+        // Clear all data (order matters: dependents before principals)
+        db.SystemEvents.RemoveRange(await db.SystemEvents.ToListAsync());
+        db.Services.RemoveRange(await db.Services.ToListAsync());
         db.Users.RemoveRange(await db.Users.ToListAsync());
         db.ServerConfigs.RemoveRange(await db.ServerConfigs.ToListAsync());
         await db.SaveChangesAsync();
+
+        // Stop all running WireMock servers so ports are freed between test runs,
+        // then clear the registry so stale disposed entries don't accumulate.
+        var registry = Services.GetService<IServicesRegistry>();
+        if (registry is not null)
+        {
+            foreach (var (id, server) in registry.GetAll())
+            {
+                try { server.Stop(); server.Dispose(); } catch { /* best-effort */ }
+                registry.TryRemove(id, out _);
+            }
+        }
 
         // Re-seed BootEpoch (required by IServerConfigService singleton)
         db.ServerConfigs.Add(new ServerConfig { Id = 1, BootEpoch = Guid.NewGuid() });

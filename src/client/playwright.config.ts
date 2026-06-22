@@ -8,7 +8,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: process.env.CI ? 2 : 1,
   reporter: [
     ["html", { outputFolder: "playwright-report", open: "never" }],
     ["blob", { outputDir: "blob-report" }],
@@ -22,8 +22,7 @@ export default defineConfig({
     trace: "retain-on-failure-and-retries",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
-    // Re-enable once auth endpoints are implemented:
-    // storageState: './playwright/.auth/user.json',
+    storageState: "./playwright/.auth/user.json",
   },
   globalSetup: "./tests/support/global-setup.ts",
   timeout: 60_000,

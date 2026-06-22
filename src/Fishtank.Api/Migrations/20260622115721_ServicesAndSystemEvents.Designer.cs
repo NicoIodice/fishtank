@@ -3,6 +3,7 @@ using System;
 using Fishtank.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fishtank.Api.Migrations
 {
     [DbContext(typeof(FishtankDbContext))]
-    partial class FishtankDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622115721_ServicesAndSystemEvents")]
+    partial class ServicesAndSystemEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");

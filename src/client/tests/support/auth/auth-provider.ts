@@ -46,10 +46,24 @@ export const fishtankAuthProvider: AuthProvider = {
     const userIdentifier = this.getUserIdentifier(options);
     const tokenPath = getTokenFilePath({ environment, userIdentifier });
 
-    // Reuse existing storage state if available
+    // Reuse existing storage state only if the JWT is still valid on the backend.
+    // A logout call increments token_version, silently invalidating cached JWTs;
+    // we must re-login when that happens to avoid 401s in concurrent tests.
     const existing = loadStorageState(tokenPath);
     if (existing) {
-      return existing;
+      const cookies =
+        (existing as { cookies?: Array<{ name: string; value: string }> })
+          .cookies ?? [];
+      const jwtCookie = cookies.find((c) => c.name === "fishtank_auth");
+      if (jwtCookie) {
+        const validation = await request.get(`${API_URL}/api/auth/me`, {
+          headers: { Cookie: `fishtank_auth=${jwtCookie.value}` },
+        });
+        if (validation.ok()) {
+          return existing; // JWT is still valid
+        }
+        // JWT was revoked (e.g. after logout) — fall through to re-login
+      }
     }
 
     // Acquire a new token via the login endpoint
@@ -97,12 +111,12 @@ function resolveCredentials(userIdentifier: string): {
     case "admin":
       return {
         username: process.env.TEST_ADMIN_USER ?? "admin",
-        password: process.env.TEST_ADMIN_PASS ?? "admin",
+        password: process.env.TEST_ADMIN_PASS ?? "Admin@Test123",
       };
     default:
       return {
         username: process.env.TEST_USER ?? "admin",
-        password: process.env.TEST_PASS ?? "admin",
+        password: process.env.TEST_PASS ?? "Admin@Test123",
       };
   }
 }

@@ -55,7 +55,7 @@ releases:
     released: null
     stories:
       - id: "2-1-wiremock-engine-layer-and-services-api-backend"
-        status: "in-progress"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)
