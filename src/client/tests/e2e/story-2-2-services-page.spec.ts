@@ -59,7 +59,11 @@ interface CreatedService {
 async function getNextPort(
   request: Parameters<typeof apiFetch>[0],
 ): Promise<number> {
-  return apiFetch<number>(request, "/api/services/next-port");
+  const { port } = await apiFetch<{ port: number }>(
+    request,
+    "/api/services/next-port",
+  );
+  return port;
 }
 
 /** POST /api/services directly, returns the created service. */

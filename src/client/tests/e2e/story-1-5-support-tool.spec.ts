@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // Resolve repo root: src/client/tests/e2e/ → up 4 = repo root
 const REPO_ROOT = join(__dirname, "../../../..");
-const TOOLS_DIR = join(REPO_ROOT, "support", "tools");
+const TOOLS_DIR = join(REPO_ROOT, "support", "tools", "fishtank-helper-tool");
 
 // ---------------------------------------------------------------------------
 // AC-1: Entrypoint and launchers

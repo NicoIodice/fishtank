@@ -11,5 +11,11 @@
       "sameSite": "Strict"
     }
   ],
-  "origins": []
+  "origins": [],
+  "_authConfig": {
+    "storageDir": "C:\\GIT\\_Personal\\fishtank\\src\\client\\.auth\\local\\default",
+    "debug": false,
+    "configId": "1baafd55-7351-4b78-a407-44b4f1bd583e",
+    "timestamp": "2026-06-22T23:21:29.148Z"
+  }
 }

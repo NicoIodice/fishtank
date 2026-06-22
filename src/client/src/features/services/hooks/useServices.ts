@@ -18,7 +18,12 @@ export function useServices() {
 export function useNextPort() {
   return useQuery<number>({
     queryKey: ["services", "next-port"],
-    queryFn: () => apiFetch<number>("/api/services/next-port"),
+    queryFn: async () => {
+      const { port } = await apiFetch<{ port: number }>(
+        "/api/services/next-port",
+      );
+      return port;
+    },
     staleTime: 0,
   });
 }
