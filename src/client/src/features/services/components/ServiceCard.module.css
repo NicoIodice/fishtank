@@ -1,0 +1,218 @@
+.card {
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--card-p);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s;
+}
+
+.card:hover {
+  border-color: rgba(var(--brand-rgb), 0.3);
+}
+
+.card.stopped {
+  opacity: 0.72;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nameSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--content-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.description {
+  font-size: 0.75rem;
+  color: var(--content-muted);
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.portBadge {
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--port-badge-bg, rgba(139, 92, 246, 0.15));
+  color: var(--port-badge-fg, #7c3aed);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--content-muted);
+  overflow: hidden;
+}
+
+.metaRow i {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+}
+
+.metaValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.live {
+  background: #22c55e;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dot.stopped {
+  background: #94a3b8;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggleTrack {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #cbd5e1;
+  transition: background 0.2s;
+}
+
+.toggle input:checked + .toggleTrack {
+  background: var(--brand);
+}
+
+.toggleThumb {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s;
+}
+
+.toggle input:checked ~ .toggleThumb {
+  transform: translateX(16px);
+}
+
+.toggle:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 20px;
+}
+
+.editLink {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--brand);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.editLink:hover {
+  text-decoration: underline;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--content-surface);
+  border: 1px solid var(--border);
+  color: var(--content-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+  .dot.live { animation: none; }
+  .toggleTrack { transition: none; }
+  .toggleThumb { transition: none; }
+}

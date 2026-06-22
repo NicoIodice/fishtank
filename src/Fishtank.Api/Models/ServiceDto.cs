@@ -12,5 +12,6 @@ public record ServiceDto(
     bool IsActive,
     string[] Tags,
     DateTimeOffset CreatedAt,
+    int MockFileCount,
     bool? MocksRootChanged = null
 );

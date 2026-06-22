@@ -1,0 +1,16 @@
+story_key: "2-2-services-page-browse-create-and-edit-services"
+epic_id: "2"
+current_phase: "code-review"
+status: active
+blocked_reason: ""
+test_design_retries: 0
+test_design_auto_created: false
+atdd_retries: 0
+validate_retries: 0
+dev_retries: 0
+code_review_retries: 0
+nfr_retries: 0
+trace_retries: 0
+quickdev_cycle: 0
+last_updated: "2026-06-22"
+phases_completed: ["preflight-framework", "preflight-test-design", "create-story", "atdd", "validate", "dev-story"]

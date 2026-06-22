@@ -1,0 +1,231 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+  padding: 16px;
+}
+
+.modal {
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-overlay);
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-modal);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--content-fg);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--content-muted);
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+}
+
+.closeBtn:hover {
+  color: var(--content-fg);
+}
+
+.form {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--content-fg);
+}
+
+.required::after {
+  content: " *";
+  color: var(--error);
+}
+
+.input {
+  padding: 8px 10px;
+  border: 1px solid var(--input-border, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--input-bg, var(--content-bg));
+  color: var(--content-fg);
+  font-size: 0.875rem;
+  width: 100%;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 0;
+  border-color: var(--brand);
+}
+
+.input.hasError {
+  border-color: var(--error);
+}
+
+.readonlyPath {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--content-surface);
+  color: var(--content-muted);
+  font-size: 0.75rem;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, ui-monospace, monospace;
+  word-break: break-all;
+}
+
+.errorMsg {
+  font-size: 0.75rem;
+  color: var(--error);
+}
+
+.slugWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--warning-subtle, rgba(234, 179, 8, 0.1));
+  border: 1px solid var(--warning, #ca8a04);
+  font-size: 0.75rem;
+  color: var(--content-fg);
+}
+
+.tagInputRow {
+  display: flex;
+  gap: 8px;
+}
+
+.tagInput {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--input-border, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--input-bg, var(--content-bg));
+  color: var(--content-fg);
+  font-size: 0.875rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.tagChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 24px;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 10px;
+  border-radius: var(--radius-full);
+  background: var(--content-surface);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--content-fg);
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--content-muted);
+  font-size: 0.6875rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.tagRemove:hover {
+  color: var(--error);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--content-bg);
+  color: var(--content-fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--content-surface);
+}
+
+.submitBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  color: var(--brand-fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal {
+    transition: none;
+  }
+}

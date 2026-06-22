@@ -96,6 +96,8 @@ public class Story2_1_ServicesTests : IntegrationTestBase
         data.GetProperty("port").GetInt32().Should().Be(TestPort1);
         data.GetProperty("externalUrl").GetString().Should().Be("https://api.weather.example.com");
         data.GetProperty("mocksRoot").GetString().Should().Contain("weather-api");
+        data.GetProperty("mockFileCount").GetInt32().Should().Be(0,
+            "MocksRoot directory does not exist in tests — mockFileCount must default to 0 gracefully");
 
         // Verify WireMock is actually listening: TCP connection should succeed
         var tcpConnected = await TryTcpConnectAsync("127.0.0.1", TestPort1);
