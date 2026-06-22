@@ -45,8 +45,6 @@ function uniqueName(prefix: string): string {
   return `${prefix}-${faker.string.alphanumeric(6).toLowerCase()}`;
 }
 
-const API_URL = process.env.API_URL ?? "http://localhost:5000";
-
 interface CreatedService {
   id: string;
   name: string;
@@ -149,44 +147,44 @@ test.describe("Story 2.2 — P0: Services Page core", () => {
   });
 
   // AC-9 — Performance: 50 services ≤1000ms
-  test(
-    "P0-3: 50 services render within 1000ms of navigation",
-    async ({ page, request }) => {
-      // Seed up to 50 services (best-effort — may fail on port conflicts if
-      // some ports are already taken; use a fresh DB for this test).
-      // TODO: Replace with a bulk-seed or reset endpoint (Epic 6).
-      const seeded: CreatedService[] = [];
-      for (let i = 0; i < 50; i++) {
-        try {
-          const svc = await seedService(request, {
-            name: uniqueName(`perf-svc-${i}`),
-            port: 30100 + i,
-          });
-          seeded.push(svc);
-        } catch {
-          // Skip if port is taken or service name conflicts — continue
-        }
+  test("P0-3: 50 services render within 1000ms of navigation", async ({
+    page,
+    request,
+  }) => {
+    test.setTimeout(30_000); // Extended timeout for seeding
+    // Seed up to 50 services (best-effort — may fail on port conflicts if
+    // some ports are already taken; use a fresh DB for this test).
+    // TODO: Replace with a bulk-seed or reset endpoint (Epic 6).
+    const seeded: CreatedService[] = [];
+    for (let i = 0; i < 50; i++) {
+      try {
+        const svc = await seedService(request, {
+          name: uniqueName(`perf-svc-${i}`),
+          port: 30100 + i,
+        });
+        seeded.push(svc);
+      } catch {
+        // Skip if port is taken or service name conflicts — continue
       }
+    }
 
-      // Measure time from navigation to grid rendering
-      const start = Date.now();
-      await page.goto("/services");
-      await page.waitForSelector('[data-testid="services-grid"]', {
-        timeout: 1500,
-      });
-      const elapsed = Date.now() - start;
+    // Measure time from navigation to grid rendering
+    const start = Date.now();
+    await page.goto("/services");
+    await page.waitForSelector('[data-testid="services-grid"]', {
+      timeout: 1500,
+    });
+    const elapsed = Date.now() - start;
 
-      // Performance gate: all cards must appear within 1 second (AC-9)
-      expect(elapsed).toBeLessThan(1000);
+    // Performance gate: all cards must appear within 1 second (AC-9)
+    expect(elapsed).toBeLessThan(1000);
 
-      // At least some cards are visible (we may have seeded fewer than 50
-      // if port conflicts occurred)
-      const cards = page.locator('[data-testid^="service-card-"]');
-      const count = await cards.count();
-      expect(count).toBeGreaterThan(0);
-    },
-    { timeout: 30_000 }, // Extended timeout for seeding
-  );
+    // At least some cards are visible (we may have seeded fewer than 50
+    // if port conflicts occurred)
+    const cards = page.locator('[data-testid^="service-card-"]');
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(0);
+  });
 });
 
 // ───────────────────────────────────────────────────────────────────────────

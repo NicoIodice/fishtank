@@ -99,6 +99,6 @@ public static class ServicesEndpoints
         CancellationToken ct)
     {
         var port = await manager.GetNextPortAsync(ct);
-        return Results.Ok(ApiResponse.Ok(port));
+        return Results.Ok(ApiResponse.Ok(new { port }));
     }
 }
