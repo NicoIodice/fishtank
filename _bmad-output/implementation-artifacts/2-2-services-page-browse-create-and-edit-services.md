@@ -3,7 +3,7 @@ story_id: "2.2"
 epic: 2
 story_key: 2-2-services-page-browse-create-and-edit-services
 story_title: "Services Page â€” Browse, Create & Edit Services"
-status: review
+status: done
 priority: high
 baseline_commit: 0ec129b3b7e2fc47e739ba9c8f2e7fe48ace2f1a
 ---

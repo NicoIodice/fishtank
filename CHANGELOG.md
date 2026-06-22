@@ -26,6 +26,9 @@ _Theme: Define mock services and have WireMock start serving requests immediatel
 - **SSRF guard** — `ExternalUrl` blocks loopback (127.0.0.1, localhost, ::1) and cloud-metadata (169.254.169.254, 100.100.100.200) endpoints with `SERVICE_URL_INVALID` (`story/2-1`)
 - **Structured error codes** — `SERVICE_NAME_REQUIRED`, `SERVICE_NAME_INVALID`, `SERVICE_SLUG_CONFLICT`, `SERVICE_PORT_OUT_OF_RANGE`, `SERVICE_PORT_RANGE_EXHAUSTED`, `SERVICE_URL_INVALID`, `SERVICE_NOT_FOUND` (`story/2-1`)
 - **ServicesHub** — SignalR hub skeleton at `/hubs/services` with `[Authorize]`; real-time push implemented in later stories (`story/2-1`)
+- **Services page** — grid/table dual-view (persistent in sessionStorage) with `ServiceCard` components showing name, port badge, status pill, external URL, mock-file count, and tag chips; tag filter with AND logic; Add Service modal (port pre-filled from `next-port`, 200ms slug debounce, slug-change warning, tag chip input); Edit Service modal with field pre-population; toggle start/stop from card (`story/2-2`)
+- **`DataTable<T>` component** — generic sortable table with `sortValue` accessor, `localeCompare` collation, sticky headers, keyboard navigation (ArrowDown/ArrowUp/Enter), and `aria-sort` attributes; `table-layout: fixed` with `<colgroup>` column widths (`story/2-2`)
+- **`mockFileCount` on ServiceDto** — backend counts `.json` files in the service's mocks root directory; returns 0 when directory is missing or inaccessible (`story/2-2`)
 
 ---
 
