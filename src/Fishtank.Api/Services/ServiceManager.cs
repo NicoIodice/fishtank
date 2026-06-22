@@ -277,7 +277,21 @@ public partial class ServiceManager(
     private static ServiceDto ToDto(Service s, bool? mocksRootChanged = null) =>
         new(s.Id, s.Name, s.Slug, s.Description, s.ExternalUrl, s.Port,
             s.MocksRoot, s.Status == ServiceStatus.Live ? "live" : "stopped",
-            s.IsActive, s.Tags, s.CreatedAt, mocksRootChanged);
+            s.IsActive, s.Tags, s.CreatedAt,
+            CountMockFiles(s.MocksRoot), mocksRootChanged);
+
+    private static int CountMockFiles(string mocksRoot)
+    {
+        try
+        {
+            if (!Directory.Exists(mocksRoot)) return 0;
+            return Directory.GetFiles(mocksRoot, "*.json", SearchOption.TopDirectoryOnly).Length;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 
     [GeneratedRegex("[^a-z0-9-]")]
     private static partial Regex SlugCleanupRegex();

@@ -226,6 +226,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
+app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 
@@ -240,6 +241,12 @@ app.MapFallback(async (HttpContext ctx, IWebHostEnvironment env) =>
         || path.Equals("/hubs", StringComparison.OrdinalIgnoreCase)
         || path.Equals("/health", StringComparison.OrdinalIgnoreCase)
         || path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    if (env.WebRootPath is null)
     {
         ctx.Response.StatusCode = StatusCodes.Status404NotFound;
         return;

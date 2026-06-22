@@ -22,10 +22,20 @@ namespace Fishtank.Api.IntegrationTests.Support;
 public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
 {
     private SqliteConnection? _connection;
+    private string? _testWebRoot;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        // Create a minimal wwwroot so UseStaticFiles and MapFallback can serve
+        // index.html during integration tests (no real client build required).
+        _testWebRoot = Path.Combine(Path.GetTempPath(), $"fishtank-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testWebRoot);
+        File.WriteAllText(
+            Path.Combine(_testWebRoot, "index.html"),
+            "<!DOCTYPE html><html><head><title>Fishtank</title></head><body><div id=\"root\"></div></body></html>");
+        builder.UseWebRoot(_testWebRoot);
 
         builder.ConfigureServices(services =>
         {
@@ -92,6 +102,8 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         if (disposing)
         {
             _connection?.Dispose(); // Then release the in-memory connection
+            if (_testWebRoot is not null && Directory.Exists(_testWebRoot))
+                Directory.Delete(_testWebRoot, recursive: true);
         }
     }
 }
