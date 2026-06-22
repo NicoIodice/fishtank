@@ -26,7 +26,6 @@ _Theme: Define mock services and have WireMock start serving requests immediatel
 - **SSRF guard** — `ExternalUrl` blocks loopback (127.0.0.1, localhost, ::1) and cloud-metadata (169.254.169.254, 100.100.100.200) endpoints with `SERVICE_URL_INVALID` (`story/2-1`)
 - **Structured error codes** — `SERVICE_NAME_REQUIRED`, `SERVICE_NAME_INVALID`, `SERVICE_SLUG_CONFLICT`, `SERVICE_PORT_OUT_OF_RANGE`, `SERVICE_PORT_RANGE_EXHAUSTED`, `SERVICE_URL_INVALID`, `SERVICE_NOT_FOUND` (`story/2-1`)
 - **ServicesHub** — SignalR hub skeleton at `/hubs/services` with `[Authorize]`; real-time push implemented in later stories (`story/2-1`)
-- **100 tests** — 51 integration (xUnit + `Microsoft.AspNetCore.Mvc.Testing`) and 49 unit (xUnit + NSubstitute + FluentAssertions + EF InMemory) (`story/2-1`)
 
 ---
 

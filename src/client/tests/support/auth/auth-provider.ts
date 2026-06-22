@@ -51,7 +51,9 @@ export const fishtankAuthProvider: AuthProvider = {
     // we must re-login when that happens to avoid 401s in concurrent tests.
     const existing = loadStorageState(tokenPath);
     if (existing) {
-      const cookies = (existing as { cookies?: Array<{ name: string; value: string }> }).cookies ?? [];
+      const cookies =
+        (existing as { cookies?: Array<{ name: string; value: string }> })
+          .cookies ?? [];
       const jwtCookie = cookies.find((c) => c.name === "fishtank_auth");
       if (jwtCookie) {
         const validation = await request.get(`${API_URL}/api/auth/me`, {

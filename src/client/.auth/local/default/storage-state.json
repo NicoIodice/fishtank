@@ -1,10 +1,15 @@
 {
-  "cookies": [],
-  "origins": [],
-  "_authConfig": {
-    "storageDir": "C:\\GIT\\_Personal\\fishtank\\src\\client\\.auth\\local\\default",
-    "debug": false,
-    "configId": "977ceff9-7c12-4b5d-ad1d-45679a581051",
-    "timestamp": "2026-06-21T23:49:23.488Z"
-  }
+  "cookies": [
+    {
+      "name": "fishtank_auth",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJlY2VhYzgwMy1iYmRmLTRmOWItYTM0OC0zZDliNTgyNzcyZTEiLCJyb2xlIjoiQWRtaW4iLCJ0b2tlbl92ZXJzaW9uIjoiMyIsImJvb3RfZXBvY2giOiI4ZjdlNTc5YS1iMDRjLTRmYzgtYjM5NC1hODQ2YWUyOWIyMWUiLCJuYmYiOjE3ODIxMzk4ODcsImV4cCI6MTc4MjE0MzQ4NywiaWF0IjoxNzgyMTM5ODg3fQ.r8kLfBucY9Pwr_fUS_Slv7jgUywmnoDQWrkpumYCS3I",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    }
+  ],
+  "origins": []
 }
