@@ -116,7 +116,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   data-testid={item.testId}
                   onClick={onMobileClose}
                 >
-                  {({ isActive }) => (
+                  {() => (
                     <>
                       <i className={`bi ${item.icon}`} aria-hidden="true" />
                       <span className={styles.label}>{item.label}</span>
@@ -149,7 +149,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               data-testid={item.testId}
               title={collapsed ? item.label : undefined}
             >
-              {({ isActive }) => (
+              {() => (
                 <>
                   <i className={`bi ${item.icon}`} aria-hidden="true" />
                   {!collapsed && (

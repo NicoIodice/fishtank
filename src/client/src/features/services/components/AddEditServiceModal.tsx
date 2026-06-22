@@ -244,7 +244,6 @@ export function AddEditServiceModal({
               placeholder="My API"
               aria-describedby={errors.name ? "svc-name-error" : undefined}
               data-testid="input-service-name"
-              // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
             {errors.name && (
