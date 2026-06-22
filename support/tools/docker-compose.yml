@@ -19,6 +19,7 @@ services:
       - "${FISHTANK_MOCKS_PATH:-./mocks}:/mocks"
       - "${FISHTANK_DATA_PATH:-./data}:/data"
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - FISHTANK_DB_PATH=/data/fishtank.db
       - FISHTANK_MOCKS_ROOT=/mocks
       - FISHTANK_JWT_SECRET=${FISHTANK_JWT_SECRET:-fishtank-local-dev-jwt-secret-change-me-32!!}

@@ -57,6 +57,13 @@ interface CreatedService {
   mockFileCount: number;
 }
 
+/** GET /api/services/next-port — returns the next available port number. */
+async function getNextPort(
+  request: Parameters<typeof apiFetch>[0],
+): Promise<number> {
+  return apiFetch<number>(request, "/api/services/next-port");
+}
+
 /** POST /api/services directly, returns the created service. */
 async function seedService(
   request: Parameters<typeof apiFetch>[0],
@@ -131,8 +138,11 @@ test.describe("Story 2.2 — P0: Services Page core", () => {
     expect(status).toBe(200);
 
     // And — port field is pre-filled with a valid value in 30100–30199
+    // Use auto-waiting assertion: React's useEffect fires async after the query
+    // resolves, so we wait for the input to be non-empty before reading it.
     const portInput = page.getByTestId("input-service-port");
     await expect(portInput).toBeVisible();
+    await expect(portInput).not.toHaveValue(""); // waits for React state update
     const portValue = await portInput.inputValue();
     expect(Number(portValue)).toBeGreaterThanOrEqual(30100);
     expect(Number(portValue)).toBeLessThanOrEqual(30199);
@@ -268,10 +278,11 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     const serviceName = uniqueName("tagged-svc");
 
     // Seed a service with a tag via the API
+    const port = await getNextPort(request);
     const created = await seedService(request, {
       name: serviceName,
       tags: [tagName],
-      port: 30150,
+      port,
     });
 
     // Given — on the services page
@@ -306,6 +317,12 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     // Given — on the services page (with any existing services)
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/services");
+
+    // Wait for the page to finish loading (services or empty state)
+    await page.waitForSelector(
+      '[data-testid="services-grid"], [data-testid="services-empty"]',
+      { timeout: 5000 },
+    );
 
     // If no services exist, the card grid won't be shown — skip
     const gridLocator = page.getByTestId("services-grid");
@@ -347,9 +364,10 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     request,
   }) => {
     const originalName = uniqueName("edit-svc");
+    const port = await getNextPort(request);
     const created = await seedService(request, {
       name: originalName,
-      port: 30160,
+      port,
     });
 
     // Given — on the services page
@@ -383,9 +401,10 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     request,
   }) => {
     const name = uniqueName("card-content-svc");
+    const port = await getNextPort(request);
     const created = await seedService(request, {
       name,
-      port: 30170,
+      port,
       externalUrl: "http://card-test.example.com",
     });
 
@@ -396,15 +415,16 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     const card = page.getByTestId(`service-card-${created.id}`);
     await expect(card).toBeVisible();
 
-    // Port badge: shows :30170
-    await expect(card.locator(`[title="Port 30170"]`)).toBeVisible();
+    // Port badge: shows the assigned port
+    await expect(card.locator(`[title="Port ${port}"]`)).toBeVisible();
 
     // Status pill: "Stopped" (WireMock may not start in test env — check either)
     const statusText = await card.locator(".status-label").textContent();
     expect(["Live", "Stopped"]).toContain(statusText?.trim());
 
-    // Toggle control
-    await expect(card.locator(`[aria-label*="${name}"]`)).toBeVisible();
+    // Toggle control (use label element specifically to avoid strict-mode violation
+    // — the card renders both a <label> and <input> with the same aria-label)
+    await expect(card.locator(`label[aria-label*="${name}"]`)).toBeVisible();
 
     // Edit link
     await expect(page.getByTestId(`edit-service-${created.id}`)).toBeVisible();
