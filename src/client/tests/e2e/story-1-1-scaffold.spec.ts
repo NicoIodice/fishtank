@@ -26,29 +26,7 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
   // ─────────────────────────────────────────────────────────────────────────
 
   test("AC4: root path renders the app shell top bar", async ({ page }) => {
-    // Given: authenticated session (no users-exist gate, valid auth)
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/");
 
     // Then: the app shell top bar is visible (not the Vite placeholder)
@@ -60,29 +38,7 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
   });
 
   test("AC4: root path renders the app shell sidebar", async ({ page }) => {
-    // Given: authenticated session
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/");
 
     // Then: the sidebar navigation is visible
@@ -104,29 +60,7 @@ test.describe("Story 1-1: Project Scaffold — App Shell E2E", () => {
   test("AC3c: direct navigation to /services renders the React shell", async ({
     page,
   }) => {
-    // Given: authenticated session, user navigates directly to a client-side route
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: {
-            userId: "1",
-            username: "admin",
-            role: "Admin",
-            forcePasswordChange: false,
-          },
-        }),
-      }),
-    );
+    // Given: authenticated session (storageState provides JWT cookie)
     await page.goto("/services");
 
     // Then: the React shell is visible (not a 404 or blank page)

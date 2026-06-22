@@ -270,6 +270,34 @@ A story is `done` only when **all** of the following are true:
 | Frontend component | Vitest + Testing Library | Co-located `*.test.tsx` in feature folders — msw for API mocking |
 | E2E smoke | Playwright | `src/client/tests/e2e/` — runs against live stack (Vite dev server + .NET API) |
 
+### E2E Playwright — Backend Mocking Policy
+
+**Default: no mocking.** E2E tests (`src/client/tests/e2e/`) run against the live stack. `page.route()` interceptors are **only permitted** for the specific cases below.
+
+| ✅ Legitimate `page.route()` use | Reason |
+|---|---|
+| Forcing `GET /api/setup/status → needsSetup:true` | Requires zero-user DB — can't be reproduced against a shared test backend that has already completed setup |
+| Fault injection: 500, timeout, network error | Hard/impossible to trigger deterministically from a real backend in CI |
+| Non-deterministic real-time data (network activity sniffing, SignalR push sequences) | The source data is live traffic — not reproducible without a real target service making real requests |
+
+| ❌ Forbidden `page.route()` use | Use instead |
+|---|---|
+| Simulating an authenticated session | `storageState` from `global-setup.ts` / `seedAuthStorageState()` |
+| Mocking `GET /api/auth/me` to appear logged in | `storageState` |
+| Mocking `POST /api/auth/login` (happy path) | Hit the real backend — this is the core flow |
+| Mocking `POST /api/auth/logout` | Hit the real backend |
+| Mocking `POST /api/auth/setup` (happy path) | Hit the real backend |
+| Mocking `GET /api/setup/status → needsSetup:false` | Real backend returns this naturally once setup is done |
+| Mocking any CRUD endpoint (services, mappings, users…) | Hit the real backend |
+
+**Why this matters:** Mocking the backend in E2E tests is the same as not running them end-to-end. A test that mocks `auth/me` to return 200 does not verify that the JWT cookie is valid, that the backend is running, or that auth middleware is wired correctly. The bug where the first-run setup page returned empty fields was caused by exactly this — the AC-5 E2E test mocked the backend and passed as a false positive.
+
+**Required infrastructure (enable before writing real E2E tests):**
+- Uncomment `await seedAuthStorageState()` in `src/client/tests/support/global-setup.ts`
+- Uncomment `storageState: './playwright/.auth/user.json'` in `src/client/playwright.config.ts`
+- Set `TEST_USER`, `TEST_PASS`, and `API_URL` in the test environment (`.env.test` or CI secrets)
+- E2E tests must run against a backend that has already completed `POST /api/auth/setup` (seeded in global-setup)
+
 ### Critical Rules
 - Integration tests use `WebApplicationFactory<Program>` — **never** spin up a real HTTP server manually
 - Every new endpoint → minimum one integration test (happy path + one error path)
@@ -301,6 +329,8 @@ A story is `done` only when **all** of the following are true:
 | `accessTokenFactory` for SignalR auth | httpOnly cookies work natively with WebSocket upgrades |
 | `Task.Delay` in FSW tests | Inject `IFileWatcher` fake; trigger synchronously |
 | Sharing `WireMockServer` across parallel test classes | Use `WireMockTestFixture` per class with port-0 |
+| `page.route()` to mock auth/me, auth/login, or CRUD endpoints in E2E tests | Use `storageState` for session; hit real backend for flows |
+| Adding test entries to `CHANGELOG.md` (unit tests added, integration tests, E2E tests, test coverage) | CHANGELOG records user-facing changes only — endpoints, features, behavior, entities; never test implementation details |
 | Storing JWT in localStorage or sessionStorage | httpOnly cookie only |
 | File sinks in Serilog | Console sink only — Docker logs to stdout |
 | Slug uniqueness enforced only in application code | DB-level unique index on `Services.Slug` |

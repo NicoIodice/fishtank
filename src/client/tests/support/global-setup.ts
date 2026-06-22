@@ -3,6 +3,8 @@ import {
   authStorageInit,
   configureAuthSession,
   setAuthProvider,
+  saveStorageState,
+  getStorageStatePath,
 } from "@seontechnologies/playwright-utils/auth-session";
 import { fishtankAuthProvider } from "./auth/auth-provider";
 
@@ -15,28 +17,50 @@ async function globalSetup(): Promise<void> {
   });
   setAuthProvider(fishtankAuthProvider);
 
-  // TODO: Uncomment once the /api/auth/login endpoint is implemented
-  // await seedAuthStorageState();
+  await seedAuthStorageState();
 }
 
 /**
  * Authenticates once via the Fishtank API and persists the browser storage
  * state (httpOnly JWT cookie) to disk for reuse across all test workers.
  *
- * Enable by uncommenting the call in globalSetup above, and un-commenting
- * `storageState` in playwright.config.ts.
+ * Handles first-run: if the backend reports needsSetup=true, it calls
+ * POST /api/auth/setup to create the default admin account before logging in.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function seedAuthStorageState(): Promise<void> {
   const browser = await chromium.launch();
   const context = await browser.newContext();
 
   const apiUrl = process.env.API_URL ?? "http://localhost:5000";
+  const username = process.env.TEST_USER ?? "admin";
+  const password = process.env.TEST_PASS ?? "Admin@Test123";
+
+  // First-run guard: create admin if no users exist yet
+  const statusResponse = await context.request.get(
+    `${apiUrl}/api/setup/status`,
+  );
+  if (statusResponse.ok()) {
+    const statusBody = (await statusResponse.json()) as {
+      data: { needsSetup: boolean };
+    };
+    if (statusBody.data?.needsSetup) {
+      const setupResponse = await context.request.post(
+        `${apiUrl}/api/auth/setup`,
+        {
+          data: { username, password },
+        },
+      );
+      if (!setupResponse.ok()) {
+        await browser.close();
+        throw new Error(
+          `First-run admin setup failed: HTTP ${setupResponse.status()}`,
+        );
+      }
+    }
+  }
+
   const response = await context.request.post(`${apiUrl}/api/auth/login`, {
-    data: {
-      username: process.env.TEST_USER ?? "admin",
-      password: process.env.TEST_PASS ?? "admin",
-    },
+    data: { username, password },
   });
 
   if (!response.ok()) {
@@ -45,6 +69,17 @@ async function seedAuthStorageState(): Promise<void> {
   }
 
   await context.storageState({ path: "./playwright/.auth/user.json" });
+
+  // Also overwrite the path that createAuthFixtures()/manageAuthToken uses.
+  // authStorageInit() pre-creates this file with empty cookies, which fools
+  // manageAuthToken into skipping login. Overwrite it with the real JWT state.
+  const authState = await context.storageState();
+  const tokenPath = getStorageStatePath({
+    environment: "local",
+    userIdentifier: "default",
+  });
+  saveStorageState(tokenPath, authState);
+
   await browser.close();
 }
 
