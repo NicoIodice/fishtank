@@ -298,9 +298,7 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     }
 
     // And — the seeded service card is visible
-    await expect(
-      page.getByTestId(`service-card-${created.id}`),
-    ).toBeVisible();
+    await expect(page.getByTestId(`service-card-${created.id}`)).toBeVisible();
   });
 
   // AC-2 — Responsive grid: 3 col ≥1024px, 2 col 640–1023px, 1 col <640px

@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -52,7 +52,9 @@ function makeQc() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+  );
 }
 
 function renderPage() {
@@ -117,7 +119,7 @@ describe("ServicesPage â€” loading / error / empty states", () => {
       data: [],
       isLoading: true,
       isError: false,
-    } as ReturnType<typeof useServices>);
+    } as unknown as ReturnType<typeof useServices>);
 
     renderPage();
     expect(screen.getByTestId("services-loading")).toBeDefined();
@@ -130,7 +132,7 @@ describe("ServicesPage â€” loading / error / empty states", () => {
       data: [],
       isLoading: false,
       isError: true,
-    } as ReturnType<typeof useServices>);
+    } as unknown as ReturnType<typeof useServices>);
 
     renderPage();
     expect(screen.getByTestId("services-error")).toBeDefined();
@@ -141,7 +143,7 @@ describe("ServicesPage â€” loading / error / empty states", () => {
       data: [],
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useServices>);
+    } as unknown as ReturnType<typeof useServices>);
 
     renderPage();
     expect(screen.getByTestId("services-empty")).toBeDefined();
@@ -258,7 +260,9 @@ describe("ServicesPage â€” tag filter", () => {
     await user.click(screen.getByRole("button", { name: "internal" }));
     expect(screen.queryByTestId(`service-card-${svcB.id}`)).toBeNull();
 
-    const clearBtn = screen.getByRole("button", { name: /clear all tag filters/i });
+    const clearBtn = screen.getByRole("button", {
+      name: /clear all tag filters/i,
+    });
     await user.click(clearBtn);
 
     expect(screen.getByTestId(`service-card-${svcA.id}`)).toBeDefined();
@@ -292,7 +296,7 @@ describe("ServicesPage â€” modal open/close", () => {
       data: [],
       isLoading: false,
       isError: false,
-    } as ReturnType<typeof useServices>);
+    } as unknown as ReturnType<typeof useServices>);
 
     const user = userEvent.setup();
     renderPage();
@@ -322,5 +326,3 @@ describe("ServicesPage â€” modal open/close", () => {
     expect(screen.queryByTestId("service-modal")).toBeNull();
   });
 });
-
-

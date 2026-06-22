@@ -11,7 +11,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 
 afterEach(() => {
@@ -54,25 +53,19 @@ const columns: DataTableColumn<Fruit>[] = [
 describe("DataTable — rendering", () => {
   it("renders all column headers", () => {
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     // Sort buttons have aria-label="Sort by {col}"
     expect(screen.getByRole("button", { name: /sort by name/i })).toBeDefined();
-    expect(screen.getByRole("button", { name: /sort by count/i })).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /sort by count/i }),
+    ).toBeDefined();
   });
 
   it("renders a row for each item", () => {
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     expect(screen.getAllByRole("row")).toHaveLength(fruits.length + 1); // +1 for header row
@@ -123,11 +116,7 @@ describe("DataTable — sort", () => {
   it("sorts by name ascending on first click", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     await user.click(screen.getByRole("button", { name: /sort by name/i }));
@@ -141,11 +130,7 @@ describe("DataTable — sort", () => {
   it("sorts by name descending on second click (same column)", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     const sortBtn = screen.getByRole("button", { name: /sort by name/i });
@@ -161,17 +146,15 @@ describe("DataTable — sort", () => {
   it("sorts numerically when sortValue returns a number (count column)", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     await user.click(screen.getByRole("button", { name: /sort by count/i }));
 
     // Ascending order: 3, 5, 12
-    const countCells = screen.getAllByRole("cell").filter((_, i) => i % 2 !== 0); // count cells (odd indices)
+    const countCells = screen
+      .getAllByRole("cell")
+      .filter((_, i) => i % 2 !== 0); // count cells (odd indices)
     expect(countCells[0].textContent).toBe("3");
     expect(countCells[1].textContent).toBe("5");
     expect(countCells[2].textContent).toBe("12");
@@ -180,27 +163,21 @@ describe("DataTable — sort", () => {
   it("sets aria-sort='ascending' on active sort column", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     await user.click(screen.getByRole("button", { name: /sort by name/i }));
 
-    const nameHeader = screen.getByRole("button", { name: /sort by name/i }).closest("th");
+    const nameHeader = screen
+      .getByRole("button", { name: /sort by name/i })
+      .closest("th");
     expect(nameHeader?.getAttribute("aria-sort")).toBe("ascending");
   });
 
   it("sets aria-sort='descending' after second click on same column", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     const btn = screen.getByRole("button", { name: /sort by name/i });
@@ -214,11 +191,7 @@ describe("DataTable — sort", () => {
   it("resets to ascending sort when switching to a different column", async () => {
     const user = userEvent.setup();
     render(
-      <DataTable
-        columns={columns}
-        rows={fruits}
-        getRowId={(r) => r.id}
-      />,
+      <DataTable columns={columns} rows={fruits} getRowId={(r) => r.id} />,
     );
 
     // Sort name descending

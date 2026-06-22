@@ -64,10 +64,13 @@ const stoppedService = {
 describe("ServiceCard — AC-3: card content rendering", () => {
   beforeEach(() => {
     // Mock fetch — toggle calls the API
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { ...liveService } }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: { ...liveService } }),
+      }),
+    );
   });
 
   it("renders service name", () => {
@@ -97,9 +100,7 @@ describe("ServiceCard — AC-3: card content rendering", () => {
         <ServiceCard service={liveService} onEdit={onEdit} />
       </Wrapper>,
     );
-    expect(
-      screen.getByText("Mock for the payments service"),
-    ).toBeDefined();
+    expect(screen.getByText("Mock for the payments service")).toBeDefined();
   });
 
   it("renders mock file count", () => {
@@ -194,13 +195,16 @@ describe("ServiceCard — AC-3: card content rendering", () => {
 describe("AddEditServiceModal — AC-5, AC-8: form validation and slug-change warning", () => {
   beforeEach(() => {
     // Mock fetch to avoid real API calls (next-port, create/update)
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: 30100,
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: 30100,
+        }),
       }),
-    }));
+    );
   });
 
   it("renders Add Service modal title in add mode", () => {
@@ -273,9 +277,7 @@ describe("AddEditServiceModal — AC-5, AC-8: form validation and slug-change wa
     fireEvent.blur(nameInput);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/64 characters or fewer/i),
-      ).toBeDefined();
+      expect(screen.getByText(/64 characters or fewer/i)).toBeDefined();
     });
   });
 
