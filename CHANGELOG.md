@@ -14,6 +14,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 _Theme: Define mock services and have WireMock start serving requests immediately._
 
+### Added
+
+- **WireMock engine layer** — `EngineStartup` hosted service auto-starts all Live services on container boot; per-service fault isolation (catch per service, continue loop); port-binding failures recorded as `SystemEvent` with `severity=error` (`story/2-1`)
+- **Services CRUD API** — `POST /api/services` (create + WireMock start), `GET /api/services` (list), `PUT /api/services/{id}` (update), `POST /api/services/{id}/stop`, `POST /api/services/{id}/start`; all require JWT auth (`story/2-1`)
+- **`GET /api/services/next-port`** — returns lowest available port in 30100–30199; reclaims ports from soft-deleted services (`story/2-1`)
+- **System Events API** — `GET /api/system-events` returns all system events ordered by `CreatedAt` desc; auth-required (`story/2-1`)
+- **`Services` and `SystemEvents` EF entities + migration** — `Services` (Id, Name, Slug unique, ExternalUrl, Port, MocksRoot, Status, IsActive, DeletedAt, TagsJson, CreatedAt); `SystemEvents` (Id, Severity, Message, ServiceId nullable FK, CreatedAt, IsRead) (`story/2-1`)
+- **`IServicesRegistry`** — thread-safe singleton `ConcurrentDictionary<Guid, WireMockServer>` for in-process WireMock instances (`story/2-1`)
+- **`IWireMockServerFactory`** — abstraction over `WireMockServer.Start()` enabling fault injection in tests (`story/2-1`)
+- **SSRF guard** — `ExternalUrl` blocks loopback (127.0.0.1, localhost, ::1) and cloud-metadata (169.254.169.254, 100.100.100.200) endpoints with `SERVICE_URL_INVALID` (`story/2-1`)
+- **Structured error codes** — `SERVICE_NAME_REQUIRED`, `SERVICE_NAME_INVALID`, `SERVICE_SLUG_CONFLICT`, `SERVICE_PORT_OUT_OF_RANGE`, `SERVICE_PORT_RANGE_EXHAUSTED`, `SERVICE_URL_INVALID`, `SERVICE_NOT_FOUND` (`story/2-1`)
+- **ServicesHub** — SignalR hub skeleton at `/hubs/services` with `[Authorize]`; real-time push implemented in later stories (`story/2-1`)
+- **100 tests** — 51 integration (xUnit + `Microsoft.AspNetCore.Mvc.Testing`) and 49 unit (xUnit + NSubstitute + FluentAssertions + EF InMemory) (`story/2-1`)
+
 ---
 
 ## [v0.1.0] — 2026-06-20 (Foundation)

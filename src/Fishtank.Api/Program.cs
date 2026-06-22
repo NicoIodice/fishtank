@@ -5,6 +5,8 @@ using System.Threading.RateLimiting;
 using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Endpoints;
+using Fishtank.Api.Engine;
+using Fishtank.Api.Hubs;
 using Fishtank.Api.Middleware;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -150,6 +152,14 @@ builder.Services.AddSingleton<IServerConfigService, ServerConfigService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// ─── 6b. Engine + Services layer (Epic 2) ─────────────────────────────────
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IServicesRegistry, ServicesRegistry>();
+builder.Services.AddSingleton<IWireMockServerFactory, DefaultWireMockServerFactory>();
+builder.Services.AddScoped<ISystemEventService, SystemEventService>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddHostedService<EngineStartup>();
+
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -215,6 +225,9 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
+app.MapServicesEndpoints();
+app.MapSystemEventsEndpoints();
+app.MapHub<ServicesHub>("/hubs/services");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.
