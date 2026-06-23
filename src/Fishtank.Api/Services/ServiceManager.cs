@@ -3,7 +3,9 @@ using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Engine;
 using Fishtank.Api.Exceptions;
+using Fishtank.Api.Hubs;
 using Fishtank.Api.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WireMock.Handlers;
@@ -17,7 +19,8 @@ public partial class ServiceManager(
     IServicesRegistry registry,
     ISystemEventService systemEvents,
     IConfiguration configuration,
-    IWireMockServerFactory wireMockFactory) : IServiceManager
+    IWireMockServerFactory wireMockFactory,
+    IHubContext<ServicesHub> servicesHub) : IServiceManager
 {
     private const int PortMin = 30100;
     private const int PortMax = 30199;
@@ -132,7 +135,14 @@ public partial class ServiceManager(
         }
 
         service.Status = ServiceStatus.Stopped;
+        service.IsActive = false;
         await db.SaveChangesAsync(ct);
+
+        await servicesHub.Clients.All.SendAsync(
+            "ServiceStatusChanged",
+            new { id = service.Id.ToString(), status = "stopped" },
+            ct);
+
         return ToDto(service);
     }
 
@@ -168,7 +178,15 @@ public partial class ServiceManager(
                 service.Id, ct);
         }
 
+        service.IsActive = service.Status == ServiceStatus.Live;
         await db.SaveChangesAsync(ct);
+
+        var broadcastStatus = service.Status == ServiceStatus.Live ? "live" : "stopped";
+        await servicesHub.Clients.All.SendAsync(
+            "ServiceStatusChanged",
+            new { id = service.Id.ToString(), status = broadcastStatus },
+            ct);
+
         return ToDto(service);
     }
 

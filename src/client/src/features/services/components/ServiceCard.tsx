@@ -15,7 +15,7 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
   function handleToggle() {
     toggleMutation.mutate({
       id: service.id,
-      action: isLive ? "stop" : "start",
+      action: service.isActive ? "stop" : "start",
     });
   }
 
@@ -98,10 +98,11 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
             <input
               id={toggleId}
               type="checkbox"
-              checked={isLive}
+              checked={service.isActive}
               onChange={handleToggle}
               disabled={toggleMutation.isPending}
-              aria-label={`${isLive ? "Stop" : "Start"} ${service.name}`}
+              aria-label={`${service.isActive ? "Stop" : "Start"} ${service.name}`}
+              data-testid={`service-toggle-${service.id}`}
             />
             <span className={styles.toggleTrack} />
             <span className={styles.toggleThumb} />

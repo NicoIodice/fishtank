@@ -229,6 +229,7 @@ app.MapServicesEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
+app.MapHub<EventsHub>("/hubs/events");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.

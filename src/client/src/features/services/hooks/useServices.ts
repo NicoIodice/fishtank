@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { useShowToast } from "@/lib/ToastContext";
 import type {
   Service,
   CreateServicePayload,
@@ -66,13 +67,48 @@ export function useUpdateService() {
 
 export function useToggleService() {
   const qc = useQueryClient();
+  const showToast = useShowToast();
 
-  return useMutation<Service, Error, { id: string; action: "start" | "stop" }>({
+  return useMutation<
+    Service,
+    Error,
+    { id: string; action: "start" | "stop" },
+    { previous?: Service[] }
+  >({
     mutationFn: ({ id, action }) =>
       apiFetch<Service>(`/api/services/${id}/${action}`, {
         method: "POST",
       }),
-    onSuccess: () => {
+
+    onMutate: async ({ id, action }) => {
+      // Cancel in-flight refetches so they don't overwrite the optimistic update
+      await qc.cancelQueries({ queryKey: SERVICES_QUERY_KEY });
+
+      // Snapshot current cache for rollback on error
+      const previous = qc.getQueryData<Service[]>(SERVICES_QUERY_KEY);
+
+      // Optimistically flip isActive — status pill (service.status) is NOT changed yet
+      qc.setQueryData<Service[]>(
+        SERVICES_QUERY_KEY,
+        (old) =>
+          old?.map((s) =>
+            s.id === id ? { ...s, isActive: action === "start" } : s,
+          ) ?? [],
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      // Revert the optimistic update on failure
+      if (context?.previous) {
+        qc.setQueryData(SERVICES_QUERY_KEY, context.previous);
+      }
+      showToast("Failed to update service status. Please try again.", "error");
+    },
+
+    onSettled: () => {
+      // Always re-sync from server — idempotent if hub event already invalidated
       void qc.invalidateQueries({ queryKey: SERVICES_QUERY_KEY });
     },
   });

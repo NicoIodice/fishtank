@@ -56,7 +56,7 @@
 # - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
 
 generated: 2026-06-20
-last_updated: 2026-06-22
+last_updated: 2026-06-23
 project: Fishtank
 project_key: NOKEY
 tracking_system: file-system
@@ -94,7 +94,7 @@ development_status:
   epic-2: in-progress
   2-1-wiremock-engine-layer-and-services-api-backend: done
   2-2-services-page-browse-create-and-edit-services: done
-  2-3-enable-disable-service-toggle-serviceshub-and-real-time-status: backlog
+  2-3-enable-disable-service-toggle-serviceshub-and-real-time-status: done
   2-4-system-events-screen-and-notification-panel: backlog
   2-5-settings-service-cache-management: backlog
   epic-2-retrospective: optional

@@ -990,6 +990,102 @@ fishtank/
 | Mappings & Responses (FR-17–21) | `Endpoints/MappingsEndpoints.cs`, `Services/MappingService.cs`, `Engine/TrackingFileSystemHandler.cs` | `features/mappings/` |
 | System Events (FR-22–23) | `Endpoints/EventsEndpoints.cs`, `Services/SystemEventService.cs`, `Hubs/EventsHub.cs` | `features/events/` |
 | Auth & Users (FR-24–29) | `Endpoints/AuthEndpoints.cs`, `Services/AuthService.cs`, `Middleware/` | `features/auth/` |
+
+---
+
+## Architecture Diagrams
+
+Visual diagrams for the current implemented state of the application. Source lives at [resources/architecture/diagrams.md](../../resources/architecture/diagrams.md) — renders in VS Code Markdown Preview and GitHub.
+
+### Deployment Overview
+
+```mermaid
+graph TB
+    subgraph Docker["🐋 Docker Container (port 5000)"]
+        subgraph DotNet[".NET 10 ASP.NET Core"]
+            SPA["wwwroot/ (React SPA static files)"]
+            API["Minimal APIs"]
+            SignalR["SignalR Hubs"]
+            EF["EF Core + SQLite"]
+        end
+        subgraph WM["WireMock.Net Engine"]
+            WM1["Mock Server :30100"]
+            WM2["Mock Server :30101"]
+            WM3["Mock Server :30N (max 100)"]
+        end
+        DB[("SQLite /app/data/fishtank.db")]
+    end
+    Browser["🌐 Browser (React 19 + Vite SPA)"]
+    HostFS["🗂️ Host Filesystem — mocks/ volume"]
+    Browser -- "HTTP/S :5000 (REST API)" --> API
+    Browser -- "WebSocket :5000 (SignalR)" --> SignalR
+    Browser -- "static assets" --> SPA
+    API --> EF --> DB
+    API --> WM
+    WM --> HostFS
+```
+
+### Backend Layers
+
+```mermaid
+graph TB
+    subgraph Endpoints["API Endpoints (Minimal APIs)"]
+        AE["AuthEndpoints /api/auth/*"]
+        SE["ServicesEndpoints /api/services/*"]
+        STE["SettingsEndpoints /api/settings"]
+        EVE["SystemEventsEndpoints /api/system-events"]
+    end
+    subgraph Hubs["SignalR Hubs"]
+        SH["ServicesHub /hubs/services — ServiceStatusChanged"]
+        EH["EventsHub /hubs/events (Story 2.4 skeleton)"]
+    end
+    subgraph Services["Business Services"]
+        AS["AuthService — JWT + BCrypt"]
+        SM["ServiceManager — WireMock lifecycle + hub broadcast"]
+        SCS["ServerConfigService — BootEpoch"]
+        SES["SystemEventService — audit log"]
+    end
+    subgraph Engine["WireMock.Net Engine"]
+        SR["ServicesRegistry — ConcurrentDictionary"]
+        WMF["WireMockServerFactory — dynamic ports 30100–30199"]
+        EU["EngineStartup — restores Live services on boot"]
+    end
+    SE --> SM
+    AE --> AS
+    SM --> SH
+    SM --> SR
+    SM --> WMF
+    SM --> SES
+    EU --> SR
+    EU --> WMF
+```
+
+### Frontend Layers
+
+```mermaid
+graph TB
+    subgraph Bootstrap["main.tsx Provider Tree"]
+        QCP["QueryClientProvider + HUB_INVALIDATION_MAP"]
+        TP["ToastProvider"]
+        RP["RouterProvider"]
+    end
+    subgraph AppShell_["AppShell"]
+        HSH["useServicesHub() — WebSocket → /hubs/services"]
+        NAV["TopBar + Sidebar (responsive, 4 themes)"]
+    end
+    subgraph Pages["Feature Pages"]
+        SP["/services — ServicesPage"]
+        AP["/activity — ActivityPage"]
+        MP["/mappings — MappingsPage"]
+        EP["/events — EventsPage"]
+        STP["/settings — SettingsPage"]
+        ADM["/admin — AdminPage"]
+    end
+    Bootstrap --> AppShell_
+    AppShell_ --> Pages
+```
+
+> **Full diagrams** (with auth flow, optimistic toggle sequence, and detailed component breakdown) are in [resources/architecture/diagrams.md](../../resources/architecture/diagrams.md).
 | Admin Console (FR-30–33) | `Endpoints/AdminEndpoints.cs`, `Services/FeatureToggleService.cs`, `Hubs/TogglesHub.cs` | `features/admin/` |
 | Deployment (FR-34–42) | `Dockerfile`, `docker-compose*.yml`, `Program.cs` (startup, health) | `vite.config.ts`, `index.html` |
 | Settings | `Endpoints/SettingsEndpoints.cs` (`GET /api/settings` — read-only runtime config) | `features/settings/` |
