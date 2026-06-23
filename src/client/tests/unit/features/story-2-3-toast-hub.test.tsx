@@ -141,7 +141,7 @@ describe("useServicesHub", () => {
 
     // Extract and invoke the registered handler
     const [, handler] = mockOn.mock.calls.find(
-      ([event]: [string]) => event === "ServiceStatusChanged",
+      ([event]) => event === "ServiceStatusChanged",
     )!;
     handler();
 

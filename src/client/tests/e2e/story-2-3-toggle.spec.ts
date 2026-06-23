@@ -64,7 +64,7 @@ async function seedService(
   const name = overrides.name ?? uniqueName("hub-svc");
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
-    body: JSON.stringify({
+    data: JSON.stringify({
       name,
       externalUrl:
         overrides.externalUrl ?? `https://${faker.internet.domainName()}`,
