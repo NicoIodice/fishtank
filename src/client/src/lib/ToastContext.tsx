@@ -18,9 +18,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useShowToast() {
   const ctx = useContext(ToastContext);
   // Return a no-op when rendered outside ToastProvider (e.g., isolated unit tests).
-  if (!ctx) return (_message: string, _variant?: ToastVariant) => {};
+  if (!ctx) return () => {};
   return ctx.showToast;
 }

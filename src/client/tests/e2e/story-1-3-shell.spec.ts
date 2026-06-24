@@ -159,80 +159,92 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
   // GREEN: SetupPage posts to /api/auth/setup; on success navigates to /services
   // ─────────────────────────────────────────────────────────────────────────
 
-  test("AC-5: valid setup form creates admin account and navigates to /services", async ({
-    page,
-  }) => {
-    // Given: fresh instance with needsSetup=true
-    // The setup/status mock is STATEFUL: returns needsSetup:true before setup,
-    // needsSetup:false after — this mirrors what the real backend returns and
-    // ensures FirstRunGate does not redirect back to /setup after navigation.
-    let setupComplete = false;
+  test(
+    "AC-5: valid setup form creates admin account and navigates to /services",
+    {
+      annotation: [
+        {
+          type: "skipNetworkMonitoring",
+          description:
+            "After setup the SPA navigates to /services and makes real API calls " +
+            "(/api/services, /hubs/services/negotiate) with the mock JWT. " +
+            "These 401s are expected — the test only validates the setup flow and navigation.",
+        },
+      ],
+    },
+    async ({ page }) => {
+      // Given: fresh instance with needsSetup=true
+      // The setup/status mock is STATEFUL: returns needsSetup:true before setup,
+      // needsSetup:false after — this mirrors what the real backend returns and
+      // ensures FirstRunGate does not redirect back to /setup after navigation.
+      let setupComplete = false;
 
-    await page.route("**/api/setup/status", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: { needsSetup: !setupComplete },
+      await page.route("**/api/setup/status", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: true,
+            data: { needsSetup: !setupComplete },
+          }),
         }),
-      }),
-    );
-    await page.route("**/api/auth/me", (route) => {
-      if (setupComplete) {
+      );
+      await page.route("**/api/auth/me", (route) => {
+        if (setupComplete) {
+          return route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              success: true,
+              data: {
+                userId: "1",
+                username: "admin",
+                role: "Admin",
+                forcePasswordChange: false,
+              },
+            }),
+          });
+        }
+        return route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            error: { code: "AUTH_UNAUTHORIZED", message: "Not authenticated" },
+          }),
+        });
+      });
+      await page.route("**/api/auth/setup", (route) => {
+        setupComplete = true;
         return route.fulfill({
           status: 200,
           contentType: "application/json",
           body: JSON.stringify({
             success: true,
-            data: {
-              userId: "1",
-              username: "admin",
-              role: "Admin",
-              forcePasswordChange: false,
-            },
+            data: { username: "admin", role: "Admin" },
           }),
+          headers: {
+            "Set-Cookie":
+              "fishtank_auth=test-jwt; HttpOnly; SameSite=Strict; Path=/",
+          },
         });
-      }
-      return route.fulfill({
-        status: 401,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: false,
-          error: { code: "AUTH_UNAUTHORIZED", message: "Not authenticated" },
-        }),
       });
-    });
-    await page.route("**/api/auth/setup", (route) => {
-      setupComplete = true;
-      return route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          success: true,
-          data: { username: "admin", role: "Admin" },
-        }),
-        headers: {
-          "Set-Cookie":
-            "fishtank_auth=test-jwt; HttpOnly; SameSite=Strict; Path=/",
-        },
-      });
-    });
 
-    // When: user fills in the setup form with valid data
-    await page.goto("/setup");
-    await page.getByTestId("setup-username-input").fill("admin");
-    await page.getByTestId("setup-password-input").fill("SecurePassw0rd!");
-    await page.getByTestId("setup-submit-button").click();
+      // When: user fills in the setup form with valid data
+      await page.goto("/setup");
+      await page.getByTestId("setup-username-input").fill("admin");
+      await page.getByTestId("setup-password-input").fill("SecurePassw0rd!");
+      await page.getByTestId("setup-submit-button").click();
 
-    // Then: navigated to /services and the app shell renders (not the setup form)
-    await expect(page).toHaveURL(/\/services/, { timeout: 10_000 });
-    await expect(
-      page.getByTestId("setup-page"),
-      "After setup the app must NOT return to /setup with an empty form " +
-        "(regression guard for the stale-cache redirect loop).",
-    ).not.toBeVisible();
-  });
+      // Then: navigated to /services and the app shell renders (not the setup form)
+      await expect(page).toHaveURL(/\/services/, { timeout: 10_000 });
+      await expect(
+        page.getByTestId("setup-page"),
+        "After setup the app must NOT return to /setup with an empty form " +
+          "(regression guard for the stale-cache redirect loop).",
+      ).not.toBeVisible();
+    },
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // AC-8 — Top bar renders with logo, About icon, Bell stub, and Avatar

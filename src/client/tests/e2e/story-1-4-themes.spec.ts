@@ -191,8 +191,12 @@ test.describe("Story 1-4: Additional UI Themes", () => {
     expect(tokens.sidebarFg).toBe("#a1a1aa");
     // content-muted must be #52525b (~7.5:1)
     expect(tokens.contentMuted).toBe("#52525b");
-    // topbar icon must contrast against dark topbar
-    expect(tokens.topbarIconFg).toBe("#ffffff");
+    // topbar icon must contrast against dark topbar (#fff and #ffffff are equivalent)
+    expect(
+      tokens.topbarIconFg
+        .replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, "#$1$1$2$2$3$3")
+        .toLowerCase(),
+    ).toBe("#ffffff");
   });
 
   // ─────────────────────────────────────────────────────────────────────────

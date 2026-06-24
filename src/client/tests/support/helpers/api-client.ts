@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
 
-const API_URL = process.env.API_URL ?? "http://localhost:5000";
+const API_URL = process.env.API_URL ?? "http://127.0.0.1:5000";
 
 /** Fishtank response envelope — every endpoint wraps its payload in this shape. */
 export interface ApiEnvelope<T> {
@@ -28,7 +28,13 @@ export async function apiFetch<T>(
   options?: Parameters<APIRequestContext["fetch"]>[1],
 ): Promise<T> {
   const response = await request.fetch(`${API_URL}${path}`, options);
-  const body: ApiEnvelope<T> = await response.json();
+  const bodyText = await response.text();
+  if (!bodyText) {
+    throw new Error(
+      `Empty response body (HTTP ${response.status()}) from ${path}`,
+    );
+  }
+  const body = JSON.parse(bodyText) as ApiEnvelope<T>;
 
   if (!body.success) {
     const code = body.error?.code ?? "UNKNOWN";

@@ -64,6 +64,7 @@ async function seedService(
   const name = overrides.name ?? uniqueName("hub-svc");
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
     data: JSON.stringify({
       name,
       externalUrl:
@@ -189,10 +190,10 @@ test.describe("P1 — AC-2: Real-time status update via ServicesHub SignalR", ()
 
     // Open two contexts (simulates two browser tabs)
     const contextA = await browser.newContext({
-      storageState: "tests/support/auth/.auth/user.json",
+      storageState: "./playwright/.auth/user.json",
     });
     const contextB = await browser.newContext({
-      storageState: "tests/support/auth/.auth/user.json",
+      storageState: "./playwright/.auth/user.json",
     });
 
     const pageA = await contextA.newPage();

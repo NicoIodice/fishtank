@@ -201,7 +201,7 @@ describe("AddEditServiceModal — AC-5, AC-8: form validation and slug-change wa
         const data =
           typeof url === "string" && url.includes("/api/settings")
             ? { mocksHostPath: "mocks" }
-            : 30100;
+            : { port: 30100 };
         return Promise.resolve({
           ok: true,
           json: async () => ({ success: true, data }),

@@ -12,9 +12,11 @@ See README.md for full setup instructions.
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -44,6 +46,9 @@ load_dotenv(_ENV_FILE)
 COMPOSE_FILE = _SCRIPT_DIR / "docker-compose.yml"
 PROJECT_NAME = "fishtank"
 DB_PATH = _SCRIPT_DIR / "data" / "fishtank.db"
+REPO_ROOT = _SCRIPT_DIR.parent.parent.parent
+CLIENT_DIR = REPO_ROOT / "src" / "client"
+SLN_PATH = REPO_ROOT / "src" / "Fishtank.slnx"
 
 console = Console()
 
@@ -76,6 +81,53 @@ def run_compose_wsl(args: list[str], stream: bool = True) -> int:
     else:
         result = subprocess.run(cmd, capture_output=True, text=True)
     return result.returncode
+
+
+def _fishtank_port() -> int:
+    """Return the host port Fishtank is mapped to (default 5000)."""
+    return int(os.environ.get("FISHTANK_PORT", "5000"))
+
+
+def _is_fishtank_running() -> bool:
+    """Return True if the Fishtank container is currently up."""
+    r = subprocess.run(
+        [
+            "wsl", "-d", "Ubuntu", "--",
+            "docker", "compose",
+            "--project-name", PROJECT_NAME,
+            "-f", to_wsl_path(str(COMPOSE_FILE)),
+            "ps", "-q",
+        ],
+        capture_output=True, text=True,
+    )
+    return r.returncode == 0 and bool(r.stdout.strip())
+
+
+def _wait_for_fishtank(timeout: int = 60) -> bool:
+    """Wait until the Fishtank container reports healthy via Docker inspect.
+
+    Uses Docker (inside WSL) directly so we don't rely on WSL2 localhost
+    port-forwarding being set up correctly on the Windows host.
+    """
+    deadline = time.monotonic() + timeout
+    console.print("[grey62]Waiting for Fishtank to be ready…[/grey62]")
+    while time.monotonic() < deadline:
+        r = subprocess.run(
+            [
+                "wsl", "-d", "Ubuntu", "--",
+                "docker", "inspect",
+                "--format", "{{.State.Health.Status}}",
+                "fishtank-app",
+            ],
+            capture_output=True, text=True,
+        )
+        status = r.stdout.strip()
+        if r.returncode == 0 and status == "healthy":
+            return True
+        # "starting" → keep waiting; anything else (unhealthy / missing) → keep
+        # trying up to the deadline so a slow startup doesn't fail immediately.
+        time.sleep(2)
+    return False
 
 
 def header() -> None:
@@ -167,15 +219,150 @@ def reset_database() -> None:
     console.print("[bright_green]✔ Reset complete. Use [1] Start Fishtank to reinitialise.[/bright_green]")
     pause()
 
+
+def run_test_suite() -> None:
+    """Option [4]: Run unit tests, integration tests, and Playwright E2E tests."""
+    console.rule("[cyan1]Full Test Suite[/cyan1]")
+
+    _RESULT_STYLE = {
+        "pass":    "[bright_green]✔  PASS[/bright_green]",
+        "fail":    "[bright_red]✘  FAIL[/bright_red]",
+        "skip":    "[bright_yellow]—  SKIP[/bright_yellow]",
+        "blocked": "[bright_yellow]⊘  BLOCKED[/bright_yellow]",
+    }
+
+    _GATE_MSG = (
+        "[bright_yellow]⚠  Stage failed — remaining stages are blocked.[/bright_yellow]\n"
+        "[grey62]Fix the errors above to advance to the next stage.[/grey62]"
+    )
+
+    # ── Pre-flight: check whether Fishtank is up (needed for E2E) ────────
+    running = _is_fishtank_running()
+    if not running:
+        console.print(
+            "[bright_yellow]⚠  Fishtank is not running.[/bright_yellow]\n"
+            "[grey62]Unit and integration tests will still run.\n"
+            "Playwright E2E tests require a running Fishtank instance.[/grey62]"
+        )
+        try:
+            start = console.input("Start Fishtank now before running E2E tests? [y/N]: ").strip().lower()
+        except EOFError:
+            start = "n"
+        if start == "y":
+            console.print("[bright_yellow]Starting Fishtank…[/bright_yellow]")
+            rc = run_compose_wsl(["up", "-d", "--build"])
+            if rc == 0:
+                console.print("[bright_green]✔ Fishtank started.[/bright_green]")
+                if _wait_for_fishtank():
+                    console.print("[bright_green]✔ Fishtank is ready.[/bright_green]")
+                    running = True
+                else:
+                    console.print("[bright_red]✘ Fishtank did not become ready in time. E2E tests will be skipped.[/bright_red]")
+            else:
+                console.print("[bright_red]✘ Failed to start Fishtank. E2E tests will be skipped.[/bright_red]")
+
+    results: list[tuple[str, str]] = []  # (suite name, "pass" | "fail" | "skip" | "blocked")
+    blocked = False
+
+    # ── Step 1: ESLint (Frontend) ─────────────────────────────────────────
+    console.rule("[dim]Step 1 / 4 — ESLint (Frontend)[/dim]")
+    rc = subprocess.run(
+        "npm run lint",
+        cwd=str(CLIENT_DIR),
+        shell=True,
+    ).returncode
+    step1_ok = rc == 0
+    results.append(("ESLint (Frontend)", "pass" if step1_ok else "fail"))
+    if not step1_ok:
+        console.print(_GATE_MSG)
+        blocked = True
+
+    # ── Step 2: .NET tests (unit + integration) ───────────────────────────
+    if blocked:
+        results.append((".NET tests (unit + integration)", "blocked"))
+    else:
+        console.rule("[dim]Step 2 / 4 — .NET tests (unit + integration)[/dim]")
+        rc = subprocess.run(
+            ["dotnet", "test", str(SLN_PATH), "--logger", "console;verbosity=normal"],
+            cwd=str(REPO_ROOT),
+        ).returncode
+        step2_ok = rc == 0
+        results.append((".NET tests (unit + integration)", "pass" if step2_ok else "fail"))
+        if not step2_ok:
+            console.print(_GATE_MSG)
+            blocked = True
+
+    # ── Step 3: Frontend unit tests (Vitest) ─────────────────────────────
+    if blocked:
+        results.append(("Frontend unit tests (Vitest)", "blocked"))
+    else:
+        console.rule("[dim]Step 3 / 4 — Frontend unit tests (Vitest)[/dim]")
+        rc = subprocess.run(
+            "npm run test:unit",
+            cwd=str(CLIENT_DIR),
+            shell=True,
+        ).returncode
+        step3_ok = rc == 0
+        results.append(("Frontend unit tests (Vitest)", "pass" if step3_ok else "fail"))
+        if not step3_ok:
+            console.print(_GATE_MSG)
+            blocked = True
+
+    # ── Step 4: Playwright E2E tests ──────────────────────────────────────
+    if blocked:
+        results.append(("Playwright E2E tests", "blocked"))
+    elif not running:
+        console.rule("[dim]Step 4 / 4 — Playwright E2E tests[/dim]")
+        console.print("[grey62]Skipped — Fishtank is not running.[/grey62]")
+        results.append(("Playwright E2E tests", "skip"))
+    else:
+        # Ensure the container is reachable before handing off to Playwright.
+        if not _wait_for_fishtank(timeout=30):
+            console.print("[bright_red]✘ Fishtank is not reachable. Check the container logs.[/bright_red]")
+            results.append(("Playwright E2E tests", "fail"))
+        else:
+            console.rule("[dim]Step 4 / 4 — Playwright E2E tests[/dim]")
+            port = _fishtank_port()
+            e2e_env = {**os.environ, "BASE_URL": f"http://127.0.0.1:{port}", "API_URL": f"http://127.0.0.1:{port}"}
+            rc = subprocess.run(
+                "npm run test:e2e",
+                cwd=str(CLIENT_DIR),
+                shell=True,
+                env=e2e_env,
+            ).returncode
+            results.append(("Playwright E2E tests", "pass" if rc == 0 else "fail"))
+
+    # ── Summary ───────────────────────────────────────────────────────────
+    console.rule("[cyan1]Results[/cyan1]")
+    table = Table(box=box.ROUNDED, border_style="cyan1", padding=(0, 1))
+    table.add_column("Suite", style="bold")
+    table.add_column("Result", justify="center")
+
+    all_ok = True
+    for name, outcome in results:
+        table.add_row(name, _RESULT_STYLE[outcome])
+        if outcome in ("fail", "blocked"):
+            all_ok = False
+
+    console.print(table)
+
+    if all_ok:
+        console.print("\n[bright_green]✔ All tests passed — safe to open a PR![/bright_green]")
+    else:
+        console.print("\n[bright_red]✘ One or more suites failed. Fix before opening a PR.[/bright_red]")
+
+    pause()
+
 # ---------------------------------------------------------------------------
 # Main menu
 # ---------------------------------------------------------------------------
 
 _MENU_OPTIONS = {
-    "1": ("Start Fishtank",  start_fishtank),
-    "2": ("Stop Fishtank",   stop_fishtank),
-    "3": ("Reset database",  reset_database),
-    "0": ("Exit",            None),
+    "1": ("Start Fishtank",   start_fishtank),
+    "2": ("Stop Fishtank",    stop_fishtank),
+    "3": ("Reset database",   reset_database),
+    "4": ("Run test suite",   run_test_suite),
+    "0": ("Exit",             None),
 }
 
 

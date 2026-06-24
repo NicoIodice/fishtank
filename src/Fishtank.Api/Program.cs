@@ -221,7 +221,10 @@ app.UseAuthorization();
 
 // ─── 10. Endpoints ───────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
     app.MapOpenApi();
+    app.MapTestEndpoints();
+}
 
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();

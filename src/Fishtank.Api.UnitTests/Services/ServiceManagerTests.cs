@@ -2,9 +2,11 @@ using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Engine;
 using Fishtank.Api.Exceptions;
+using Fishtank.Api.Hubs;
 using Fishtank.Api.Models;
 using Fishtank.Api.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
@@ -24,6 +26,7 @@ public class ServiceManagerTests : IDisposable
     private readonly ISystemEventService _events;
     private readonly IConfiguration _config;
     private readonly IWireMockServerFactory _wireMockFactory;
+    private readonly IHubContext<ServicesHub> _servicesHub;
 
     public ServiceManagerTests()
     {
@@ -41,10 +44,11 @@ public class ServiceManagerTests : IDisposable
         _wireMockFactory = Substitute.For<IWireMockServerFactory>();
         _wireMockFactory.Start(Arg.Any<WireMockServerSettings>())
             .Returns(_ => throw new IOException("WireMock intentionally blocked in unit tests"));
+        _servicesHub = Substitute.For<IHubContext<ServicesHub>>();
     }
 
     private ServiceManager BuildSut() =>
-        new(_db, _registry, _events, _config, _wireMockFactory);
+        new(_db, _registry, _events, _config, _wireMockFactory, _servicesHub);
 
     public void Dispose() => _db.Dispose();
 
