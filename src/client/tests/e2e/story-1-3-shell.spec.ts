@@ -276,8 +276,8 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
       "About button must be visible in the top bar (data-testid='topbar-about-button').",
     ).toBeVisible();
     await expect(
-      page.getByTestId("topbar-bell-button"),
-      "Notification bell must be visible in the top bar (data-testid='topbar-bell-button').",
+      page.getByTestId("topbar-btn-bell"),
+      "Notification bell must be visible in the top bar (data-testid='topbar-btn-bell').",
     ).toBeVisible();
     await expect(
       page.getByTestId("topbar-avatar-button"),

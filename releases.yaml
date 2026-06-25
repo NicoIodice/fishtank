@@ -57,7 +57,13 @@ releases:
       - id: "2-1-wiremock-engine-layer-and-services-api-backend"
         status: "done"
       - id: "2-2-services-page-browse-create-and-edit-services"
-        status: "in-progress"
+        status: "done"
+      - id: "2-3-enable-disable-service-toggle-serviceshub-and-real-time-status"
+        status: "done"
+      - id: "2-4-system-events-screen-and-notification-panel"
+        status: "done"
+      - id: "2-5-settings-service-cache-management"
+        status: "backlog"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)
