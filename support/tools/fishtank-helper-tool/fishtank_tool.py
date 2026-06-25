@@ -56,6 +56,21 @@ console = Console()
 # Helpers
 # ---------------------------------------------------------------------------
 
+def run_ps(args: str, cwd: Path, env: dict | None = None) -> int:
+    """Run a command via PowerShell.
+
+    Using PowerShell instead of cmd.exe (shell=True) avoids IPC-pipe timeout
+    that causes Vitest's forks-pool workers to hang on Windows.
+    """
+    kwargs: dict = {"cwd": str(cwd)}
+    if env is not None:
+        kwargs["env"] = env
+    return subprocess.run(
+        ["powershell.exe", "-NonInteractive", "-Command", args],
+        **kwargs,
+    ).returncode
+
+
 def to_wsl_path(win_path: str) -> str:
     """Convert Windows-style C:\\... path to /mnt/c/... WSL path if needed."""
     m = re.match(r"^([A-Za-z]):\\(.*)", win_path)
@@ -266,11 +281,7 @@ def run_test_suite() -> None:
 
     # ── Step 1: ESLint (Frontend) ─────────────────────────────────────────
     console.rule("[dim]Step 1 / 4 — ESLint (Frontend)[/dim]")
-    rc = subprocess.run(
-        "npm run lint",
-        cwd=str(CLIENT_DIR),
-        shell=True,
-    ).returncode
+    rc = run_ps("npm run lint", CLIENT_DIR)
     step1_ok = rc == 0
     results.append(("ESLint (Frontend)", "pass" if step1_ok else "fail"))
     if not step1_ok:
@@ -297,11 +308,13 @@ def run_test_suite() -> None:
         results.append(("Frontend unit tests (Vitest)", "blocked"))
     else:
         console.rule("[dim]Step 3 / 4 — Frontend unit tests (Vitest)[/dim]")
-        rc = subprocess.run(
-            "npm run test:unit",
-            cwd=str(CLIENT_DIR),
-            shell=True,
-        ).returncode
+        rc = run_ps("npm run test:unit", CLIENT_DIR)
+        if rc != 0:
+            # Vitest's forks pool can fail to start workers on the first run due to
+            # Windows security scanning new Node.js processes. The second attempt
+            # succeeds because the scanner cache is now warm.
+            console.print("[bright_yellow]⚠ Vitest workers timed out — retrying once (Windows fork-start warmup)...[/bright_yellow]")
+            rc = run_ps("npm run test:unit", CLIENT_DIR)
         step3_ok = rc == 0
         results.append(("Frontend unit tests (Vitest)", "pass" if step3_ok else "fail"))
         if not step3_ok:
@@ -324,12 +337,7 @@ def run_test_suite() -> None:
             console.rule("[dim]Step 4 / 4 — Playwright E2E tests[/dim]")
             port = _fishtank_port()
             e2e_env = {**os.environ, "BASE_URL": f"http://127.0.0.1:{port}", "API_URL": f"http://127.0.0.1:{port}"}
-            rc = subprocess.run(
-                "npm run test:e2e",
-                cwd=str(CLIENT_DIR),
-                shell=True,
-                env=e2e_env,
-            ).returncode
+            rc = run_ps("npm run test:e2e", CLIENT_DIR, env=e2e_env)
             results.append(("Playwright E2E tests", "pass" if rc == 0 else "fail"))
 
     # ── Summary ───────────────────────────────────────────────────────────

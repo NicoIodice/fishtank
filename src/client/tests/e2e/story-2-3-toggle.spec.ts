@@ -123,10 +123,13 @@ test.describe("P0 — AC-1: Toggle optimistic UI", () => {
    *      should revert and an error toast should appear.
    * GREEN: Toast system installed; useToggleService onError reverts + shows toast.
    */
-  test("server error reverts toggle and shows error toast", async ({
-    page,
-    request,
-  }) => {
+  test(
+    "server error reverts toggle and shows error toast",
+    { annotation: [{ type: "skipNetworkMonitoring" }] },
+    async ({
+      page,
+      request,
+    }) => {
     // Arrange
     const service = await seedService(request, {
       name: uniqueName("toggle-err"),

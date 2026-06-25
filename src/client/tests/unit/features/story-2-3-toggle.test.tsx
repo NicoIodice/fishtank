@@ -167,17 +167,16 @@ describe("ServiceCard toggle â€” AC-1a: optimistic UI update", () => {
       </Wrapper>,
     );
 
-    const toggle = screen.getByTestId(
-      `service-toggle-${SERVICE_ID}`,
-    ) as HTMLInputElement;
+    const toggle = screen.getByTestId(`service-toggle-${SERVICE_ID}`);
+    const toggleInput = toggle.querySelector("input") as HTMLInputElement;
 
-    expect(toggle.checked).toBe(true);
+    expect(toggleInput.checked).toBe(true);
 
     // Click without awaiting â€” check optimistic state while pending
     const clickDone = user.click(toggle);
 
     // Optimistic flip should happen before server responds
-    await waitFor(() => expect(toggle.checked).toBe(false));
+    await waitFor(() => expect(toggleInput.checked).toBe(false));
 
     // Resolve the server and clean up
     resolve(stoppedService);
@@ -196,11 +195,12 @@ describe("ServiceCard toggle â€” AC-1a: optimistic UI update", () => {
     );
 
     const toggle = screen.getByTestId(`service-toggle-${SERVICE_ID}`);
+    const toggleInput = toggle.querySelector("input") as HTMLInputElement;
     const clickDone = user.click(toggle);
 
     // Wait for optimistic flip (isActive = false â†’ toggle unchecked)
     await waitFor(() =>
-      expect((toggle as HTMLInputElement).checked).toBe(false),
+      expect(toggleInput.checked).toBe(false),
     );
 
     // Status pill must still show "Live" (status not flipped optimistically)
@@ -229,16 +229,15 @@ describe("ServiceCard toggle â€” AC-1b: error revert + toast", () => {
       </Wrapper>,
     );
 
-    const toggle = screen.getByTestId(
-      `service-toggle-${SERVICE_ID}`,
-    ) as HTMLInputElement;
+    const toggle = screen.getByTestId(`service-toggle-${SERVICE_ID}`);
+    const toggleInput = toggle.querySelector("input") as HTMLInputElement;
 
-    expect(toggle.checked).toBe(true);
+    expect(toggleInput.checked).toBe(true);
     await user.click(toggle);
 
     // Toggle must revert to original checked state after error
     await waitFor(() => {
-      expect(toggle.checked).toBe(true);
+      expect(toggleInput.checked).toBe(true);
     });
   });
 

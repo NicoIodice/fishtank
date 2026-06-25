@@ -82,7 +82,7 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
 
       {/* Footer: status pill + toggle + edit link */}
       <div className={styles.footer}>
-        <div className={styles.statusPill} aria-live="polite">
+        <div className={styles.statusPill} aria-live="polite" data-testid="status-pill">
           <span
             className={`${styles.dot} ${isLive ? styles.live : styles.stopped}`}
             aria-hidden="true"
@@ -94,6 +94,7 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
             className={styles.toggle}
             htmlFor={toggleId}
             aria-label={`${isLive ? "Stop" : "Start"} ${service.name}`}
+            data-testid={`service-toggle-${service.id}`}
           >
             <input
               id={toggleId}
@@ -102,7 +103,6 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
               onChange={handleToggle}
               disabled={toggleMutation.isPending}
               aria-label={`${service.isActive ? "Stop" : "Start"} ${service.name}`}
-              data-testid={`service-toggle-${service.id}`}
             />
             <span className={styles.toggleTrack} />
             <span className={styles.toggleThumb} />

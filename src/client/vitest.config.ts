@@ -10,11 +10,13 @@ export default defineConfig({
     setupFiles: ["./tests/unit/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     exclude: ["tests/e2e/**", "node_modules/**"],
-    // jsdom v29 ESM deps (dom-selector) can hang when 9 workers start
-    // simultaneously on Node 24. Use a single fork so jsdom initialises
-    // once, eliminating the parallel-startup contention that causes
-    // "Timeout waiting for worker to respond" in CI.
-    singleFork: true,
+    // Run all test files in a single fork (Vitest 4: isolate:false + maxWorkers:1
+    // sends all files to one worker at once — see source comment "Non-isolated
+    // single worker can receive all files at once"). This avoids spawning 9 separate
+    // Node.js processes, each of which can exceed the hardcoded 60-second fork-start
+    // timeout on Windows when the system is loaded (e.g. after a dotnet build).
+    isolate: false,
+    maxWorkers: 1,
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
