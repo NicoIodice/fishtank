@@ -221,7 +221,10 @@ app.UseAuthorization();
 
 // ─── 10. Endpoints ───────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
     app.MapOpenApi();
+    app.MapTestEndpoints();
+}
 
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
@@ -229,6 +232,7 @@ app.MapServicesEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
+app.MapHub<EventsHub>("/hubs/events");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.

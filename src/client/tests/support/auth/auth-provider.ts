@@ -1,4 +1,5 @@
-import { unlinkSync } from "fs";
+import { unlinkSync, writeFileSync, mkdirSync } from "fs";
+import path from "path";
 import type { APIRequestContext } from "@playwright/test";
 import type {
   AuthProvider,
@@ -10,7 +11,7 @@ import {
   saveStorageState,
 } from "@seontechnologies/playwright-utils/auth-session";
 
-const API_URL = process.env.API_URL ?? "http://localhost:5000";
+const API_URL = process.env.API_URL ?? "http://127.0.0.1:5000";
 
 /**
  * Fishtank auth provider for playwright-utils auth-session.
@@ -84,6 +85,22 @@ export const fishtankAuthProvider: AuthProvider = {
       unknown
     >;
     saveStorageState(tokenPath, storageState);
+
+    // Keep Playwright's global storageState file in sync so the built-in
+    // `request` fixture always has the latest JWT after any re-login.
+    try {
+      const pwAuthPath = path.join(
+        process.cwd(),
+        "playwright",
+        ".auth",
+        "user.json",
+      );
+      mkdirSync(path.dirname(pwAuthPath), { recursive: true });
+      writeFileSync(pwAuthPath, JSON.stringify(storageState));
+    } catch {
+      // non-fatal: Playwright's request fixture will use stale state
+    }
+
     return storageState;
   },
 

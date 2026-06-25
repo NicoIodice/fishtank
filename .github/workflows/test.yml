@@ -217,6 +217,7 @@ jobs:
         env:
           CI: "true"
           BASE_URL: "http://localhost:5173"
+          API_URL: "http://localhost:5000"
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
 
       - name: Upload blob report
@@ -342,6 +343,7 @@ jobs:
         env:
           CI: "true"
           BASE_URL: "http://localhost:5173"
+          API_URL: "http://localhost:5000"
         run: |
           echo "🔥 Starting burn-in — detecting flaky tests"
           for i in $(seq 1 3); do

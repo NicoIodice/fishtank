@@ -3,12 +3,16 @@ import { Outlet } from "react-router-dom";
 import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
 import { useBreakpoint } from "@/lib/useBreakpoint";
+import { useServicesHub } from "@/features/services/hooks/useServicesHub";
 import styles from "./AppShell.module.css";
 
 export function AppShell() {
   const { mobile } = useBreakpoint();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [prevMobile, setPrevMobile] = useState(mobile);
+
+  // Wire ServicesHub real-time connection (Story 2.3)
+  useServicesHub();
 
   // Close the mobile overlay when the breakpoint leaves mobile (render-time update)
   if (prevMobile !== mobile) {

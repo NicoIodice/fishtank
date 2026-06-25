@@ -97,10 +97,11 @@ test.describe("Story 2.2 — P0: Services Page core", () => {
   // AC-1 — Empty state
   test("P0-1: empty state shows Add Service CTA when no services exist", async ({
     page,
+    request,
   }) => {
-    // NOTE: This test requires a clean database.
-    // If services already exist, the empty state will not appear.
-    // TODO: Wire to a database-reset API call (Epic 6) before the assertion.
+    // Reset services before navigating so the empty state is guaranteed.
+    const apiUrl = process.env.API_URL ?? "http://127.0.0.1:5000";
+    await request.post(`${apiUrl}/api/test/reset-services`);
 
     await page.goto("/services");
 
@@ -155,7 +156,7 @@ test.describe("Story 2.2 — P0: Services Page core", () => {
     page,
     request,
   }) => {
-    test.setTimeout(30_000); // Extended timeout for seeding
+    test.setTimeout(60_000); // Extended timeout for seeding 50 WireMock services
     // Seed up to 50 services (best-effort — may fail on port conflicts if
     // some ports are already taken; use a fresh DB for this test).
     // TODO: Replace with a bulk-seed or reset endpoint (Epic 6).

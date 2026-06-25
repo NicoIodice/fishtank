@@ -53,16 +53,45 @@ start_vite() {
   exit 1
 }
 
+start_api() {
+  # If the API is already reachable (e.g. Docker container started externally),
+  # just wait until it is healthy and skip launching a local process.
+  echo "🔍 Checking for .NET API at http://127.0.0.1:5000/health..."
+  if curl -sf http://127.0.0.1:5000/health > /dev/null 2>&1; then
+    echo "  ✅ API already running (Docker or external process)"
+    return 0
+  fi
+
+  echo "🚀 Starting .NET API (dotnet run)..."
+  cd "$ROOT/src/Fishtank.Api"
+  ASPNETCORE_ENVIRONMENT=Development dotnet run --urls "http://+:5000" &
+  API_PID=$!
+  echo "  API PID: $API_PID"
+  cd "$ROOT"
+
+  echo "  Waiting for http://127.0.0.1:5000/health (up to 120 s)..."
+  for i in $(seq 1 60); do
+    if curl -sf http://127.0.0.1:5000/health > /dev/null 2>&1; then
+      echo "  ✅ API ready"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "  ❌ API did not start in time"
+  exit 1
+}
+
 run_e2e() {
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "🎭 E2E Tests (Playwright)"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  start_api
   start_vite
   cd "$CLIENT_DIR"
   BASE_URL=http://localhost:5173 npm run test:e2e
   cd "$ROOT"
-  # Vite process will be cleaned up when script exits
+  # API and Vite processes will be cleaned up when script exits
 }
 
 run_burn_in() {
@@ -70,6 +99,7 @@ run_burn_in() {
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "🔥 Burn-In (10 iterations — flaky detection)"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  start_api
   start_vite
   cd "$CLIENT_DIR"
   for i in $(seq 1 10); do
@@ -80,7 +110,11 @@ run_burn_in() {
   cd "$ROOT"
 }
 
-trap 'kill $VITE_PID 2>/dev/null || true' EXIT
+cleanup() {
+  [ -n "${VITE_PID:-}" ] && kill "$VITE_PID" 2>/dev/null || true
+  [ -n "${API_PID:-}" ]  && kill "$API_PID"  2>/dev/null || true
+}
+trap cleanup EXIT
 
 case "$STAGE" in
   lint)    run_lint ;;

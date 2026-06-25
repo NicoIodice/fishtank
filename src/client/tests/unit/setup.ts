@@ -32,4 +32,7 @@ afterEach(() => {
   locationStub.assign.mockReset();
   locationStub.replace.mockReset();
   locationStub.reload.mockReset();
+  // With isolate:false all files share one worker, so any vi.useFakeTimers() call
+  // in a test must be undone here to prevent @testing-library/dom waitFor from hanging.
+  vi.useRealTimers();
 });

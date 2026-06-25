@@ -21,51 +21,50 @@ async function globalSetup(): Promise<void> {
 }
 
 /**
- * Authenticates once via the Fishtank API and persists the browser storage
- * state (httpOnly JWT cookie) to disk for reuse across all test workers.
+ * Resets the database to a clean state, creates the test admin account, then
+ * authenticates and persists the browser storage state (httpOnly JWT cookie)
+ * to disk for reuse across all test workers.
  *
- * Handles first-run: if the backend reports needsSetup=true, it calls
- * POST /api/auth/setup to create the default admin account before logging in.
+ * The reset is performed via POST /api/test/reset-db, a dev/test-only endpoint
+ * that wipes all rows so every E2E run starts from an identical baseline
+ * regardless of what the local database contained before.
  */
 async function seedAuthStorageState(): Promise<void> {
   const browser = await chromium.launch();
   const context = await browser.newContext();
 
-  const apiUrl = process.env.API_URL ?? "http://localhost:5000";
+  const apiUrl = process.env.API_URL ?? "http://127.0.0.1:5000";
   const username = process.env.TEST_USER ?? "admin";
   const password = process.env.TEST_PASS ?? "Admin@Test123";
 
-  // First-run guard: create admin if no users exist yet
-  const statusResponse = await context.request.get(
-    `${apiUrl}/api/setup/status`,
+  // ── 1. Wipe the database ─────────────────────────────────────────────────
+  const resetResponse = await context.request.post(
+    `${apiUrl}/api/test/reset-db`,
   );
-  if (statusResponse.ok()) {
-    const statusBody = (await statusResponse.json()) as {
-      data: { needsSetup: boolean };
-    };
-    if (statusBody.data?.needsSetup) {
-      const setupResponse = await context.request.post(
-        `${apiUrl}/api/auth/setup`,
-        {
-          data: { username, password },
-        },
-      );
-      if (!setupResponse.ok()) {
-        await browser.close();
-        throw new Error(
-          `First-run admin setup failed: HTTP ${setupResponse.status()}`,
-        );
-      }
-    }
+  if (!resetResponse.ok()) {
+    await browser.close();
+    throw new Error(
+      `DB reset failed: HTTP ${resetResponse.status()}. ` +
+        "Is the API running in Development/Testing mode?",
+    );
   }
 
-  const response = await context.request.post(`${apiUrl}/api/auth/login`, {
+  // ── 2. Create the test admin account (DB is now empty → first-run) ───────
+  const setupResponse = await context.request.post(`${apiUrl}/api/auth/setup`, {
     data: { username, password },
   });
-
-  if (!response.ok()) {
+  if (!setupResponse.ok()) {
     await browser.close();
-    throw new Error(`Auth seeding failed: HTTP ${response.status()}`);
+    throw new Error(`Admin setup failed: HTTP ${setupResponse.status()}`);
+  }
+
+  // ── 3. Log in and capture the JWT cookie ─────────────────────────────────
+  const loginResponse = await context.request.post(`${apiUrl}/api/auth/login`, {
+    data: { username, password },
+  });
+  if (!loginResponse.ok()) {
+    await browser.close();
+    throw new Error(`Auth seeding failed: HTTP ${loginResponse.status()}`);
   }
 
   await context.storageState({ path: "./playwright/.auth/user.json" });

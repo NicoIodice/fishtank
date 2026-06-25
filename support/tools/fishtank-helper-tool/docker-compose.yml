@@ -25,6 +25,7 @@ services:
       - FISHTANK_JWT_SECRET=${FISHTANK_JWT_SECRET:-fishtank-local-dev-jwt-secret-change-me-32!!}
       - FISHTANK_ADMIN_PASSWORD=${FISHTANK_ADMIN_PASSWORD:-}
       - FISHTANK_JWT_EXPIRY_MINUTES=${FISHTANK_JWT_EXPIRY_MINUTES:-}
+      - FISHTANK_LOGIN_RATE_LIMIT=${FISHTANK_LOGIN_RATE_LIMIT:-100}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
       interval: 10s

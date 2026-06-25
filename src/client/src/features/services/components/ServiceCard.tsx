@@ -15,7 +15,7 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
   function handleToggle() {
     toggleMutation.mutate({
       id: service.id,
-      action: isLive ? "stop" : "start",
+      action: service.isActive ? "stop" : "start",
     });
   }
 
@@ -82,7 +82,7 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
 
       {/* Footer: status pill + toggle + edit link */}
       <div className={styles.footer}>
-        <div className={styles.statusPill} aria-live="polite">
+        <div className={styles.statusPill} aria-live="polite" data-testid="status-pill">
           <span
             className={`${styles.dot} ${isLive ? styles.live : styles.stopped}`}
             aria-hidden="true"
@@ -94,14 +94,15 @@ export function ServiceCard({ service, onEdit }: ServiceCardProps) {
             className={styles.toggle}
             htmlFor={toggleId}
             aria-label={`${isLive ? "Stop" : "Start"} ${service.name}`}
+            data-testid={`service-toggle-${service.id}`}
           >
             <input
               id={toggleId}
               type="checkbox"
-              checked={isLive}
+              checked={service.isActive}
               onChange={handleToggle}
               disabled={toggleMutation.isPending}
-              aria-label={`${isLive ? "Stop" : "Start"} ${service.name}`}
+              aria-label={`${service.isActive ? "Stop" : "Start"} ${service.name}`}
             />
             <span className={styles.toggleTrack} />
             <span className={styles.toggleThumb} />
