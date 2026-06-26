@@ -1,6 +1,6 @@
 ---
 name: bmad-story-lifecycle
-description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
+description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → validate → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Hybrid execution (inline vs subagent) with model selection per phase (Sonnet for coding, Opus for analysis/writing). Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
 ---
 
 # Story Lifecycle Orchestrator
@@ -84,7 +84,7 @@ last_updated: "" # ISO datetime
 phases_completed: [] # list of completed phase tags
 ```
 
-**Phase Tags (in order):** `init` → `preflight-framework` → `preflight-test-design` → `create-story` → `atdd` → `validate` → `dev-story` → `code-review` → `test-automate` → `nfr` → `trace` → `test-review` → `done`
+**Phase Tags (in order):** `init` → `preflight-framework` → `preflight-test-design` → `create-story` → `validate` → `atdd` → `dev-story` → `code-review` → `test-automate` → `nfr` → `trace` → `test-review` → `done`
 
 ---
 
@@ -95,8 +95,8 @@ phases_completed: [] # list of completed phase tags
 | preflight-framework   | `framework-setup-progress.md` exists + `step-05` completed                                    | HALT — not auto-fixable               |
 | preflight-test-design | test-design for epic covers story scope + quality gate passes                                 | Auto-create (retry ≤ 2)               |
 | create-story          | story file exists in `{implementation_artifacts}/`, status `ready-for-dev`                    | Retry creation                        |
-| atdd                  | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
 | validate              | `bmad-check-implementation-readiness` scores PASS                                             | Fix spec gaps (retry ≤ 2)             |
+| atdd                  | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
 | dev-story             | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean                              | Retry dev (retry ≤ 2)                 |
 | code-review           | `bmad-code-review` finds zero BLOCKER items                                                   | QuickDev fix → re-review (retry ≤ 1)  |
 | test-automate         | Coverage targets met; all ATDD assertions pass                                                | QuickDev fix cycle                    |
@@ -105,6 +105,34 @@ phases_completed: [] # list of completed phase tags
 | test-review           | `bmad-testarch-test-review` finds zero BLOCKER items                                          | QuickDev fix (cycle ≤ 2)              |
 
 **QuickDev cycle budget:** max 2 per story. When exhausted → HALT, status → `blocked`.
+
+---
+
+## Execution Strategy (Hybrid: inline vs subagent + model per phase)
+
+The orchestrator runs phases with a **hybrid execution model**. Lightweight steps (state transitions, file checks, readiness reasoning, changelog/commit) run **inline** in the orchestrator context. Heavy, self-contained skills run as **dispatched subagents** so they keep their own context window and return only a structured result. Model is chosen by task type: **Claude Sonnet (latest)** for coding tasks (writing/expanding/fixing code and tests), **Claude Opus (latest)** for reasoning, analysis, and writing tasks (more thinking).
+
+| Phase | Skill | Execution | Model | Why |
+|-------|-------|-----------|-------|-----|
+| init | — | inline | Opus | trivial state resolution |
+| preflight-framework | — (file check) | inline | Opus | read a progress file |
+| preflight-test-design | `bmad-testarch-test-design` | subagent | Opus | test-strategy authoring/analysis |
+| create-story | `bmad-create-story` | subagent | Opus | exhaustive artifact analysis + story writing |
+| validate | `bmad-check-implementation-readiness` | inline | Opus | light spec-readiness reasoning over full context |
+| atdd | `bmad-testarch-atdd` | subagent | Sonnet | writing red test scaffolds (coding) |
+| dev-story | `bmad-dev-story` | subagent | Sonnet | feature implementation (coding) |
+| code-review | `bmad-code-review` | subagent | Opus | adversarial review/analysis |
+| test-automate | `bmad-testarch-automate` | subagent | Sonnet | writing/expanding tests (coding) |
+| nfr | `bmad-testarch-nfr` | subagent | Opus | NFR evidence analysis/writing |
+| trace | `bmad-testarch-trace` | subagent | Opus | traceability matrix synthesis/writing |
+| test-review | `bmad-testarch-test-review` | subagent | Opus | test-quality review/analysis |
+| (fix cycles) | `bmad-quick-dev` | subagent | Sonnet | targeted code/test fixes (coding) |
+| done | — | inline | Opus | changelog + Conventional Commit composition |
+
+**Rules:**
+- When dispatching a subagent, pass it the story_key, the SKILL path to load, the phase scope, and the model above. The subagent returns a structured result (gate verdict, artifact paths, counts); the orchestrator records the gate decision and advances state.
+- Inline phases keep full conversational context (story file, prior gate results) — chosen where that context outweighs isolation.
+- Any phase that runs **E2E or container-dependent tests** must first load `{project-root}/docs/testing/test-environment.md` and ensure the Fishtank stack is up (see that doc). The E2E gate (test-automate) hard-blocks if the stack is not healthy.
 
 ---
 
@@ -267,13 +295,13 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="4" goal="Create the story file" tag="create-story" anchor="create-story">
     <check if="'create-story' is in phases_completed">
-      <goto anchor="atdd" />
+      <goto anchor="validate" />
     </check>
 
     <check if="story file already exists in {implementation_artifacts}/ with status ready-for-dev or higher">
       <output>✅ Story file already exists for {{story_key}}. Skipping creation.</output>
-      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
-      <goto anchor="atdd" />
+      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'validate', last_updated → now</action>
+      <goto anchor="validate" />
     </check>
 
     <output>📝 Creating story file for {{story_key}}...</output>
@@ -281,6 +309,7 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
       - Load: {project-root}/.agents/skills/bmad-create-story/SKILL.md
       - Target story: {{story_key}}
       - The skill's own activation steps and preflight checks will run (test-design check will pass — already confirmed)
+      - Execution: dispatch as a SUBAGENT on Claude Opus — exhaustive artifact analysis + story authoring is a writing/analysis task.
     </action>
 
     <action>After creation: verify story file exists in {implementation_artifacts}/ with correct YAML frontmatter (story_key, status: ready-for-dev)</action>
@@ -288,7 +317,7 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
 
     <check if="story file exists in {implementation_artifacts}/ with status ready-for-dev">
       <output>✅ Story {{story_key}} created and sprint-status updated.</output>
-      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+      <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'validate', last_updated → now</action>
     </check>
 
     <check if="story file missing OR status is not ready-for-dev">
@@ -302,11 +331,51 @@ Manual fix required: run bmad-create-story directly and verify the output before
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 4: ATDD                                               -->
+  <!-- PHASE 4: VALIDATE                                           -->
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="5" goal="Write acceptance test scaffolds (red phase)" tag="atdd" anchor="atdd">
-    <check if="'atdd' is in phases_completed">
+  <!-- Execution: INLINE · Model: Claude Opus (reasoning/spec-analysis) -->
+  <step n="5" goal="Validate story readiness before implementation" tag="validate" anchor="validate">
+    <check if="'validate' is in phases_completed">
+      <goto anchor="atdd" />
+    </check>
+
+    <output>🔍 Validating implementation readiness for {{story_key}} (attempt {{validate_retries + 1}})...</output>
+
+    <action>Execute the bmad-check-implementation-readiness workflow scoped to story {{story_key}}:
+      - Load: {project-root}/.agents/skills/bmad-check-implementation-readiness/SKILL.md
+      - Scope: this story only
+      - Execution: run INLINE (orchestrator context) on Claude Opus — readiness reasoning is light and benefits from full story context.
+    </action>
+
+    <check if="readiness check scores PASS (no BLOCKER items)">
+      <output>✅ Story {{story_key}} is implementation-ready.</output>
+      <action>Update lifecycle state: append 'validate' to phases_completed, current_phase → 'atdd', last_updated → now</action>
+    </check>
+
+    <check if="readiness check finds BLOCKERS AND validate_retries < 2">
+      <action>Increment validate_retries in lifecycle state, last_updated → now</action>
+      <output>⚠ Readiness blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
+      <action>Fix the story file to address each BLOCKER (missing ACs, ambiguous tasks, undefined dependencies)</action>
       <goto anchor="validate" />
+    </check>
+
+    <check if="validate_retries >= 2">
+      <output>🚫 BLOCKED — Story readiness check failed after 3 attempts.
+
+Remaining blockers: {{blockers}}
+Manual story refinement required before implementation can proceed.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
+<action>HALT</action>
+</check>
+</step>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 5: ATDD                                               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- Execution: SUBAGENT · Model: Claude Sonnet (test-code authoring) -->
+  <step n="6" goal="Write acceptance test scaffolds (red phase)" tag="atdd" anchor="atdd">
+    <check if="'atdd' is in phases_completed">
+      <goto anchor="dev-story" />
     </check>
 
     <output>🧪 Writing acceptance test scaffolds for {{story_key}} (attempt {{atdd_retries + 1}})...</output>
@@ -316,6 +385,8 @@ Manual fix required: run bmad-create-story directly and verify the output before
       - Scope: story {{story_key}} only
       - Mode: Create
       - Tests must be RED phase (scaffolds that compile but fail — no implementation yet)
+      - Execution: dispatch as a SUBAGENT on Claude Sonnet (test-code authoring is a coding task).
+      - If the story requires E2E/container tests, load {project-root}/docs/testing/test-environment.md for how to bring the stack up.
     </action>
 
     <action>After completion: verify exit criteria:
@@ -338,7 +409,7 @@ Manual action required: save the checklist to \_bmad-output/test-artifacts/atdd-
 <action>HALT</action>
 </check>
 </check>
-<action>Update lifecycle state: append 'atdd' to phases_completed, current_phase → 'validate', last_updated → now</action>
+<action>Update lifecycle state: append 'atdd' to phases_completed, current_phase → 'dev-story', last_updated → now</action>
 </check>
 
     <check if="exit criteria fail AND atdd_retries < 2">
@@ -359,44 +430,11 @@ Manual review of story acceptance criteria and test scaffolds required.</output>
 </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 5: VALIDATE                                           -->
-  <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="6" goal="Validate story readiness before implementation" tag="validate" anchor="validate">
-    <check if="'validate' is in phases_completed">
-      <goto anchor="dev-story" />
-    </check>
-
-    <output>🔍 Validating implementation readiness for {{story_key}} (attempt {{validate_retries + 1}})...</output>
-
-    <action>Execute the bmad-check-implementation-readiness workflow scoped to story {{story_key}}:
-      - Load: {project-root}/.agents/skills/bmad-check-implementation-readiness/SKILL.md
-      - Scope: this story only
-    </action>
-
-    <check if="readiness check scores PASS (no BLOCKER items)">
-      <output>✅ Story {{story_key}} is implementation-ready.</output>
-      <action>Update lifecycle state: append 'validate' to phases_completed, current_phase → 'dev-story', last_updated → now</action>
-    </check>
-
-    <check if="readiness check finds BLOCKERS AND validate_retries < 2">
-      <action>Increment validate_retries in lifecycle state, last_updated → now</action>
-      <output>⚠ Readiness blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
-      <action>Fix the story file to address each BLOCKER (missing ACs, ambiguous tasks, undefined dependencies)</action>
-      <goto anchor="validate" />
-    </check>
-
-    <check if="validate_retries >= 2">
-      <output>🚫 BLOCKED — Story readiness check failed after 3 attempts.
-
-Remaining blockers: {{blockers}}
-Manual story refinement required before implementation can proceed.</output>
-<action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
-<action>HALT</action>
-</check>
-</step>
-
-  <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 6: DEV STORY                                          -->
+  <!-- Execution: SUBAGENT · Model: Claude Sonnet (feature implementation) -->
+  <!-- bmad-quick-dev fix cycles (triggered from code-review/test-automate/nfr/test-review): SUBAGENT · Claude Sonnet -->
+  <!-- E2E/container DoD checks: load docs/testing/test-environment.md to bring the stack up first -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="7" goal="Implement the story" tag="dev-story" anchor="dev-story">
     <check if="'dev-story' is in phases_completed">
@@ -411,7 +449,7 @@ Manual story refinement required before implementation can proceed.</output>
     <action>Execute the bmad-dev-story workflow:
       - Load: {project-root}/.agents/skills/bmad-dev-story/SKILL.md
       - Story: {implementation_artifacts}/{{story_key}}.md
-      - The skill's ATDD preflight will pass — scaffolds confirmed in phase 4
+      - The skill's ATDD preflight will pass — scaffolds confirmed in the atdd phase (phase 5)
     </action>
 
     <action>After completion: verify DoD gates 1–4 from project-context.md:
@@ -447,6 +485,8 @@ Escalating to {{user_name}} for manual intervention.</output>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 7: CODE REVIEW                                        -->
+  <!-- Execution: SUBAGENT · Model: Claude Opus (adversarial review/analysis) -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="8" goal="Adversarial code review" tag="code-review" anchor="code-review">
     <check if="'code-review' is in phases_completed">
@@ -499,6 +539,7 @@ Escalating to {{user_name}}.</output>
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 8: TEST AUTOMATE                                      -->
   <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- Execution: SUBAGENT · Model: Claude Sonnet (test-code authoring) -->
   <step n="9" goal="Expand test automation coverage for the story" tag="test-automate" anchor="test-automate">
     <check if="'test-automate' is in phases_completed">
       <goto anchor="nfr" />
@@ -513,6 +554,9 @@ Escalating to {{user_name}}.</output>
       - Load: {project-root}/.agents/skills/bmad-testarch-automate/SKILL.md
       - Scope: story {{story_key}} — new code paths only
       - Mode: Create
+      - Execution: dispatch as a SUBAGENT on Claude Sonnet (writing/expanding test code is a coding task).
+      - The base automate skill writes a generic {test_artifacts}/automation-summary.md — instruct the subagent to write the PER-STORY file {test_artifacts}/automation-summary-{{story_key}}.md.
+      - If the story requires E2E/container tests, load {project-root}/docs/testing/test-environment.md for how to bring the stack up.
     </action>
 
     <action>After completion: verify:
@@ -523,6 +567,18 @@ Escalating to {{user_name}}.</output>
 
     <check if="all verifications pass">
       <output>✅ Test automation complete for {{story_key}}.</output>
+      <action>Verify automation-summary artifact written to disk: check that {test_artifacts}/automation-summary-{{story_key}}.md exists as a file</action>
+      <check if="automation-summary file does NOT exist on disk">
+        <output>⚠ Test-automate phase passed but the automation-summary artifact was not saved to disk. Saving now...</output>
+        <action>Write the automation summary to {test_artifacts}/automation-summary-{{story_key}}.md — include: YAML frontmatter (story_key, generated date), a coverage table (AC → test file → layer → status), tests added this phase, total test counts per suite, and any intentional coverage gaps with rationale</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — automation-summary artifact could not be persisted to disk.
+
+Manual action required: save the summary to \_bmad-output/test-artifacts/automation-summary-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "automation-summary artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
       <action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'nfr', last_updated → now</action>
     </check>
 
@@ -548,6 +604,8 @@ Escalating to {{user_name}}.</output>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 9: NFR AUDIT                                          -->
+  <!-- Execution: SUBAGENT · Model: Claude Opus (NFR evidence analysis/writing) -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="10" goal="Audit NFR evidence (performance, security, reliability)" tag="nfr" anchor="nfr">
     <check if="'nfr' is in phases_completed">
@@ -614,6 +672,8 @@ Escalating to {{user_name}}.</output>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 10: TRACEABILITY                                      -->
+  <!-- Execution: SUBAGENT · Model: Claude Opus (matrix synthesis/writing) -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="11" goal="Generate traceability matrix and coverage gate" tag="trace" anchor="trace">
     <check if="'trace' is in phases_completed">
@@ -667,6 +727,8 @@ Escalating to {{user_name}}.</output>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 11: TEST REVIEW                                       -->
+  <!-- Execution: SUBAGENT · Model: Claude Opus (test-quality review/analysis) -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="12" goal="Review test quality" tag="test-review" anchor="test-review">
     <check if="'test-review' is in phases_completed">
@@ -713,6 +775,8 @@ Escalating to {{user_name}}.</output>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PHASE 12: DONE                                              -->
+  <!-- Execution: INLINE · Model: Claude Opus (changelog/commit composition) -->
+
   <!-- ═══════════════════════════════════════════════════════════ -->
   <step n="13" goal="Mark story done and update sprint tracking" tag="done" anchor="done">
     <action>Update sprint-status.yaml: {{story_key}} → done</action>
