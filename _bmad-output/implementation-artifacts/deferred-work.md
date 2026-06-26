@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: exploratory testing session (2026-06-27)
+
+- [EX-1] `ServiceManager.StopAsync` and `StartAsync` do not emit `Info` system events on success. The UX spec (EXPERIENCE.md — System Events screen, Info tab) explicitly lists "service restarts" as an expected Info tab entry. Neither stop nor start writes a `SystemEvent` with `severity=info` today. Add `systemEvents.AddAsync(SystemEventSeverity.Info, ...)` calls at the successful-exit paths of both methods in a future story.
+
 ## Deferred from: test-review of 2-1-wiremock-engine-layer-and-services-api-backend (2026-06-22)
 
 - [TR-W1] `Story2_1_ServicesTests.cs` is 640 lines — split into `Story2_1_CreateServiceTests.cs`, `Story2_1_UpdateStopStartTests.cs`, `Story2_1_SystemEventsAndPortTests.cs` when tests grow beyond 20.
