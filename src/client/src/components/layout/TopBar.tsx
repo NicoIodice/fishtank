@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AboutModal } from "@/components/modals/AboutModal";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { apiFetch } from "@/lib/api";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUnreadCount } from "@/features/events/hooks/useSystemEvents";
+import { NotificationBadge } from "@/features/events/components/NotificationBadge";
+import { NotificationPanel } from "@/features/events/components/NotificationPanel";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -19,10 +22,24 @@ export function TopBar({
 }: TopBarProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [panelOpenPath, setPanelOpenPath] = useState<string | null>(null);
+  const panelOpen = panelOpenPath === location.pathname;
+  const { data: unread = 0 } = useUnreadCount();
+
+  // Close the notification panel on Esc — AC-9
+  useEffect(() => {
+    if (!panelOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setPanelOpenPath(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [panelOpen]);
 
   async function handleSignOut() {
     if (signingOut) return;
@@ -78,13 +95,25 @@ export function TopBar({
             <i className="bi bi-info-circle" aria-hidden="true" />
           </button>
 
-          <button
-            className={styles.iconBtn}
-            aria-label="Notifications"
-            data-testid="topbar-bell-button"
-          >
-            <i className="bi bi-bell" aria-hidden="true" />
-          </button>
+          <div className={styles.bellWrapper}>
+            <button
+              className={styles.iconBtn}
+              aria-label="Notifications — warnings and errors"
+              aria-haspopup="true"
+              aria-expanded={panelOpen}
+              onClick={() =>
+                setPanelOpenPath(panelOpen ? null : location.pathname)
+              }
+              data-testid="topbar-btn-bell"
+            >
+              <i className="bi bi-bell" aria-hidden="true" />
+              <NotificationBadge count={unread} />
+            </button>
+
+            {panelOpen && (
+              <NotificationPanel onClose={() => setPanelOpenPath(null)} />
+            )}
+          </div>
 
           <div className={styles.avatarWrapper}>
             <button

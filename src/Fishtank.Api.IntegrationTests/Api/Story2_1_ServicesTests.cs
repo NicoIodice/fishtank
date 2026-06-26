@@ -156,12 +156,15 @@ public class Story2_1_ServicesTests : IntegrationTestBase
         data.GetProperty("status").GetString().Should().Be("stopped",
             "port binding failure must result in stopped status");
 
-        // A SystemEvent with severity=error must exist
-        var eventsResponse = await client.GetAsync("/api/system-events");
+        // A SystemEvent with severity=error must exist.
+        // Story 2.4 changed GET /api/system-events to a paginated, severity-filtered
+        // envelope { items, total, hasMore }; error events live in the warnings-errors group.
+        var eventsResponse = await client.GetAsync(
+            "/api/system-events?severity=warnings-errors&skip=0&take=100");
         eventsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var eventsBody = await eventsResponse.Content.ReadFromJsonAsync<JsonElement>();
         eventsBody.GetProperty("success").GetBoolean().Should().BeTrue();
-        var events = eventsBody.GetProperty("data").EnumerateArray().ToList();
+        var events = eventsBody.GetProperty("data").GetProperty("items").EnumerateArray().ToList();
         events.Should().ContainSingle(e =>
             e.GetProperty("severity").GetString() == "error"
             && e.GetProperty("message").GetString()!.Contains("Blocked Service",

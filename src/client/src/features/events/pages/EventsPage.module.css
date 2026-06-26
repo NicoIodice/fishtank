@@ -1,0 +1,209 @@
+/* EventsPage.module.css */
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionBtn {
+  border: 1px solid var(--border);
+  background: var(--content-surface);
+  color: var(--content-fg);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-lg, 8px);
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: var(--content-bg);
+}
+
+.actionBtnDanger {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--error, #ef4444);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-lg, 8px);
+  cursor: pointer;
+}
+
+.actionBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin: 12px 0 0;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--content-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--content-fg);
+}
+
+.tabActive {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  color: var(--content-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.list {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.loadMore {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--brand);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.loadMore:hover:not(:disabled) {
+  background: var(--content-bg);
+}
+
+.loadMore:disabled {
+  color: var(--content-muted);
+  cursor: default;
+}
+
+.stateBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--content-muted);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.emptyTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--content-fg);
+  margin: 0;
+}
+
+.emptySub {
+  font-size: 0.8125rem;
+  color: var(--content-muted);
+  margin: 0;
+}
+
+/* Clear-all confirmation modal */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 60);
+}
+
+.modal {
+  background: var(--content-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-raised);
+  padding: 20px;
+  max-width: 360px;
+  width: calc(100vw - 32px);
+}
+
+.modalTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--content-fg);
+}
+
+.modalBody {
+  font-size: 0.8125rem;
+  color: var(--content-muted);
+  margin: 0 0 16px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Deep-link highlight (AC-10) — 1s amber fade, suppressed under reduced motion. */
+:global(.amber-highlight) {
+  animation: amber-highlight 1s ease-out forwards;
+}
+
+@keyframes amber-highlight {
+  from {
+    background: var(--warning-subtle, #fef3c7);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.amber-highlight) {
+    animation: none;
+  }
+}

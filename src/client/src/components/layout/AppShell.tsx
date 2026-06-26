@@ -4,6 +4,7 @@ import { TopBar } from "./TopBar";
 import { Sidebar } from "./Sidebar";
 import { useBreakpoint } from "@/lib/useBreakpoint";
 import { useServicesHub } from "@/features/services/hooks/useServicesHub";
+import { useEventsHub } from "@/features/events/hooks/useEventsHub";
 import styles from "./AppShell.module.css";
 
 export function AppShell() {
@@ -13,6 +14,8 @@ export function AppShell() {
 
   // Wire ServicesHub real-time connection (Story 2.3)
   useServicesHub();
+  // Wire EventsHub real-time connection (Story 2.4)
+  useEventsHub();
 
   // Close the mobile overlay when the breakpoint leaves mobile (render-time update)
   if (prevMobile !== mobile) {

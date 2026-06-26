@@ -1,0 +1,105 @@
+/* SystemEventItem.module.css */
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+
+.panelItem {
+  cursor: pointer;
+}
+
+.panelItem:hover {
+  background: var(--content-bg);
+}
+
+/* Unread items use an elevated surface + full-opacity icon (DESIGN.md line 466). */
+.unread {
+  background: var(--content-surface);
+}
+
+.screenItem {
+  cursor: default;
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message {
+  font-size: 0.8125rem;
+  color: var(--content-fg);
+  word-break: break-word;
+}
+
+.message :global(code) {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  background: var(--content-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0 4px;
+}
+
+.messageLink {
+  color: var(--content-fg);
+  text-decoration: none;
+}
+
+.messageLink:hover {
+  text-decoration: underline;
+  color: var(--brand);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.timestamp {
+  font-size: 0.6875rem;
+  color: var(--content-muted);
+}
+
+.serviceTag {
+  font-size: 0.6875rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-md, 6px);
+  background: rgba(var(--brand-rgb), 0.12);
+  border: 1px solid var(--border);
+  color: var(--content-muted);
+}
+
+.dismiss {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  color: var(--content-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.dismiss:hover {
+  background: var(--content-bg);
+  color: var(--content-fg);
+}
