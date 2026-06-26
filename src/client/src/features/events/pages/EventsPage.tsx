@@ -47,9 +47,12 @@ function EventList({
     if (!el) return;
     el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
     if (reducedMotion) return;
-    setHighlightActive(highlightId);
-    const t = window.setTimeout(() => setHighlightActive(null), 1000);
-    return () => window.clearTimeout(t);
+    const tStart = window.setTimeout(() => setHighlightActive(highlightId), 0);
+    const tEnd = window.setTimeout(() => setHighlightActive(null), 1000);
+    return () => {
+      window.clearTimeout(tStart);
+      window.clearTimeout(tEnd);
+    };
   }, [highlightId, items, reducedMotion]);
 
   if (isLoading) {

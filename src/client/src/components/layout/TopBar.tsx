@@ -27,19 +27,15 @@ export function TopBar({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpenPath, setPanelOpenPath] = useState<string | null>(null);
+  const panelOpen = panelOpenPath === location.pathname;
   const { data: unread = 0 } = useUnreadCount();
-
-  // Close the notification panel on any navigation (sidebar/logo/back/forward) — AC-9
-  useEffect(() => {
-    setPanelOpen(false);
-  }, [location.pathname]);
 
   // Close the notification panel on Esc — AC-9
   useEffect(() => {
     if (!panelOpen) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setPanelOpen(false);
+      if (e.key === "Escape") setPanelOpenPath(null);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -105,7 +101,7 @@ export function TopBar({
               aria-label="Notifications — warnings and errors"
               aria-haspopup="true"
               aria-expanded={panelOpen}
-              onClick={() => setPanelOpen((v) => !v)}
+              onClick={() => setPanelOpenPath(panelOpen ? null : location.pathname)}
               data-testid="topbar-btn-bell"
             >
               <i className="bi bi-bell" aria-hidden="true" />
@@ -116,9 +112,9 @@ export function TopBar({
               <>
                 <div
                   className={styles.dropdownBackdrop}
-                  onClick={() => setPanelOpen(false)}
+                  onClick={() => setPanelOpenPath(null)}
                 />
-                <NotificationPanel onClose={() => setPanelOpen(false)} />
+                <NotificationPanel onClose={() => setPanelOpenPath(null)} />
               </>
             )}
           </div>
