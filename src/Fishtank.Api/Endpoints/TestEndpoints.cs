@@ -1,5 +1,7 @@
 using Fishtank.Api.Data;
+using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Engine;
+using Fishtank.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fishtank.Api.Endpoints;
@@ -12,6 +14,23 @@ public static class TestEndpoints
     /// </summary>
     public static void MapTestEndpoints(this IEndpointRouteBuilder app)
     {
+        // POST /api/test/seed-event
+        // Directly inserts a SystemEvent and broadcasts via SignalR so E2E tests
+        // can seed warning/error events without relying on the WireMock crash path.
+        // Body: { "severity": "error"|"warning"|"info", "message": "<text>" }
+        app.MapPost("/api/test/seed-event",
+            async (SeedEventRequest body, ISystemEventService svc, CancellationToken ct) =>
+            {
+                var severity = body.Severity?.ToLowerInvariant() switch
+                {
+                    "warning" => SystemEventSeverity.Warning,
+                    "info"    => SystemEventSeverity.Info,
+                    _         => SystemEventSeverity.Error,
+                };
+                await svc.AddAsync(severity, body.Message ?? "Test event", ct: ct);
+                return Results.Json(new { success = true });
+            });
+
         // POST /api/test/reset-db
         // Deletes all user-generated data so each E2E run starts from a clean slate.
         // Deletion order respects FK constraints: events → services → users.
@@ -52,3 +71,7 @@ public static class TestEndpoints
         }
     }
 }
+
+/// <param name="Severity">"error" | "warning" | "info" — defaults to "error" when omitted or unrecognised.</param>
+/// <param name="Message">Free-text event message inserted verbatim.</param>
+public record SeedEventRequest(string? Severity, string? Message);

@@ -112,24 +112,25 @@ phases_completed: [] # list of completed phase tags
 
 The orchestrator runs phases with a **hybrid execution model**. Lightweight steps (state transitions, file checks, readiness reasoning, changelog/commit) run **inline** in the orchestrator context. Heavy, self-contained skills run as **dispatched subagents** so they keep their own context window and return only a structured result. Model is chosen by task type: **Claude Sonnet (latest)** for coding tasks (writing/expanding/fixing code and tests), **Claude Opus (latest)** for reasoning, analysis, and writing tasks (more thinking).
 
-| Phase | Skill | Execution | Model | Why |
-|-------|-------|-----------|-------|-----|
-| init | — | inline | Opus | trivial state resolution |
-| preflight-framework | — (file check) | inline | Opus | read a progress file |
-| preflight-test-design | `bmad-testarch-test-design` | subagent | Opus | test-strategy authoring/analysis |
-| create-story | `bmad-create-story` | subagent | Opus | exhaustive artifact analysis + story writing |
-| validate | `bmad-check-implementation-readiness` | inline | Opus | light spec-readiness reasoning over full context |
-| atdd | `bmad-testarch-atdd` | subagent | Sonnet | writing red test scaffolds (coding) |
-| dev-story | `bmad-dev-story` | subagent | Sonnet | feature implementation (coding) |
-| code-review | `bmad-code-review` | subagent | Opus | adversarial review/analysis |
-| test-automate | `bmad-testarch-automate` | subagent | Sonnet | writing/expanding tests (coding) |
-| test-review | `bmad-testarch-test-review` | subagent | Opus | test-quality review/analysis |
-| nfr | `bmad-testarch-nfr` | subagent | Opus | NFR evidence analysis/writing |
-| trace | `bmad-testarch-trace` | subagent | Opus | traceability matrix synthesis/writing |
-| (fix cycles) | `bmad-quick-dev` | subagent | Sonnet | targeted code/test fixes (coding) |
-| done | — | inline | Opus | changelog + Conventional Commit composition |
+| Phase                 | Skill                                 | Execution | Model  | Why                                              |
+| --------------------- | ------------------------------------- | --------- | ------ | ------------------------------------------------ |
+| init                  | —                                     | inline    | Opus   | trivial state resolution                         |
+| preflight-framework   | — (file check)                        | inline    | Opus   | read a progress file                             |
+| preflight-test-design | `bmad-testarch-test-design`           | subagent  | Opus   | test-strategy authoring/analysis                 |
+| create-story          | `bmad-create-story`                   | subagent  | Opus   | exhaustive artifact analysis + story writing     |
+| validate              | `bmad-check-implementation-readiness` | inline    | Opus   | light spec-readiness reasoning over full context |
+| atdd                  | `bmad-testarch-atdd`                  | subagent  | Sonnet | writing red test scaffolds (coding)              |
+| dev-story             | `bmad-dev-story`                      | subagent  | Sonnet | feature implementation (coding)                  |
+| code-review           | `bmad-code-review`                    | subagent  | Opus   | adversarial review/analysis                      |
+| test-automate         | `bmad-testarch-automate`              | subagent  | Sonnet | writing/expanding tests (coding)                 |
+| test-review           | `bmad-testarch-test-review`           | subagent  | Opus   | test-quality review/analysis                     |
+| nfr                   | `bmad-testarch-nfr`                   | subagent  | Opus   | NFR evidence analysis/writing                    |
+| trace                 | `bmad-testarch-trace`                 | subagent  | Opus   | traceability matrix synthesis/writing            |
+| (fix cycles)          | `bmad-quick-dev`                      | subagent  | Sonnet | targeted code/test fixes (coding)                |
+| done                  | —                                     | inline    | Opus   | changelog + Conventional Commit composition      |
 
 **Rules:**
+
 - When dispatching a subagent, pass it the story_key, the SKILL path to load, the phase scope, and the model above. The subagent returns a structured result (gate verdict, artifact paths, counts); the orchestrator records the gate decision and advances state.
 - Inline phases keep full conversational context (story file, prior gate results) — chosen where that context outweighs isolation.
 - Any phase that runs **E2E or container-dependent tests** must first load `{project-root}/docs/testing/test-environment.md` and ensure the Fishtank stack is up (see that doc). The E2E gate (test-automate) hard-blocks if the stack is not healthy.
@@ -579,8 +580,8 @@ Manual action required: save the summary to \_bmad-output/test-artifacts/automat
 <action>HALT</action>
 </check>
 </check>
-      <action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'test-review', last_updated → now</action>
-    </check>
+<action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'test-review', last_updated → now</action>
+</check>
 
     <check if="verifications fail (test failures detected)">
       <output>⚠ Test failures detected post-automation. Entering QuickDev fix cycle (cycle {{quickdev_cycle + 1}} of 2)...</output>

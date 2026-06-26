@@ -101,7 +101,9 @@ export function TopBar({
               aria-label="Notifications — warnings and errors"
               aria-haspopup="true"
               aria-expanded={panelOpen}
-              onClick={() => setPanelOpenPath(panelOpen ? null : location.pathname)}
+              onClick={() =>
+                setPanelOpenPath(panelOpen ? null : location.pathname)
+              }
               data-testid="topbar-btn-bell"
             >
               <i className="bi bi-bell" aria-hidden="true" />
@@ -109,13 +111,7 @@ export function TopBar({
             </button>
 
             {panelOpen && (
-              <>
-                <div
-                  className={styles.dropdownBackdrop}
-                  onClick={() => setPanelOpenPath(null)}
-                />
-                <NotificationPanel onClose={() => setPanelOpenPath(null)} />
-              </>
+              <NotificationPanel onClose={() => setPanelOpenPath(null)} />
             )}
           </div>
 

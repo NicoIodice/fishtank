@@ -59,23 +59,20 @@ async function getUnreadCount(request: Request): Promise<number> {
 }
 
 /**
- * Fire one service-create on a reserved engine port (30100) so WireMock startup
- * fails and ServiceManager writes an `error` SystemEvent. Returns the raw HTTP
- * status so the caller can detect when NO event was produced (e.g. a 4xx
- * rejected before the engine ever started), rather than silently under-seeding.
+ * Directly seed one warning/error SystemEvent via the test-only endpoint.
+ * Returns the HTTP status (should be 200 on success).
  *
- * NOTE: there is no public "create arbitrary system event" endpoint; this relies
- * on the engine-crash creation path. If a test-only seed route is added later,
- * prefer it here.
+ * Replaces the unreliable port-collision approach: port 30100 is the first valid
+ * service port — WireMock starts on it successfully in a clean CI environment,
+ * producing no error event and causing all seed-dependent tests to time out.
  */
 async function fireFailingService(request: Request): Promise<number> {
-  const res = await request.fetch("http://127.0.0.1:5000/api/services", {
+  const res = await request.fetch("http://127.0.0.1:5000/api/test/seed-event", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: JSON.stringify({
-      name: uniqueMessage("evt-svc"),
-      externalUrl: `https://${faker.internet.domainName()}`,
-      port: 30100, // reserved engine port → startup failure → error SystemEvent
+      severity: "error",
+      message: uniqueMessage("evt-svc"),
     }),
   });
   return res.status();

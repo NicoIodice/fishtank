@@ -45,7 +45,10 @@ function EventList({
       `[data-event-id="${highlightId}"]`,
     );
     if (!el) return;
-    el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+    el.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "center",
+    });
     if (reducedMotion) return;
     const tStart = window.setTimeout(() => setHighlightActive(highlightId), 0);
     const tEnd = window.setTimeout(() => setHighlightActive(null), 1000);
@@ -118,7 +121,8 @@ function TabCount({ group }: { group: EventGroup }) {
 export function EventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab: EventGroup = tabParam === "info" ? "info" : "warnings-errors";
+  const activeTab: EventGroup =
+    tabParam === "info" ? "info" : "warnings-errors";
   const highlightId = searchParams.get("id");
 
   const markAllRead = useMarkAllRead();
@@ -176,7 +180,11 @@ export function EventsPage() {
         </div>
       </div>
 
-      <div className={styles.tabs} role="tablist" aria-label="System event groups">
+      <div
+        className={styles.tabs}
+        role="tablist"
+        aria-label="System event groups"
+      >
         <button
           type="button"
           role="tab"
