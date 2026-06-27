@@ -918,7 +918,7 @@ Escalating to {{user_name}}.</output>
 1. **Now →** `feature/{{story_key}}` → `release/v{{release_version}}`
 2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
    {{else}}
-   Open a pull request: `feature/{{story_key}}` → `release/v{{release_version}}`
+   Target: `feature/{{story_key}}` → `release/v{{release_version}}`
    {{/if}}
 
 Checklist confirmed:
@@ -929,7 +929,26 @@ Checklist confirmed:
 - ✅ PR-4: Story file status correct
 - ✅ PR-5: Working tree clean
   </output>
-  </check>
+
+      <action>Ask the user: "Shall I create the pull request now? Reply **yes** to open it automatically, or **no** to skip."</action>
+
+      <check if="user replied yes">
+        <action>Create the pull request:
+          1. Read {implementation_artifacts}/stories/{{story_key}}.md — extract the story title from the frontmatter `title` field or the first H1 heading
+          2. Run in terminal: gh pr create --title "{{story_title}}" --body "Lifecycle complete — all 11 phases passed.\n\nTraceability matrix: `_bmad-output/test-artifacts/traceability/traceability-matrix-{{story_key}}.md`" --base "release/v{{release_version}}" --head "feature/{{story_key}}"
+          3. Capture the PR URL printed by the CLI (the https://github.com/... line)
+        </action>
+        <output>✅ Pull request created: {{pr_url}}
+{{#if epic_all_done}}
+⚠️ After this PR merges, open a second PR: `release/v{{release_version}}` → `main` to trigger the Docker publish + GitHub Release.
+{{/if}}</output>
+      </check>
+
+      <check if="user replied no or did not answer yes">
+        <output>PR creation skipped — open manually when ready:
+  `feature/{{story_key}}` → `release/v{{release_version}}`</output>
+      </check>
+    </check>
 
       <check if="any PR condition fails">
         <output>
