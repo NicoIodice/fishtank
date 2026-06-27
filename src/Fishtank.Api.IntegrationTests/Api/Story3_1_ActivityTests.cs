@@ -7,28 +7,13 @@ using Fishtank.Api.IntegrationTests.Support;
 namespace Fishtank.Api.IntegrationTests.Api;
 
 /// <summary>
-/// ATDD acceptance tests for Story 3-1:
+/// Acceptance tests for Story 3-1:
 /// Activity Log Backend — Request Capture &amp; Header Redaction.
 ///
-/// All tests in this class are in the RED phase — they compile cleanly but
-/// fail at runtime because the activity endpoints do not exist yet:
-///   - GET    /api/activity
-///   - DELETE /api/activity
-///
-/// RED reasons per test:
-///   GetActivity_Unauthenticated_Returns401:
-///     Endpoint not mapped → ASP.NET Core routing returns 404; test asserts 401.
-///   GetActivity_Authenticated_NoActivity_Returns200WithEmptyArray:
-///     Endpoint not mapped → 404; test asserts 200 OK with empty data array.
-///   DeleteActivity_Authenticated_Returns200WithSuccess:
-///     Endpoint not mapped → 404; test asserts 200 OK with {success:true,data:null}.
-///
-/// Once <c>ActivityEndpoints.cs</c> is implemented and registered in Program.cs,
-/// all three tests should turn GREEN with no other changes.
-///
 /// ACs covered:
-///   AC-7 — GET /api/activity requires authentication; returns 200 + data array.
+///   AC-7 — GET /api/activity requires authentication; returns 200 + data array; supports filters.
 ///   AC-8 — DELETE /api/activity clears all logs; returns {success:true,data:null}.
+///   AC-10 — Settings endpoint exposes and persists captureFullHeaders toggle.
 /// </summary>
 [Collection("Integration")]
 public class Story3_1_ActivityTests : IntegrationTestBase
@@ -57,8 +42,6 @@ public class Story3_1_ActivityTests : IntegrationTestBase
     [Fact(DisplayName = "AC-7: GET /api/activity without auth → 401")]
     public async Task GetActivity_Unauthenticated_Returns401()
     {
-        // RED: /api/activity endpoint not mapped yet.
-        // Routing returns 404; test asserts Unauthorized (401).
         var response = await Client.GetAsync("/api/activity");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -73,7 +56,6 @@ public class Story3_1_ActivityTests : IntegrationTestBase
     {
         var client = await GetAuthenticatedClientAsync();
 
-        // RED: /api/activity not mapped → 404 instead of 200.
         var response = await client.GetAsync("/api/activity");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -95,7 +77,6 @@ public class Story3_1_ActivityTests : IntegrationTestBase
     {
         var client = await GetAuthenticatedClientAsync();
 
-        // RED: /api/activity DELETE not mapped → 404 instead of 200.
         var response = await client.DeleteAsync("/api/activity");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -115,7 +96,6 @@ public class Story3_1_ActivityTests : IntegrationTestBase
     [Fact(DisplayName = "AC-8: DELETE /api/activity without auth → 401")]
     public async Task DeleteActivity_Unauthenticated_Returns401()
     {
-        // RED: /api/activity endpoint not mapped yet → 404; test asserts 401.
         var response = await Client.DeleteAsync("/api/activity");
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -196,5 +176,57 @@ public class Story3_1_ActivityTests : IntegrationTestBase
         var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
         body.GetProperty("success").GetBoolean().Should().BeTrue();
         body.GetProperty("data").TryGetProperty("captureFullHeaders", out _).Should().BeTrue();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // AC-7: pagination boundary — take > 200 capped server-side
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity?take=500 → 200 (server caps take at 200)")]
+    public async Task GetActivity_TakeExceedsMax_Returns200()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/activity?take=500");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // AC-7: pagination boundary — negative skip clamped to 0 server-side
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity?skip=-5 → 200 (server clamps skip to 0)")]
+    public async Task GetActivity_NegativeSkip_Returns200()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/activity?skip=-5");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // AC-7: combined filters — type + search accepted together in one request
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity?type=Mocked&search=api → 200 with combined filters")]
+    public async Task GetActivity_CombinedFilters_Returns200WithEmptyArray()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/activity?type=Mocked&search=api");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+        body.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Array);
     }
 }

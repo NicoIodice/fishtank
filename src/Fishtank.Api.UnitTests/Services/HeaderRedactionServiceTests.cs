@@ -11,15 +11,7 @@ namespace Fishtank.Api.UnitTests.Services;
    ─────────────────────────────────────────────────────────────────────────── */
 
 /// <summary>
-/// ATDD red-phase unit tests for <see cref="HeaderRedactionService"/> (Story 3-1).
-///
-/// All tests in this class are in the RED phase — they compile cleanly but
-/// fail at runtime because the real implementation does not exist yet.
-///
-/// Once <c>Fishtank.Api.Services.HeaderRedactionService</c> is implemented:
-///   1. Remove the RED-phase stub class above.
-///   2. Add <c>using Fishtank.Api.Services;</c> to the using block.
-///   3. All tests should turn GREEN with no other changes.
+/// Unit tests for <see cref="HeaderRedactionService"/> (Story 3-1).
 ///
 /// ACs covered:
 ///   AC-2 — Sensitive headers are redacted at storage time (exact + contains matches).
@@ -127,12 +119,12 @@ public class HeaderRedactionServiceTests : UnitTestBase
         var sut = new HeaderRedactionService(captureFullHeaders: false);
         var headers = new Dictionary<string, string>
         {
-            ["Authorization"]    = "Bearer abc123",
-            ["Content-Type"]     = "application/json",
-            ["X-My-Secret-Key"]  = "do-not-expose",
-            ["Accept"]           = "text/html",
-            ["CSRF-Token"]       = "csrf-value",
-            ["X-Request-Id"]     = "req-001",
+            ["Authorization"] = "Bearer abc123",
+            ["Content-Type"] = "application/json",
+            ["X-My-Secret-Key"] = "do-not-expose",
+            ["Accept"] = "text/html",
+            ["CSRF-Token"] = "csrf-value",
+            ["X-Request-Id"] = "req-001",
         };
 
         var result = sut.Redact(headers);

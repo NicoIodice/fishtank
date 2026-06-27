@@ -11,16 +11,7 @@ namespace Fishtank.Api.UnitTests.Engine;
    ─────────────────────────────────────────────────────────────────────────── */
 
 /// <summary>
-/// ATDD red-phase unit tests for <see cref="ActivityStore"/> (Story 3-1).
-///
-/// All tests in this class are in the RED phase — they compile cleanly but
-/// fail at runtime because the real implementation does not exist yet.
-///
-/// Once <c>Fishtank.Api.Engine.ActivityStore</c> is implemented:
-///   1. Remove the RED-phase stubs (<c>ActivityRow</c>, <c>ActivityType</c>,
-///      <c>ActivityStore</c>) from this file.
-///   2. Add the appropriate <c>using</c> directives.
-///   3. All tests should turn GREEN with no other changes.
+/// Unit tests for <see cref="ActivityStore"/> (Story 3-1).
 ///
 /// ACs covered:
 ///   AC-1 — Request captured to in-memory store; retrievable via GetAll.
@@ -116,6 +107,10 @@ public class ActivityStoreTests : UnitTestBase
         result.Should().HaveCount(cap);
         result.Should().NotContain(r => r.Id == first.Id,
             "the oldest row must be evicted when the cap is reached");
+        result.Should().Contain(r => r.Id == second.Id,
+            "second row must be retained — only first was evicted");
+        result.Should().Contain(r => r.Id == third.Id,
+            "third row must be retained — only first was evicted");
         result.Should().Contain(r => r.Id == fourth.Id,
             "the newest row must be present after eviction");
     }

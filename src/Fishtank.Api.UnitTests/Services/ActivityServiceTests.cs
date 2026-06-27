@@ -42,16 +42,16 @@ public class ActivityServiceTests : UnitTestBase
         string urlPath = "/api/test",
         ActivityType type = ActivityType.Mocked,
         string method = "GET") => new()
-    {
-        Method = method,
-        UrlPath = urlPath,
-        StatusCode = 200,
-        Type = type,
-        ServiceId = serviceId ?? Guid.NewGuid(),
-        ServiceName = "TestService",
-        ServicePort = 9001,
-        DurationMs = 15,
-    };
+        {
+            Method = method,
+            UrlPath = urlPath,
+            StatusCode = 200,
+            Type = type,
+            ServiceId = serviceId ?? Guid.NewGuid(),
+            ServiceName = "TestService",
+            ServicePort = 9001,
+            DurationMs = 15,
+        };
 
     // ─── AC-1: CaptureAsync stores row ───────────────────────────────────────
 
@@ -79,7 +79,7 @@ public class ActivityServiceTests : UnitTestBase
         // SendAsync is an extension over SendCoreAsync — assert the core call.
         await _allClients.Received(1).SendCoreAsync(
             "ActivityRowAdded",
-            Arg.Is<object?[]>(a => a.Length == 1),
+            Arg.Is<object?[]>(a => a.Length == 1 && a[0] != null && ((ActivityRowDto)a[0]!).Id == row.Id),
             Arg.Any<CancellationToken>());
     }
 
@@ -134,7 +134,7 @@ public class ActivityServiceTests : UnitTestBase
     {
         var sut = BuildSut();
         var targetRow = BuildRow(urlPath: "/api/users");
-        var otherRow  = BuildRow(urlPath: "/api/orders");
+        var otherRow = BuildRow(urlPath: "/api/orders");
         _store.GetAll(Arg.Any<Guid?>()).Returns(new[] { targetRow, otherRow });
 
         var result = await sut.QueryAsync(null, null, "users", 0, 50);
@@ -142,7 +142,19 @@ public class ActivityServiceTests : UnitTestBase
         result.Should().ContainSingle()
             .Which.UrlPath.Should().Be("/api/users");
     }
+    [Fact(DisplayName = "AC-7: QueryAsync with search filters rows by HTTP method (case-insensitive)")]
+    public async Task QueryAsync_FiltersBySearchOnMethod()
+    {
+        var sut = BuildSut();
+        var getRow = BuildRow(urlPath: "/api/items", method: "GET");
+        var postRow = BuildRow(urlPath: "/api/items", method: "POST");
+        _store.GetAll(Arg.Any<Guid?>()).Returns(new[] { getRow, postRow });
 
+        var result = await sut.QueryAsync(null, null, "POST", 0, 50);
+
+        result.Should().ContainSingle()
+            .Which.Method.Should().Be("POST");
+    }
     // ─── AC-7: QueryAsync — pagination ───────────────────────────────────────
 
     [Fact(DisplayName = "AC-7: QueryAsync applies skip and take for pagination")]
@@ -157,6 +169,8 @@ public class ActivityServiceTests : UnitTestBase
         var result = await sut.QueryAsync(null, null, null, skip: 3, take: 4);
 
         result.Should().HaveCount(4);
+        result.Select(r => r.UrlPath).Should().Equal(
+            "/api/item/3", "/api/item/4", "/api/item/5", "/api/item/6");
     }
 
     // ─── AC-8: ClearAsync ────────────────────────────────────────────────────

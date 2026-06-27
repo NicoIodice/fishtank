@@ -7,6 +7,7 @@ namespace Fishtank.Api.Engine;
 /// <summary>
 /// Thread-safe singleton in-memory store for WireMock request/response activity.
 /// Maintains a per-service FIFO queue capped at <see cref="_maxRowsPerService"/> rows.
+/// Activity data is held in memory only and is cleared when the container restarts.
 /// </summary>
 public sealed class ActivityStore : IActivityStore
 {
