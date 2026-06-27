@@ -151,7 +151,7 @@ Activation is complete. If `activation_steps_prepend` or `activation_steps_appen
 
     <!-- Non-sprint story discovery -->
     <check if="{{sprint_status}} file does NOT exist">
-      <action>Search {implementation_artifacts} for stories directly</action>
+      <action>Search {implementation_artifacts}/stories for story files directly</action>
       <action>Find stories with "ready-for-dev" status in files</action>
       <action>Look for story files matching pattern: *-*-*.md</action>
       <action>Read each candidate story file to check Status section</action>
@@ -187,7 +187,7 @@ Activation is complete. If `activation_steps_prepend` or `activation_steps_appen
     </check>
 
     <action>Store the found story_key (e.g., "1-2-user-authentication") for later status updates</action>
-    <action>Find matching story file in {implementation_artifacts} using story_key pattern: {{story_key}}.md</action>
+    <action>Find matching story file in {implementation_artifacts}/stories using story_key pattern: {{story_key}}.md</action>
     <action>Read COMPLETE story file from discovered path</action>
 
     <anchor id="task_check" />

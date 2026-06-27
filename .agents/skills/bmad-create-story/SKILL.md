@@ -73,7 +73,7 @@ Activation is complete. If `activation_steps_prepend` or `activation_steps_appen
 - `architecture_file` = `{planning_artifacts}/architecture.md`
 - `ux_file` = `{planning_artifacts}/*ux*.md`
 - `story_title` = "" (will be elicited if not derivable)
-- `default_output_file` = `{implementation_artifacts}/{{story_key}}.md`
+- `default_output_file` = `{implementation_artifacts}/stories/{{story_key}}.md`
 
 ## Input Files
 
