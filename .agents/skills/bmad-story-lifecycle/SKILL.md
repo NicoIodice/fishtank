@@ -677,8 +677,8 @@ Manual action required: save the review to \_bmad-output/test-artifacts/test-rev
 <action>HALT</action>
 </check>
 </check>
-      <action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
-    </check>
+<action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
+</check>
 
     <check if="BLOCKER items found (test gaps that require code changes)">
       <output>⚠ Test review blockers require code changes. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>
