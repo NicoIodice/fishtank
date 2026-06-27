@@ -10,6 +10,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.2] — 2026-06-27 (Hotfix)
+
+### Fixed
+
+- **Story lifecycle branch isolation** — `bmad-story-lifecycle` now creates and pushes `feature/{story_key}` before any file writes in the INIT phase; previously, all lifecycle artifacts (lifecycle state, test design, sprint status, story file) were written directly to `main` (`hotfix/v0.2.2`)
+
+---
+
 ## [v0.2.1] — 2026-06-27 (Hotfix)
 
 ### Fixed

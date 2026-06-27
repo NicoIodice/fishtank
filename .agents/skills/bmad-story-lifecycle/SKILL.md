@@ -174,6 +174,22 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
     <action>Set {{sprint_status}} = {implementation_artifacts}/sprint-status.yaml</action>
     <action>Set {{test_artifacts}} = {project-root}/_bmad-output/test-artifacts</action>
 
+    <!-- ─── Feature branch — create / checkout BEFORE any file writes ─── -->
+    <action>Set {{feature_branch}} = "feature/{{story_key}}"</action>
+    <action>Run: git branch --show-current to get {{current_git_branch}}</action>
+    <check if="{{current_git_branch}} IS already {{feature_branch}}">
+      <output>🌿 Already on branch: {{feature_branch}}</output>
+    </check>
+    <check if="{{current_git_branch}} is NOT {{feature_branch}} AND git branch --list {{feature_branch}} shows the branch exists locally">
+      <action>Run: git checkout {{feature_branch}}</action>
+      <output>🌿 Switched to existing branch: {{feature_branch}}</output>
+    </check>
+    <check if="{{current_git_branch}} is NOT {{feature_branch}} AND the branch does NOT exist locally">
+      <action>Run: git checkout -b {{feature_branch}}</action>
+      <action>Run: git push -u origin {{feature_branch}}</action>
+      <output>🌿 Created and pushed branch: {{feature_branch}}</output>
+    </check>
+
     <check if="{{lifecycle_state_file}} exists">
       <action>Load state file</action>
       <output>▶ Resuming lifecycle for {{story_key}} at phase: {{current_phase}} (quickdev_cycle: {{quickdev_cycle}})</output>
