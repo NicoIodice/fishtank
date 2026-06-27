@@ -57,7 +57,7 @@ flowchart LR
 | `bmad-testarch-framework` | framework scaffold | Playwright + xUnit setup (one-time) | subagent | Opus |
 | `bmad-testarch-test-design` | test strategy | Epic-level risk + coverage plan | subagent | Opus |
 | `bmad-create-story` | story context engine | Author implementation-ready story | subagent | Opus |
-| `bmad-check-implementation-readiness` | readiness gate | Confirm spec has no blockers | inline | Opus |
+| `bmad-create-story` (validate action) | readiness gate | Validate story spec via checklist — zero BLOCKERs | inline | Opus |
 | `bmad-testarch-atdd` | ATDD | Red-phase acceptance tests | subagent | Sonnet |
 | `bmad-dev-story` | dev | Implement the story (DoD gates) | subagent | Sonnet |
 | `bmad-code-review` | reviewer | Adversarial multi-lens review | subagent | Opus |

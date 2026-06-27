@@ -18,7 +18,7 @@ Phase order: `create-story → validate → atdd → dev-story` (validate runs *
 | 1 | `preflight-framework` | `bmad-testarch-framework` *(pre-req)* | inline | Opus | `framework-setup-progress.md` + step-05 done |
 | 2 | `preflight-test-design` | `bmad-testarch-test-design` | subagent | Opus | `test-design-epic-N.md` exists + quality gate |
 | 3 | `create-story` | `bmad-create-story` | subagent | Opus | story file exists, status: `ready-for-dev` |
-| 4 | `validate` | `bmad-check-implementation-readiness` | inline | Opus | zero BLOCKERs |
+| 4 | `validate` | `bmad-create-story:validate` | inline | Opus | zero BLOCKERs |
 | 5 | `atdd` | `bmad-testarch-atdd` | subagent | Sonnet | ≥1 test file exists, all tests **RED** |
 | 6 | `dev-story` | `bmad-dev-story` | subagent | Sonnet | DoD gates 1–4 all **GREEN** |
 | 7 | `code-review` | `bmad-code-review` | subagent | Opus | zero BLOCKERs |
@@ -39,7 +39,7 @@ Phase order: `create-story → validate → atdd → dev-story` (validate runs *
 | `bmad-testarch-framework` | Test framework scaffold (Playwright + xUnit) — preflight pre-req |
 | `bmad-testarch-test-design` | Epic-level test strategy / risk assessment — preflight |
 | `bmad-create-story` | Story context engine — authors the implementation-ready story file |
-| `bmad-check-implementation-readiness` | Gatekeeper — confirms the story spec has no blockers before coding |
+| `bmad-create-story:validate` | Gatekeeper — validates the story spec against the checklist and confirms zero BLOCKERs before coding |
 | `bmad-testarch-atdd` | Writes red-phase acceptance tests against the ACs |
 | `bmad-dev-story` | Senior engineer — implements the story to pass the DoD gates |
 | `bmad-code-review` | Adversarial reviewer — Blind Hunter / Edge-Case Hunter / Acceptance Auditor |
@@ -142,7 +142,7 @@ flowchart TD
 
     subgraph PH4["④ VALIDATE · inline · Opus"]
         direction TB
-        PH4A["bmad-check-implementation-readiness"]
+        PH4A["bmad-create-story:validate"]
         PH4A_OK{"zero\nBLOCKERs?"}
         PH4A_FIX["Fix story spec\n(retry ≤ 2)"]
         PH4A_PASS["✅ Story implementation-ready"]
@@ -310,7 +310,8 @@ Each is verified-on-disk before the phase advances (the orchestrator re-saves if
 
 | Artifact | Phase | Path |
 |----------|-------|------|
-| `atdd-checklist-{key}.md` | atdd | `_bmad-output/test-artifacts/` |
-| `automation-summary-{key}.md` | test-automate | `_bmad-output/test-artifacts/` |
-| `nfr-assessment-{key}.md` | nfr | `_bmad-output/test-artifacts/` |
-| `traceability-matrix-{key}.md` | trace | `_bmad-output/test-artifacts/` |
+| `atdd-checklist-{key}.md` | atdd | `_bmad-output/test-artifacts/atdd/` |
+| `automation-summary-{key}.md` | test-automate | `_bmad-output/test-artifacts/automation-summaries/` |
+| `nfr-assessment-{key}.md` | nfr | `_bmad-output/test-artifacts/nfr/` |
+| `traceability-matrix-{key}.md` | trace | `_bmad-output/test-artifacts/traceability/` |
+| `code-review-{key}.md` | code-review | `_bmad-output/implementation-artifacts/code-reviews/` |
