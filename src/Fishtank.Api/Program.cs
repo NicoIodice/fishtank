@@ -158,8 +158,7 @@ builder.Services.AddSingleton<IServicesRegistry, ServicesRegistry>();
 builder.Services.AddSingleton<IWireMockServerFactory, DefaultWireMockServerFactory>();
 builder.Services.AddScoped<ISystemEventService, SystemEventService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
-builder.Services.AddHostedService<EngineStartup>();
-
+builder.Services.AddScoped<ICacheService, CacheService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -231,6 +230,7 @@ app.MapAuthEndpoints();
 app.MapServicesEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
+app.MapCacheEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 app.MapHub<EventsHub>("/hubs/events");
 

@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v0.2.0 (Services Management)
+## [v0.2.0] — 2026-06-27 (Services Management)
 
 _Theme: Define mock services and have WireMock start serving requests immediately._
 
@@ -33,6 +33,7 @@ _Theme: Define mock services and have WireMock start serving requests immediatel
 - **Notification bell + Notification Panel** — top-bar bell with live unread badge (warnings+errors only, "99+" overflow, fixed `#ef4444`); panel paginates 20-per-page with "Load more", per-item mark-as-read (click body) and dismiss (✕, removed from view but retained + marked read in DB), "Mark all read" (hidden at zero unread), "N new" sticky pill on prepend, and auto-close on navigation/Esc/outside-click (`story/2-4`)
 - **Real-time System Events via `EventsHub`** — `SystemEventCreated` and `UnreadCountChanged` broadcast over `/hubs/events` on every new warning/error (info suppressed), incrementing the badge across all connected sessions; wired through `HUB_INVALIDATION_MAP` (`SystemEventCreated: [["events"]]`) (`story/2-4`)
 - **System Events API** — paginated, severity-filtered `GET /api/system-events` (`{items,total,hasMore}` envelope); `GET /api/system-events/unread-count`; `POST /api/system-events/{id}/read`; `POST /api/system-events/read-all`; clear-all; all JWT-authorized; deterministic ordering (`CreatedAt` desc, `Id` tiebreaker) (`story/2-4`)
+- **Settings → Cache management** — `GET /api/cache` lists all services with in-memory WireMock mapping entry count and estimated disk size; `DELETE /api/cache/{id}` clears and reloads the mapping cache for a single service (no restart required); `DELETE /api/cache` bulk-clears all running services; Settings → Cache sub-section with per-service rows, individual and global Clear buttons with confirmation dialogs, and empty state when no services exist; available to all authenticated users — not Admin-only (FR-46) (`story/2-5-settings-service-cache-management`)
 
 ---
 

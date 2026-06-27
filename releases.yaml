@@ -48,10 +48,10 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.2.0"
     epic: "epic-2"
-    status: "in-progress"
+    status: "ready-for-merge"
     branch: "release/v0.2.0"
     started: "2026-06-22"
-    completed: null
+    completed: "2026-06-27"
     released: null
     stories:
       - id: "2-1-wiremock-engine-layer-and-services-api-backend"
@@ -63,7 +63,7 @@ releases:
       - id: "2-4-system-events-screen-and-notification-panel"
         status: "done"
       - id: "2-5-settings-service-cache-management"
-        status: "backlog"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)

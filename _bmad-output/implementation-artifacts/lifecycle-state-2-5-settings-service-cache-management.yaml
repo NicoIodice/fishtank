@@ -1,0 +1,32 @@
+story_key: "2-5-settings-service-cache-management"
+epic_id: "2"
+current_phase: "done"
+status: done
+blocked_reason: ""
+e2e_gate_waived: true
+e2e_gate_waiver_reason: "Playwright context.request (Chromium socket layer) ECONNREFUSED to Docker container on this machine — Docker Desktop+WSL2 networking allows only undici/fetch. PowerShell health OK. CI will run E2E on push to release/v0.2.0. Per test-environment.md local waiver clause."
+test_design_retries: 0
+test_design_auto_created: false
+atdd_retries: 0
+validate_retries: 0
+dev_retries: 0
+code_review_retries: 0
+nfr_retries: 0
+trace_retries: 0
+quickdev_cycle: 0
+last_updated: "2026-06-27"
+phases_completed:
+  - preflight-framework
+  - preflight-test-design
+  - create-story
+  - validate
+  - atdd
+  - dev-story
+  - code-review
+  - test-automate
+  - test-review
+  - nfr
+  - trace
+  - done
+  - atdd
+  - dev-story
