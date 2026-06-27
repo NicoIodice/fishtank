@@ -10,6 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — v0.3.0 (Network Activity)
+
+_Theme: See every request hitting your mock services in real time._
+
+---
+
 ## [v0.2.2] — 2026-06-27 (Hotfix)
 
 ### Changed

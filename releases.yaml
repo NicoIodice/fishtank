@@ -84,11 +84,11 @@ releases:
     hotfix: true
     base_version: "v0.2.0"
     epic: null
-    status: "in-progress"
+    status: "released"
     branch: "hotfix/v0.2.1"
     started: "2026-06-27"
-    completed: null
-    released: null
+    completed: "2026-06-27"
+    released: "2026-06-27"
     stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -99,11 +99,11 @@ releases:
     hotfix: true
     base_version: "v0.2.1"
     epic: null
-    status: "in-progress"
+    status: "released"
     branch: "hotfix/v0.2.2"
     started: "2026-06-27"
-    completed: null
-    released: null
+    completed: "2026-06-27"
+    released: "2026-06-27"
     stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -112,9 +112,9 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.3.0"
     epic: "epic-3"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v0.3.0"
-    started: null
+    started: "2026-06-27"
     completed: null
     released: null
     stories: []
