@@ -21,6 +21,10 @@ _Theme: See every request hitting your mock services in real time._
 - **`DELETE /api/activity`** — clear all in-memory activity log entries (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
 - **`PUT /api/settings/capture-headers`** — opt-in toggle to capture headers unredacted; instance-wide setting persisted in the database (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
 - **ActivityHub** — SignalR hub at `/hubs/activity` broadcasting `ActivityRowAdded` events to connected clients within 500 ms of each request (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **Network Activity page** — real-time log display at `/activity` showing HTTP request/response rows streamed via SignalR append-only push with virtual scrolling (handles 10 k+ rows, ≤100 DOM nodes), method color chips (GET/POST/PUT/PATCH/DELETE), 5xx error row highlighting via CSS variable `--error-row-bg`, status code badge, URL truncation, and newest-first ordering (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Proxy counter pill** — live popover showing per-service proxied-request counts with error color (#ef4444) when any 5xx response is present (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Activity toolbar** — refresh, live/paused toggle, recording badge, search input, service filter, type filter (Mocked/Proxied), column picker, and clear-log controls (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Keyboard navigation** — ArrowUp/ArrowDown row focus within the activity grid with `role="grid"` and `aria-rowindex` for screen-reader compatibility (`feature/3-2-network-activity-page-real-time-log-display`)
 
 ---
 
