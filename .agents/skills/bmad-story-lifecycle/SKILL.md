@@ -202,27 +202,6 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
       <output>▶ Starting new lifecycle for story: {{story_key}} (epic: {{epic_id}})</output>
     </check>
 
-    <!-- ─── Story branch: ensure it exists locally AND on remote ─── -->
-    <action>Set {{story_branch}} = "story/{{story_key}}"</action>
-    <action>Run: git rev-parse --abbrev-ref HEAD → {{current_branch}}</action>
-    <check if="{{current_branch}} is NOT {{story_branch}}">
-      <action>Determine the branch state and take the appropriate action:
-        - Run git show-ref --verify --quiet refs/heads/{{story_branch}} (exit 0 = local branch exists)
-        - Run git ls-remote --heads origin {{story_branch}} (non-empty = remote branch exists)
-        Then:
-          - If local exists                 → git checkout {{story_branch}}
-          - Else if only remote exists      → git checkout --track origin/{{story_branch}}
-          - Else (neither local nor remote) → git checkout -b {{story_branch}} ; git push -u origin {{story_branch}}
-      </action>
-      <output>↪ Switched to branch {{story_branch}}</output>
-    </check>
-    <check if="{{current_branch}} IS {{story_branch}}">
-      <action>Run: git ls-remote --heads origin {{story_branch}}
-        - If output is empty (remote branch does not exist) → git push -u origin {{story_branch}}
-        - Otherwise → no action needed
-      </action>
-    </check>
-
     <!-- ─── Releases housekeeping: stale ready-for-merge / merged-but-not-released ─── -->
     <action>Read {project-root}/releases.yaml and collect all entries where status is "ready-for-merge" OR (status is "in-progress" AND hotfix == true) — call this set {{active_releases}}</action>
     <check if="{{active_releases}} is non-empty">
@@ -853,7 +832,7 @@ Escalating to {{user_name}}.</output>
     <!-- CHANGELOG update -->
     <action>Update CHANGELOG.md under the [Unreleased] section (or the active versioned section if a release is in progress):
       - Add a bullet point for each user-facing feature, API endpoint, component, or behavior shipped in this story
-      - Format: "- **Feature name** — short description (`story/{{epic_id}}-{{n}}`)" where {{n}} is the story number within the epic
+      - Format: "- **Feature name** — short description (`feature/{{epic_id}}-{{n}}`)" where {{n}} is the story number within the epic
       - INCLUDE: new UI pages/components, new API endpoints, new config options, new runtime behaviors, security controls, data model changes
       - EXCLUDE: test files, unit tests, E2E tests, ATDD scaffolds, test framework/tooling configuration — tests are implementation details, not user-facing changelog entries
       - EXCLUDE: internal code-quality fixes or refactors unless they change observable behavior
@@ -902,10 +881,10 @@ Escalating to {{user_name}}.</output>
 {{#if epic_all_done}}
 ⚠️ **This was the last story in epic {{epic_id}}!** Two PRs are required to ship this release:
 
-1. **Now →** `story/{{story_key}}` → `release/v{{release_version}}`
+1. **Now →** `feature/{{story_key}}` → `release/v{{release_version}}`
 2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
    {{else}}
-   Open a pull request: `story/{{story_key}}` → `release/v{{release_version}}`
+   Open a pull request: `feature/{{story_key}}` → `release/v{{release_version}}`
    {{/if}}
 
 Checklist confirmed:

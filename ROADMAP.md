@@ -151,10 +151,10 @@ Ideas tracked for future minor/patch releases after v1.0:
 
 ## How releases work
 
-1. **Develop stories** in `story/**` branches created from the release branch (`release/v0.2.0`).
+1. **Develop stories** in `feature/**` branches created from the release branch (`release/v0.2.0`).
    CI runs full tests + Docker smoke test on every push.
-2. **Merge each story** via PR: `story/**` → `release/v0.2.0`.
-   Never merge a story branch directly to `main`.
+2. **Merge each story** via PR: `feature/**` → `release/v0.2.0`.
+   Never merge a feature branch directly to `main`.
 3. **When all stories are done**, open a PR: `release/v0.2.0` → `main`.
 4. **After the PR merges**, GitHub Actions automatically:
    - Extracts the version (`v0.2.0`) from the release branch name
