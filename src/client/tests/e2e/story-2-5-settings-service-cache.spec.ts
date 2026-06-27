@@ -66,7 +66,10 @@ async function seedService(
   // (hardcoded ranges can collide when other tests in the same shard have already
   // allocated ports via next-port) and never hit SERVICE_PORT_OUT_OF_RANGE
   // (the API only accepts 30100–30199).
-  const port = overrides.port ?? await apiFetch<number>(request, "/api/services/next-port");
+  // Note: next-port returns { port: number }, not a bare number.
+  const port =
+    overrides.port ??
+    (await apiFetch<{ port: number }>(request, "/api/services/next-port")).port;
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
