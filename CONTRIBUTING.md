@@ -114,9 +114,10 @@ Fishtank uses a **release branch model**. Each epic maps to a release version (s
 ### For hotfixes
 
 1. Branch from `main`: `git checkout -b hotfix/v0.1.1`
-2. Apply the fix; add a `CHANGELOG.md` entry.
-3. Open a PR: `hotfix/v0.1.1` → `main`.
-4. CI auto-tags `v0.1.1` and publishes after merge.
+2. Apply the fix; add a `CHANGELOG.md` entry under a new `## [v0.1.1]` section.
+3. Add a hotfix entry to `releases.yaml` (see schema comments in that file).
+4. Open a PR: `hotfix/v0.1.1` → `main`.
+5. CI auto-tags `v0.1.1`, publishes the Docker image, and creates the GitHub Release after merge.
 
 ## Commit Message Convention
 
