@@ -68,7 +68,8 @@ describe("useActivityLog — refreshRows", () => {
     const mockFetch = vi.mocked(fetchActivityRows);
     mockFetch.mockResolvedValue([]);
 
-    const { useActivityLog } = await import("@/features/activity/useActivityLog");
+    const { useActivityLog } =
+      await import("@/features/activity/useActivityLog");
     const { result } = renderHook(() => useActivityLog());
 
     // Wait for initial load
@@ -90,7 +91,8 @@ describe("useActivityLog — refreshRows", () => {
     // Initial load returns empty
     mockFetch.mockResolvedValueOnce([]);
 
-    const { useActivityLog } = await import("@/features/activity/useActivityLog");
+    const { useActivityLog } =
+      await import("@/features/activity/useActivityLog");
     const { result } = renderHook(() => useActivityLog());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -118,7 +120,8 @@ describe("useActivityLog — refreshRows", () => {
     // Initial load succeeds
     mockFetch.mockResolvedValueOnce([makeRow({ id: "existing" })]);
 
-    const { useActivityLog } = await import("@/features/activity/useActivityLog");
+    const { useActivityLog } =
+      await import("@/features/activity/useActivityLog");
     const { result } = renderHook(() => useActivityLog());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));

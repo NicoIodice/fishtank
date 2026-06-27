@@ -77,7 +77,13 @@ const mockClearActivityLog = vi.mocked(clearActivityLog);
 
 vi.mock("@tanstack/react-virtual", () => ({
   useVirtualizer: vi.fn(
-    ({ count, estimateSize }: { count: number; estimateSize: (i: number) => number }) => ({
+    ({
+      count,
+      estimateSize,
+    }: {
+      count: number;
+      estimateSize: (i: number) => number;
+    }) => ({
       getVirtualItems: () =>
         Array.from({ length: Math.min(count, 50) }, (_, i) => ({
           index: i,
@@ -108,7 +114,9 @@ function makeQc() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+  );
 }
 
 // ─── Row factories ────────────────────────────────────────────────────────────
@@ -150,7 +158,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-1: Search filter", () => {
     it("AC-1: search input is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <input data-testid="activity-input-search" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-input-search"));
@@ -163,11 +172,20 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     it("AC-1: typing 'payment' in search shows only rows whose path contains 'payment'", async () => {
       // Seed rows: one matches, one does not
       mockFetchActivityRows.mockResolvedValueOnce([
-        makeRow({ id: "payment-row", urlPath: "/api/payment/create", method: "POST" }),
-        makeRow({ id: "orders-row", urlPath: "/api/orders/list", method: "GET" }),
+        makeRow({
+          id: "payment-row",
+          urlPath: "/api/payment/create",
+          method: "POST",
+        }),
+        makeRow({
+          id: "orders-row",
+          urlPath: "/api/orders/list",
+          method: "GET",
+        }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -180,9 +198,13 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: both rows still visible because search is not wired
       await waitFor(() => {
-        expect(screen.getByTestId("activity-row-payment-row")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("activity-row-payment-row"),
+        ).toBeInTheDocument();
         // This assertion fails: orders-row should be hidden but is still visible
-        expect(screen.queryByTestId("activity-row-orders-row")).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-orders-row"),
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -192,7 +214,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "get-row", method: "GET", urlPath: "/api/other" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -203,7 +226,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: get-row should be hidden after filtering but is still visible
       await waitFor(() => {
-        expect(screen.queryByTestId("activity-row-get-row")).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-get-row"),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -213,7 +238,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-2: Service filter", () => {
     it("AC-2: service dropdown is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <select data-testid="activity-select-service" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-select-service"));
@@ -225,11 +251,20 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
     it("AC-2: selecting 'service-alpha' shows only Alpha Service rows", async () => {
       mockFetchActivityRows.mockResolvedValueOnce([
-        makeRow({ id: "alpha-row", serviceId: "service-alpha", serviceName: "Alpha Service" }),
-        makeRow({ id: "beta-row", serviceId: "service-beta", serviceName: "Beta Service" }),
+        makeRow({
+          id: "alpha-row",
+          serviceId: "service-alpha",
+          serviceName: "Alpha Service",
+        }),
+        makeRow({
+          id: "beta-row",
+          serviceId: "service-beta",
+          serviceName: "Beta Service",
+        }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -240,13 +275,16 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: beta-row should be hidden after service filter but is still visible
       await waitFor(() => {
-        expect(screen.queryByTestId("activity-row-beta-row")).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-beta-row"),
+        ).not.toBeInTheDocument();
       });
     });
 
     it("AC-2: service dropdown shows options from React Query cache (not a new fetch)", async () => {
       // RED: dropdown only has "All Services" (no dynamic options yet)
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-select-service"));
@@ -262,7 +300,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-3: Type filter", () => {
     it("AC-3: type filter button is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <button data-testid="activity-btn-type-filter" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-type-filter"));
@@ -273,7 +312,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-3: clicking type filter button opens popover with Mocked+Proxied checkboxes", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -283,8 +323,12 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: popover does not open (button is disabled), checkboxes not visible
       await waitFor(() => {
-        expect(screen.getByTestId("activity-checkbox-type-mocked")).toBeVisible();
-        expect(screen.getByTestId("activity-checkbox-type-proxied")).toBeVisible();
+        expect(
+          screen.getByTestId("activity-checkbox-type-mocked"),
+        ).toBeVisible();
+        expect(
+          screen.getByTestId("activity-checkbox-type-proxied"),
+        ).toBeVisible();
       });
     });
 
@@ -294,7 +338,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "proxied-row", type: "Proxied" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -306,7 +351,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: proxied-row should disappear but remains (button disabled, no filter)
       await waitFor(() => {
-        expect(screen.queryByTestId("activity-row-proxied-row")).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-proxied-row"),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -317,21 +364,37 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     it("AC-4: service filter + type filter applied simultaneously with AND logic", async () => {
       mockFetchActivityRows.mockResolvedValueOnce([
         // matches both service-alpha AND Mocked
-        makeRow({ id: "alpha-mocked", serviceId: "service-alpha", type: "Mocked" }),
+        makeRow({
+          id: "alpha-mocked",
+          serviceId: "service-alpha",
+          type: "Mocked",
+        }),
         // matches service-alpha but NOT Mocked
-        makeRow({ id: "alpha-proxied", serviceId: "service-alpha", type: "Proxied" }),
+        makeRow({
+          id: "alpha-proxied",
+          serviceId: "service-alpha",
+          type: "Proxied",
+        }),
         // matches Mocked but NOT service-alpha
-        makeRow({ id: "beta-mocked", serviceId: "service-beta", type: "Mocked" }),
+        makeRow({
+          id: "beta-mocked",
+          serviceId: "service-beta",
+          type: "Mocked",
+        }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-row-alpha-mocked"));
 
       // Apply service filter
-      await user.selectOptions(screen.getByTestId("activity-select-service"), "service-alpha");
+      await user.selectOptions(
+        screen.getByTestId("activity-select-service"),
+        "service-alpha",
+      );
 
       // Apply type filter (Mocked only)
       await user.click(screen.getByTestId("activity-btn-type-filter"));
@@ -339,9 +402,15 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: only alpha-mocked should remain; others should be hidden (AND logic)
       await waitFor(() => {
-        expect(screen.getByTestId("activity-row-alpha-mocked")).toBeInTheDocument();
-        expect(screen.queryByTestId("activity-row-alpha-proxied")).not.toBeInTheDocument();
-        expect(screen.queryByTestId("activity-row-beta-mocked")).not.toBeInTheDocument();
+        expect(
+          screen.getByTestId("activity-row-alpha-mocked"),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-alpha-proxied"),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId("activity-row-beta-mocked"),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -351,7 +420,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-5: Clear filters", () => {
     it("AC-5: clear filters button is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <button data-testid="activity-btn-clear-filters" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-clear-filters"));
@@ -367,31 +437,44 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "beta-row", serviceId: "service-beta" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-row-alpha-row"));
 
       // Apply a filter first
-      await user.selectOptions(screen.getByTestId("activity-select-service"), "service-alpha");
+      await user.selectOptions(
+        screen.getByTestId("activity-select-service"),
+        "service-alpha",
+      );
 
       // Now clear filters — should restore both rows
       await user.click(screen.getByTestId("activity-btn-clear-filters"));
 
       // RED: clear-filters button is disabled, click does nothing; beta-row still filtered
       await waitFor(() => {
-        expect(screen.getByTestId("activity-row-alpha-row")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("activity-row-alpha-row"),
+        ).toBeInTheDocument();
         expect(screen.getByTestId("activity-row-beta-row")).toBeInTheDocument();
       });
     });
 
     it("AC-5: clear filters also resets sort to DateTime descending default", async () => {
-      const newerRow = makeRow({ id: "newer", timestamp: "2024-06-01T12:00:00Z" });
-      const olderRow = makeRow({ id: "older", timestamp: "2024-06-01T10:00:00Z" });
+      const newerRow = makeRow({
+        id: "newer",
+        timestamp: "2024-06-01T12:00:00Z",
+      });
+      const olderRow = makeRow({
+        id: "older",
+        timestamp: "2024-06-01T10:00:00Z",
+      });
       mockFetchActivityRows.mockResolvedValueOnce([newerRow, olderRow]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -417,14 +500,17 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "get-row", method: "GET" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-row-post-row"));
 
       // Find the Method column header — it should be a clickable sort trigger
-      const methodHeader = screen.getByRole("columnheader", { name: /method/i });
+      const methodHeader = screen.getByRole("columnheader", {
+        name: /method/i,
+      });
 
       // RED: column headers are not clickable sort triggers yet (no sort arrow, no handler)
       expect(methodHeader).toHaveAttribute("data-sort-column", "method");
@@ -442,13 +528,16 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "get-row", method: "GET" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-row-post-row"));
 
-      const methodHeader = screen.getByRole("columnheader", { name: /method/i });
+      const methodHeader = screen.getByRole("columnheader", {
+        name: /method/i,
+      });
 
       // First click → ascending; second click → descending
       // RED: header click handler not implemented
@@ -466,7 +555,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-7: LIVE/PAUSED toggle", () => {
     it("AC-7: LIVE/PAUSED button is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <button data-testid="activity-btn-live-paused" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
@@ -477,7 +567,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-7: clicking LIVE/PAUSED changes label to PAUSED", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -494,7 +585,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-7: after clicking PAUSE, the refresh icon becomes visible", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -512,12 +604,15 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-7: when paused, new SignalR rows do NOT appear in the table", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
       // Wait for SignalR subscription
-      await waitFor(() => expect(capturedHandlers["ActivityRowAdded"]).toBeDefined());
+      await waitFor(() =>
+        expect(capturedHandlers["ActivityRowAdded"]).toBeDefined(),
+      );
 
       // Pause
       await user.click(screen.getByTestId("activity-btn-live-paused"));
@@ -528,7 +623,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: row still appears because PAUSED is not implemented
       await new Promise((r) => setTimeout(r, 100));
-      expect(screen.queryByTestId("activity-row-late-row")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("activity-row-late-row"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -536,7 +633,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
   describe("AC-8: Manual refresh", () => {
     it("AC-8: manual refresh button calls fetchActivityRows when clicked", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -554,7 +652,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: LIVE/PAUSED not wired → refresh button not visible/clickable
       // fetchActivityRows should have been called once more
-      expect(mockFetchActivityRows.mock.calls.length).toBeGreaterThan(callCountBefore);
+      expect(mockFetchActivityRows.mock.calls.length).toBeGreaterThan(
+        callCountBefore,
+      );
     });
   });
 
@@ -563,7 +663,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
   describe("AC-10: Clear log (P0)", () => {
     it("AC-10: clear log button is NOT disabled (enabled after Story 3.3)", async () => {
       // RED: fails now because <button data-testid="activity-btn-clear-log" disabled />
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-clear-log"));
@@ -574,7 +675,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-10: clicking clear log calls clearActivityLog() (DELETE /api/activity)", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -591,7 +693,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "existing-row" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -602,7 +705,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
       // RED: button disabled → clear does not happen → "Log cleared" state not shown
       await waitFor(() => {
         expect(screen.getByTestId("datatable-empty")).toBeInTheDocument();
-        expect(screen.getByTestId("datatable-empty")).toHaveTextContent("Log cleared");
+        expect(screen.getByTestId("datatable-empty")).toHaveTextContent(
+          "Log cleared",
+        );
       });
     });
 
@@ -613,7 +718,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
         makeRow({ id: "proxied-2", type: "Proxied" }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -627,7 +733,9 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
       // RED: clear-log is disabled → rows not cleared → counter stays at 2
       await waitFor(() => {
-        expect(screen.getByTestId("activity-pill-proxy-count")).toHaveTextContent("0");
+        expect(
+          screen.getByTestId("activity-pill-proxy-count"),
+        ).toHaveTextContent("0");
       });
     });
   });
@@ -638,11 +746,20 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     it("AC-12: proxy counter shows total proxied count even when search filter is active", async () => {
       // Two proxied rows; search will hide one
       mockFetchActivityRows.mockResolvedValueOnce([
-        makeRow({ id: "proxied-payment", type: "Proxied", urlPath: "/api/payment" }),
-        makeRow({ id: "proxied-orders", type: "Proxied", urlPath: "/api/orders" }),
+        makeRow({
+          id: "proxied-payment",
+          type: "Proxied",
+          urlPath: "/api/payment",
+        }),
+        makeRow({
+          id: "proxied-orders",
+          type: "Proxied",
+          urlPath: "/api/orders",
+        }),
       ]);
 
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -678,7 +795,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-9: LIVE/PAUSED button shows 'PAUSED' text when interval is disabled", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
@@ -688,7 +806,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-9: LIVE/PAUSED button has aria-disabled='true' when interval is disabled", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
@@ -698,7 +817,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-9: Refresh icon is visible when interval is disabled", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-refresh"));
@@ -708,7 +828,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("AC-9: clicking LIVE/PAUSED button when interval is disabled has no effect (stays PAUSED)", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -729,7 +850,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
 
   describe("Type-filter aria-expanded", () => {
     it("type-filter button has aria-expanded='false' by default (popover closed)", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       render(<ActivityPage />, { wrapper: Wrapper });
 
       await waitFor(() => screen.getByTestId("activity-btn-type-filter"));
@@ -739,7 +861,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("type-filter button has aria-expanded='true' after click (popover open)", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 
@@ -752,7 +875,8 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
     });
 
     it("type-filter button aria-expanded toggles back to 'false' when clicked again", async () => {
-      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const { ActivityPage } =
+        await import("@/features/activity/pages/ActivityPage");
       const user = userEvent.setup();
       render(<ActivityPage />, { wrapper: Wrapper });
 

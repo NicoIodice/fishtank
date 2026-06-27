@@ -29,7 +29,10 @@ export function ActivityPage() {
   useEffect(() => {
     if (!typeFilterOpen) return;
     function handleOutside(e: PointerEvent) {
-      if (typeFilterRef.current && !typeFilterRef.current.contains(e.target as Node)) {
+      if (
+        typeFilterRef.current &&
+        !typeFilterRef.current.contains(e.target as Node)
+      ) {
         setTypeFilterOpen(false);
       }
     }
@@ -49,8 +52,12 @@ export function ActivityPage() {
   }>({ column: null, direction: null });
 
   // LIVE / PAUSED state
-  const [isPaused, setIsPaused] = useState(() => settings.autoRefreshInterval === "disabled");
-  const [pauseSnapshot, setPauseSnapshot] = useState<ActivityRow[] | null>(null);
+  const [isPaused, setIsPaused] = useState(
+    () => settings.autoRefreshInterval === "disabled",
+  );
+  const [pauseSnapshot, setPauseSnapshot] = useState<ActivityRow[] | null>(
+    null,
+  );
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
   // Reduced-motion check (safe for jsdom/test environments)
@@ -61,7 +68,8 @@ export function ActivityPage() {
 
   // Source rows: snapshot when paused or interval disabled, live rows otherwise
   const effectivelyPaused = isPaused || isIntervalDisabled;
-  const sourceRows = effectivelyPaused && pauseSnapshot !== null ? pauseSnapshot : rows;
+  const sourceRows =
+    effectivelyPaused && pauseSnapshot !== null ? pauseSnapshot : rows;
 
   // Services from React Query cache for dropdown (no new fetch)
   const cachedServices =
@@ -103,21 +111,39 @@ export function ActivityPage() {
     // Sort
     result.sort((a, b) => {
       if (!sort.column || !sort.direction) {
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        return (
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
       }
       let valA: string | number;
       let valB: string | number;
       switch (sort.column) {
-        case "method": valA = a.method; valB = b.method; break;
-        case "urlPath": valA = a.urlPath; valB = b.urlPath; break;
-        case "statusCode": valA = a.statusCode; valB = b.statusCode; break;
-        case "serviceName": valA = a.serviceName; valB = b.serviceName; break;
-        case "durationMs": valA = a.durationMs; valB = b.durationMs; break;
+        case "method":
+          valA = a.method;
+          valB = b.method;
+          break;
+        case "urlPath":
+          valA = a.urlPath;
+          valB = b.urlPath;
+          break;
+        case "statusCode":
+          valA = a.statusCode;
+          valB = b.statusCode;
+          break;
+        case "serviceName":
+          valA = a.serviceName;
+          valB = b.serviceName;
+          break;
+        case "durationMs":
+          valA = a.durationMs;
+          valB = b.durationMs;
+          break;
         case "timestamp":
           valA = new Date(a.timestamp).getTime();
           valB = new Date(b.timestamp).getTime();
           break;
-        default: return 0;
+        default:
+          return 0;
       }
       const cmp =
         typeof valA === "number"
@@ -127,7 +153,14 @@ export function ActivityPage() {
     });
 
     return result;
-  }, [sourceRows, searchQuery, selectedServiceId, typeMockedChecked, typeProxiedChecked, sort]);
+  }, [
+    sourceRows,
+    searchQuery,
+    selectedServiceId,
+    typeMockedChecked,
+    typeProxiedChecked,
+    sort,
+  ]);
 
   // Handlers
   function handleClearFilters() {
@@ -289,7 +322,10 @@ export function ActivityPage() {
         )}
 
         {/* Recording badge stub */}
-        <span data-testid="activity-badge-recording" style={{ display: "none" }}>
+        <span
+          data-testid="activity-badge-recording"
+          style={{ display: "none" }}
+        >
           Recording
         </span>
 
@@ -409,7 +445,13 @@ export function ActivityPage() {
               }}
             >
               <label
-                style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", padding: "4px 0" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  padding: "4px 0",
+                }}
               >
                 <input
                   data-testid="activity-checkbox-type-mocked"
@@ -420,7 +462,13 @@ export function ActivityPage() {
                 Mocked
               </label>
               <label
-                style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", padding: "4px 0" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  padding: "4px 0",
+                }}
               >
                 <input
                   data-testid="activity-checkbox-type-proxied"

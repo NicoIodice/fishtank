@@ -95,7 +95,7 @@ phases_completed: [] # list of completed phase tags
 | preflight-framework   | `framework-setup-progress.md` exists + `step-05` completed                                    | HALT — not auto-fixable               |
 | preflight-test-design | test-design for epic covers story scope + quality gate passes                                 | Auto-create (retry ≤ 2)               |
 | create-story          | story file exists in `{implementation_artifacts}/stories/`, status `ready-for-dev`            | Retry creation                        |
-| validate              | `bmad-check-implementation-readiness` scores PASS                                             | Fix spec gaps (retry ≤ 2)             |
+| validate              | `bmad-create-story:validate` scores PASS                                                       | Fix spec gaps (retry ≤ 2)             |
 | atdd                  | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
 | dev-story             | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean                              | Retry dev (retry ≤ 2)                 |
 | code-review           | `bmad-code-review` finds zero BLOCKER items                                                   | QuickDev fix → re-review (retry ≤ 1)  |
@@ -118,7 +118,7 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
 | preflight-framework   | — (file check)                        | inline    | Opus   | read a progress file                             |
 | preflight-test-design | `bmad-testarch-test-design`           | subagent  | Opus   | test-strategy authoring/analysis                 |
 | create-story          | `bmad-create-story`                   | subagent  | Opus   | exhaustive artifact analysis + story writing     |
-| validate              | `bmad-check-implementation-readiness` | inline    | Opus   | light spec-readiness reasoning over full context |
+| validate              | `bmad-create-story:validate`          | inline    | Opus   | story readiness and completeness check           |
 | atdd                  | `bmad-testarch-atdd`                  | subagent  | Sonnet | writing red test scaffolds (coding)              |
 | dev-story             | `bmad-dev-story`                      | subagent  | Sonnet | feature implementation (coding)                  |
 | code-review           | `bmad-code-review`                    | subagent  | Opus   | adversarial review/analysis                      |
@@ -385,30 +385,32 @@ Manual fix required: run bmad-create-story directly and verify the output before
 
     <output>🔍 Validating implementation readiness for {{story_key}} (attempt {{validate_retries + 1}})...</output>
 
-    <action>Execute the bmad-check-implementation-readiness workflow scoped to story {{story_key}}:
-      - Load: {project-root}/.agents/skills/bmad-check-implementation-readiness/SKILL.md
-      - Scope: this story only
-      - Execution: run INLINE (orchestrator context) on Claude Opus — readiness reasoning is light and benefits from full story context.
+    <action>Execute the bmad-create-story validate workflow for story {{story_key}}:
+      - Load: {project-root}/.agents/skills/bmad-create-story/SKILL.md
+      - Action: validate
+      - Target story: {implementation_artifacts}/stories/{{story_key}}.md
+      - Run the checklist (./checklist.md) against the story file and apply any required fixes
+      - Execution: run INLINE (orchestrator context) on Claude Opus — story readiness check benefits from full story context.
     </action>
 
-    <check if="readiness check scores PASS (no BLOCKER items)">
+    <check if="validation scores PASS (no BLOCKER items)">
       <output>✅ Story {{story_key}} is implementation-ready.</output>
       <action>Update lifecycle state: append 'validate' to phases_completed, current_phase → 'atdd', last_updated → now</action>
     </check>
 
-    <check if="readiness check finds BLOCKERS AND validate_retries < 2">
+    <check if="validation finds BLOCKERS AND validate_retries < 2">
       <action>Increment validate_retries in lifecycle state, last_updated → now</action>
-      <output>⚠ Readiness blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
+      <output>⚠ Story validation blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
       <action>Fix the story file to address each BLOCKER (missing ACs, ambiguous tasks, undefined dependencies)</action>
       <goto anchor="validate" />
     </check>
 
     <check if="validate_retries >= 2">
-      <output>🚫 BLOCKED — Story readiness check failed after 3 attempts.
+      <output>🚫 BLOCKED — Story validation check failed after 3 attempts.
 
 Remaining blockers: {{blockers}}
 Manual story refinement required before implementation can proceed.</output>
-<action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
+<action>Update lifecycle state: status → blocked, blocked_reason → "story validation check failed after max retries", last_updated → now</action>
 <action>HALT</action>
 </check>
 </step>

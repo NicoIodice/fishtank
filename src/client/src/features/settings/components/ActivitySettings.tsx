@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { useAppSettings, APP_SETTINGS_QUERY_KEY } from "../hooks/useAppSettings";
+import {
+  useAppSettings,
+  APP_SETTINGS_QUERY_KEY,
+} from "../hooks/useAppSettings";
 import { useActivitySettings } from "../hooks/useActivitySettings";
 
 export function ActivitySettings() {
@@ -15,11 +18,14 @@ export function ActivitySettings() {
     setIsTogglingHeaders(true);
     try {
       const current = appSettings?.captureFullHeaders ?? false;
-      await apiFetch<{ captureFullHeaders: boolean }>("/api/settings/capture-headers", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !current }),
-      });
+      await apiFetch<{ captureFullHeaders: boolean }>(
+        "/api/settings/capture-headers",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: !current }),
+        },
+      );
       await queryClient.invalidateQueries({ queryKey: APP_SETTINGS_QUERY_KEY });
     } catch (err) {
       console.error("Toggle capture headers failed:", err);
@@ -29,7 +35,13 @@ export function ActivitySettings() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--section-gap, 24px)" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--section-gap, 24px)",
+      }}
+    >
       {/* Auto-refresh interval */}
       <div>
         <label
@@ -116,8 +128,11 @@ export function ActivitySettings() {
             <span style={{ display: "block", fontWeight: 500 }}>
               Capture full request headers
             </span>
-            <span style={{ display: "block", fontSize: "0.8rem", color: "#6b7280" }}>
-              Disables redaction of Authorization, Cookie, and other sensitive headers
+            <span
+              style={{ display: "block", fontSize: "0.8rem", color: "#6b7280" }}
+            >
+              Disables redaction of Authorization, Cookie, and other sensitive
+              headers
             </span>
           </span>
         </label>

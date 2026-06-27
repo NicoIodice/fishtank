@@ -28,9 +28,8 @@ describe("useActivitySettings", () => {
   // ─── Default settings ───────────────────────────────────────────────────────
 
   it("returns default settings when localStorage is empty", async () => {
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     expect(result.current.settings.autoRefreshInterval).toBe(2000);
@@ -45,9 +44,8 @@ describe("useActivitySettings", () => {
       JSON.stringify({ autoRefreshInterval: 5000, maxEntries: 500 }),
     );
 
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     expect(result.current.settings.autoRefreshInterval).toBe(5000);
@@ -60,9 +58,8 @@ describe("useActivitySettings", () => {
       JSON.stringify({ autoRefreshInterval: "disabled", maxEntries: 1000 }),
     );
 
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     expect(result.current.settings.autoRefreshInterval).toBe("disabled");
@@ -71,9 +68,8 @@ describe("useActivitySettings", () => {
   // ─── updateInterval persists to localStorage ────────────────────────────────
 
   it("updateInterval persists new value to localStorage", async () => {
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     act(() => {
@@ -87,9 +83,8 @@ describe("useActivitySettings", () => {
   });
 
   it('updateInterval persists "disabled" to localStorage', async () => {
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     act(() => {
@@ -107,9 +102,8 @@ describe("useActivitySettings", () => {
   it("falls back to defaults when localStorage contains invalid JSON", async () => {
     localStorage.setItem(STORAGE_KEY, "not-valid-json{{");
 
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     expect(result.current.settings.autoRefreshInterval).toBe(2000);
@@ -126,21 +120,21 @@ describe("useActivitySettings", () => {
     // The hook does an unchecked JSON.parse cast — it will accept 9999 without
     // validation. This test documents the current behaviour: unexpected numeric
     // values are accepted as-is. The important case is invalid JSON (tested above).
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     // The value 9999 is returned as-is (no schema validation in v1)
-    expect(result.current.settings.autoRefreshInterval).toBe(9999 as unknown as 1000);
+    expect(result.current.settings.autoRefreshInterval).toBe(
+      9999 as unknown as 1000,
+    );
   });
 
   // ─── updateMaxEntries persists to localStorage ──────────────────────────────
 
   it("updateMaxEntries persists new value to localStorage", async () => {
-    const { useActivitySettings } = await import(
-      "@/features/settings/hooks/useActivitySettings"
-    );
+    const { useActivitySettings } =
+      await import("@/features/settings/hooks/useActivitySettings");
     const { result } = renderHook(() => useActivitySettings());
 
     act(() => {

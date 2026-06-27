@@ -16,7 +16,9 @@ export function useActivitySettings() {
   const [settings, setSettings] = useState<ActivitySettings>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as ActivitySettings) : DEFAULT_ACTIVITY_SETTINGS;
+      return raw
+        ? (JSON.parse(raw) as ActivitySettings)
+        : DEFAULT_ACTIVITY_SETTINGS;
     } catch {
       return DEFAULT_ACTIVITY_SETTINGS;
     }

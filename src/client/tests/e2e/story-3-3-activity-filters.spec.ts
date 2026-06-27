@@ -51,7 +51,10 @@ async function seedService(
   externalUrl = "https://httpbin.org",
 ): Promise<CreatedService> {
   // Get the next available port first
-  const { port } = await apiFetch<{ port: number }>(request, "/api/services/next-port");
+  const { port } = await apiFetch<{ port: number }>(
+    request,
+    "/api/services/next-port",
+  );
 
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
@@ -124,9 +127,9 @@ test("T13: AC-2 — selecting a service in the dropdown shows only that service'
   await page.reload();
 
   // Wait for both rows to appear in the table
-  await expect(
-    page.locator(`[data-testid^="activity-row-"]`),
-  ).toHaveCount(2, { timeout: 5000 });
+  await expect(page.locator(`[data-testid^="activity-row-"]`)).toHaveCount(2, {
+    timeout: 5000,
+  });
 
   // ─── Select the alpha service in the dropdown ────────────────────────────
   const serviceSelect = page.locator('[data-testid="activity-select-service"]');
@@ -259,7 +262,9 @@ test("T14b: AC-10 — Clear log while paused also clears the pause snapshot (P0)
   await expect(rows).toHaveCount(1, { timeout: 5000 });
 
   // ─── Pause the activity log ───────────────────────────────────────────────
-  const livePausedBtn = page.locator('[data-testid="activity-btn-live-paused"]');
+  const livePausedBtn = page.locator(
+    '[data-testid="activity-btn-live-paused"]',
+  );
 
   // RED: LIVE/PAUSED button is disabled
   await expect(livePausedBtn).not.toBeDisabled();

@@ -20,12 +20,17 @@ const STORAGE_KEY = "fishtank-activity-settings";
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock("@/lib/api", () => ({
-  apiFetch: vi.fn().mockResolvedValue({ captureFullHeaders: false, mocksHostPath: "/" }),
+  apiFetch: vi
+    .fn()
+    .mockResolvedValue({ captureFullHeaders: false, mocksHostPath: "/" }),
 }));
 
 // ─── Wrapper ──────────────────────────────────────────────────────────────────
 
-function makeQc(appSettings?: { captureFullHeaders: boolean; mocksHostPath: string }) {
+function makeQc(appSettings?: {
+  captureFullHeaders: boolean;
+  mocksHostPath: string;
+}) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   if (appSettings !== undefined) {
     qc.setQueryData(["app-settings"], appSettings);
@@ -41,7 +46,9 @@ function Wrapper({
   appSettings?: { captureFullHeaders: boolean; mocksHostPath: string };
 }) {
   return (
-    <QueryClientProvider client={makeQc(appSettings)}>{children}</QueryClientProvider>
+    <QueryClientProvider client={makeQc(appSettings)}>
+      {children}
+    </QueryClientProvider>
   );
 }
 
@@ -63,19 +70,22 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   // ─── AC-11a: Auto-refresh interval select renders all options ─────────────────
 
   it("AC-11a: renders auto-refresh interval select with 1s/2s/5s/Disabled options", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
         <ActivitySettings />
       </Wrapper>,
     );
 
-    const select = screen.getByTestId("settings-select-activity-refresh-interval");
+    const select = screen.getByTestId(
+      "settings-select-activity-refresh-interval",
+    );
     expect(select).toBeInTheDocument();
 
-    const options = Array.from(select.querySelectorAll("option")).map((o) => o.value);
+    const options = Array.from(select.querySelectorAll("option")).map(
+      (o) => o.value,
+    );
     expect(options).toContain("1000");
     expect(options).toContain("2000");
     expect(options).toContain("5000");
@@ -83,9 +93,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11a: auto-refresh interval select shows 2 seconds (default) as default value", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
         <ActivitySettings />
@@ -99,9 +108,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11a: max log entries select renders with 500/1000/5000 options", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
         <ActivitySettings />
@@ -111,7 +119,9 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
     const select = screen.getByTestId("settings-select-activity-max-entries");
     expect(select).toBeInTheDocument();
 
-    const options = Array.from(select.querySelectorAll("option")).map((o) => o.value);
+    const options = Array.from(select.querySelectorAll("option")).map(
+      (o) => o.value,
+    );
     expect(options).toContain("500");
     expect(options).toContain("1000");
     expect(options).toContain("5000");
@@ -120,9 +130,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   // ─── AC-11b: Changing interval persists to localStorage ──────────────────────
 
   it("AC-11b: changing interval to 1s persists '1000' to localStorage", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     const user = userEvent.setup();
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
@@ -130,7 +139,9 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
       </Wrapper>,
     );
 
-    const select = screen.getByTestId("settings-select-activity-refresh-interval");
+    const select = screen.getByTestId(
+      "settings-select-activity-refresh-interval",
+    );
     await user.selectOptions(select, "1000");
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
@@ -138,9 +149,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11b: changing interval to Disabled persists 'disabled' to localStorage", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     const user = userEvent.setup();
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
@@ -148,7 +158,9 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
       </Wrapper>,
     );
 
-    const select = screen.getByTestId("settings-select-activity-refresh-interval");
+    const select = screen.getByTestId(
+      "settings-select-activity-refresh-interval",
+    );
     await user.selectOptions(select, "disabled");
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
@@ -156,9 +168,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11b: changing interval updates the select's displayed value immediately", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     const user = userEvent.setup();
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
@@ -177,9 +188,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   // ─── AC-11c: Capture full headers checkbox reads from useAppSettings ──────────
 
   it("AC-11c: capture full headers checkbox reads captureFullHeaders=false from appSettings", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
         <ActivitySettings />
@@ -193,9 +203,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11c: capture full headers checkbox reflects captureFullHeaders=true from appSettings", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: true, mocksHostPath: "/" }}>
         <ActivitySettings />
@@ -211,9 +220,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   // ─── AC-11d: Checkbox is disabled when appSettings is undefined ───────────────
 
   it("AC-11d: capture full headers checkbox is disabled when appSettings is loading (undefined)", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     // No appSettings pre-seeded → useAppSettings returns undefined (loading)
     render(
       <Wrapper>
@@ -226,9 +234,8 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   });
 
   it("AC-11d: capture full headers checkbox is enabled when appSettings is loaded", async () => {
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
         <ActivitySettings />
@@ -245,11 +252,13 @@ describe("ActivitySettings — Story 3.3 (AC-11)", () => {
   it("AC-11c: clicking capture headers checkbox calls apiFetch with PUT", async () => {
     const { apiFetch } = await import("@/lib/api");
     const mockApiFetch = vi.mocked(apiFetch);
-    mockApiFetch.mockResolvedValue({ captureFullHeaders: true, mocksHostPath: "/" });
+    mockApiFetch.mockResolvedValue({
+      captureFullHeaders: true,
+      mocksHostPath: "/",
+    });
 
-    const { ActivitySettings } = await import(
-      "@/features/settings/components/ActivitySettings"
-    );
+    const { ActivitySettings } =
+      await import("@/features/settings/components/ActivitySettings");
     const user = userEvent.setup();
     render(
       <Wrapper appSettings={{ captureFullHeaders: false, mocksHostPath: "/" }}>
