@@ -10,6 +10,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.2] — 2026-06-27 (Hotfix)
+
+### Changed
+
+- **Developer tooling** — Minor fixes and improvements (`hotfix/v0.2.2`)
+
+---
+
 ## [v0.2.1] — 2026-06-27 (Hotfix)
 
 ### Fixed

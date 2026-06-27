@@ -92,6 +92,21 @@ releases:
     stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
+  # v0.2.2 — Hotfix
+  # Fixes: bmad-story-lifecycle missing feature-branch creation before first file write.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.2.2"
+    hotfix: true
+    base_version: "v0.2.1"
+    epic: null
+    status: "in-progress"
+    branch: "hotfix/v0.2.2"
+    started: "2026-06-27"
+    completed: null
+    released: null
+    stories: []
+
+  # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)
   # Theme: See every request hitting mock services in real time.
   # ───────────────────────────────────────────────────────────────────────────
