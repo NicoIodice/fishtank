@@ -28,6 +28,7 @@ public sealed class HeaderRedactionService : IHeaderRedactionService
     }
 
     // For DI: checks FISHTANK_CAPTURE_FULL_HEADERS env var first, then DB setting
+    [ActivatorUtilitiesConstructor]
     public HeaderRedactionService(IServerConfigService configService, IConfiguration configuration)
     {
         var envOverride = configuration["FISHTANK_CAPTURE_FULL_HEADERS"];
