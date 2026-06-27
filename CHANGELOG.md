@@ -14,7 +14,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- **Story lifecycle branch isolation** — `bmad-story-lifecycle` now creates and pushes `feature/{story_key}` before any file writes in the INIT phase; previously, all lifecycle artifacts (lifecycle state, test design, sprint status, story file) were written directly to `main` (`hotfix/v0.2.2`)
+- **Story lifecycle branch isolation** — `bmad-story-lifecycle` INIT phase now explicitly invokes `RELEASE BRANCH MANAGEMENT` and `STORY BRANCH CREATION` (from the team override TOML `activation_steps_append`) before any file write; previously, the workflow XML had no anchor calling these rules, so the LLM drove straight through INIT phases writing `lifecycle-state`, `test-design`, `sprint-status`, and story files directly to `main` (`hotfix/v0.2.2`)
 
 ---
 

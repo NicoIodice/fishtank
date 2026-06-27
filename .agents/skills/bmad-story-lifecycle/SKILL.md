@@ -174,21 +174,20 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
     <action>Set {{sprint_status}} = {implementation_artifacts}/sprint-status.yaml</action>
     <action>Set {{test_artifacts}} = {project-root}/_bmad-output/test-artifacts</action>
 
-    <!-- ─── Feature branch — create / checkout BEFORE any file writes ─── -->
-    <action>Set {{feature_branch}} = "feature/{{story_key}}"</action>
-    <action>Run: git branch --show-current to get {{current_git_branch}}</action>
-    <check if="{{current_git_branch}} IS already {{feature_branch}}">
-      <output>🌿 Already on branch: {{feature_branch}}</output>
-    </check>
-    <check if="{{current_git_branch}} is NOT {{feature_branch}} AND git branch --list {{feature_branch}} shows the branch exists locally">
-      <action>Run: git checkout {{feature_branch}}</action>
-      <output>🌿 Switched to existing branch: {{feature_branch}}</output>
-    </check>
-    <check if="{{current_git_branch}} is NOT {{feature_branch}} AND the branch does NOT exist locally">
-      <action>Run: git checkout -b {{feature_branch}}</action>
-      <action>Run: git push -u origin {{feature_branch}}</action>
-      <output>🌿 Created and pushed branch: {{feature_branch}}</output>
-    </check>
+    <!-- ─── Branch setup — MUST run before any file write (lifecycle state, releases, CHANGELOG) ─── -->
+    <!-- The full logic lives in activation_steps_append (team override TOML). Execute both rules  -->
+    <!-- in order here, using {{epic_id}} and {{story_key}} which are now resolved.                -->
+    <action>Execute the "RELEASE BRANCH MANAGEMENT" rule from the loaded activation_steps_append.
+      Use {{epic_id}} to locate the matching release in releases.yaml and follow step A (pending)
+      or step B (in-progress) exactly as written in that rule. This creates or checks out
+      release/{{release_version}} and, on the first story of a release, commits the [Unreleased]
+      CHANGELOG section to the release branch.
+    </action>
+    <action>Execute the "STORY BRANCH CREATION" rule from the loaded activation_steps_append.
+      Use {{story_key}}. This creates or checks out feature/{{story_key}} from the current
+      release branch, pushes to origin, and hard-guards that git branch --show-current equals
+      exactly feature/{{story_key}} before continuing. HALT if the guard fails.
+    </action>
 
     <check if="{{lifecycle_state_file}} exists">
       <action>Load state file</action>
