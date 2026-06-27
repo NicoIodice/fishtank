@@ -14,6 +14,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 _Theme: See every request hitting your mock services in real time._
 
+### Added
+
+- **Activity log backend** — in-memory per-service request capture from WireMock mock services, with sensitive header redaction (`Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, and any header containing `secret` or `token`) applied at storage time (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`GET /api/activity`** — query the activity log with filters: `serviceId`, `type` (Mocked/Proxied), `search` (URL path or method), and pagination (`skip`/`take`) (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`DELETE /api/activity`** — clear all in-memory activity log entries (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`PUT /api/settings/capture-headers`** — opt-in toggle to capture headers unredacted; instance-wide setting persisted in the database (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **ActivityHub** — SignalR hub at `/hubs/activity` broadcasting `ActivityRowAdded` events to connected clients within 500 ms of each request (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+
 ---
 
 ## [v0.2.2] — 2026-06-27 (Hotfix)

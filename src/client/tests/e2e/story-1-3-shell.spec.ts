@@ -316,6 +316,12 @@ test.describe("Story 1-3: React App Shell, Login & First-Run Setup Screens", () 
 
     // When: user clicks the About button
     await page.goto("/services");
+    // Wait for the page to settle on /services before interacting.
+    // apiFetch redirects window.location.href to /login on any 401, so an
+    // unexpected background call failure during page load can race with the
+    // click. This assertion fails fast with a clear URL-mismatch error if
+    // the page was redirected, so the retry mechanism has full context.
+    await page.waitForURL("**/services", { timeout: 10_000 });
     await page.getByTestId("topbar-about-button").click();
 
     // Then: About modal is visible

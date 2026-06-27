@@ -665,8 +665,20 @@ Escalating to {{user_name}}.</output>
 
     <check if="zero BLOCKER items — test quality acceptable">
       <output>✅ Test review passed for {{story_key}}.</output>
-      <action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
-    </check>
+      <action>Verify test-review artifact written to disk: check that {test_artifacts}/test-review-{{story_key}}.md exists as a file</action>
+      <check if="test-review file does NOT exist on disk">
+        <output>⚠ Test review passed but report artifact was not saved to disk. Saving now...</output>
+        <action>Write the test quality review report to {test_artifacts}/test-review-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), quality score, findings table (BLOCKER/MAJOR/MINOR counts), AC coverage table, and overall gate decision with rationale</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — Test review report could not be persisted to disk.
+
+Manual action required: save the review to \_bmad-output/test-artifacts/test-review-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "test-review artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+<action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
+</check>
 
     <check if="BLOCKER items found (test gaps that require code changes)">
       <output>⚠ Test review blockers require code changes. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>

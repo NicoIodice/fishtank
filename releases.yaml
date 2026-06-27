@@ -117,7 +117,9 @@ releases:
     started: "2026-06-27"
     completed: null
     released: null
-    stories: []
+    stories:
+      - id: "3-1-activity-log-backend-request-capture-and-header-redaction"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.4.0 — Mappings & Mock Capture (Epic 4)

@@ -94,6 +94,10 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         // Clear the singleton BootEpoch cache so the new value is picked up
         var configService = Services.GetRequiredService<IServerConfigService>();
         configService.ClearCache();
+
+        // Clear activity store singleton so tests start with empty logs
+        var activityStore = Services.GetService<IActivityStore>();
+        activityStore?.Clear();
     }
 
     protected override void Dispose(bool disposing)

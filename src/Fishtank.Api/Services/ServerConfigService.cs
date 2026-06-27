@@ -11,6 +11,7 @@ namespace Fishtank.Api.Services;
 public class ServerConfigService(IServiceScopeFactory scopeFactory) : IServerConfigService
 {
     private Guid? _cachedEpoch;
+    private bool? _cachedCaptureFullHeaders;
 
     public async Task<Guid> GetBootEpochAsync()
     {
@@ -25,5 +26,35 @@ public class ServerConfigService(IServiceScopeFactory scopeFactory) : IServerCon
         return _cachedEpoch.Value;
     }
 
-    public void ClearCache() => _cachedEpoch = null;
+    public bool GetCaptureFullHeadersCached() => _cachedCaptureFullHeaders ?? false;
+
+    public async Task<bool> GetCaptureFullHeadersAsync()
+    {
+        if (_cachedCaptureFullHeaders.HasValue)
+            return _cachedCaptureFullHeaders.Value;
+
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FishtankDbContext>();
+        var config = await db.ServerConfigs.FindAsync(1)
+            ?? throw new InvalidOperationException("ServerConfig not seeded.");
+        _cachedCaptureFullHeaders = config.CaptureFullHeaders;
+        return _cachedCaptureFullHeaders.Value;
+    }
+
+    public async Task SetCaptureFullHeadersAsync(bool value)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FishtankDbContext>();
+        var config = await db.ServerConfigs.FindAsync(1)
+            ?? throw new InvalidOperationException("ServerConfig not seeded.");
+        config.CaptureFullHeaders = value;
+        await db.SaveChangesAsync();
+        _cachedCaptureFullHeaders = value;
+    }
+
+    public void ClearCache()
+    {
+        _cachedEpoch = null;
+        _cachedCaptureFullHeaders = null;
+    }
 }
