@@ -22,13 +22,13 @@ public sealed class HeaderRedactionService : IHeaderRedactionService
     private readonly bool _captureFullHeaders;
 
     // For unit tests: new HeaderRedactionService() or new HeaderRedactionService(captureFullHeaders: true)
-    public HeaderRedactionService(bool captureFullHeaders = false)
+    // internal so the DI container's Type.GetConstructors() only sees the service constructor
+    internal HeaderRedactionService(bool captureFullHeaders = false)
     {
         _captureFullHeaders = captureFullHeaders;
     }
 
     // For DI: checks FISHTANK_CAPTURE_FULL_HEADERS env var first, then DB setting
-    [ActivatorUtilitiesConstructor]
     public HeaderRedactionService(IServerConfigService configService, IConfiguration configuration)
     {
         var envOverride = configuration["FISHTANK_CAPTURE_FULL_HEADERS"];
