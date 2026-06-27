@@ -10,6 +10,23 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress pre-existing INVALID_ANNOTATION warnings from @microsoft/signalr ESM bundle.
+        // The signalr package uses /*#__PURE__*/ in positions Rolldown rejects; this is a
+        // known upstream issue unrelated to our code. TypeScript type-check (tsc --noEmit) is
+        // used as the authoritative type gate instead.
+        if (
+          warning.code === "INVALID_ANNOTATION" &&
+          warning.id?.includes("@microsoft/signalr")
+        ) {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": {

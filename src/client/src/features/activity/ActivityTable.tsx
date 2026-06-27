@@ -1,0 +1,331 @@
+import { useRef, useState, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useQueryClient } from "@tanstack/react-query";
+import type { ActivityRow } from "./types";
+import { MethodChip } from "./MethodChip";
+import { TypeIcon } from "./TypeIcon";
+
+// Virtual scrolling: using @tanstack/react-virtual for NFR-4 (10k rows @ 60fps).
+// Consistent with TanStack React Query already in project.
+
+// Minimal local type to avoid cross-feature-folder imports (arch constraint).
+interface ServiceStatus {
+  id: string;
+  status: string;
+}
+
+const ACTIVITY_ROW_HEIGHT_PX = 48;
+
+interface ActivityTableProps {
+  rows: ActivityRow[];
+  hadRows: boolean;
+}
+
+export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
+  // Read service statuses from React Query cache (no refetch).
+  // Uses minimal local ServiceStatus type to avoid cross-feature imports.
+  const services = queryClient.getQueryData<ServiceStatus[]>(["services"]) ?? [];
+  const serviceStatusMap = new Map(
+    services.map((s) => [s.id, s.status === "live"]),
+  );
+
+  // AC-13: keyboard navigation — ArrowUp/ArrowDown move row focus
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (rows.length === 0) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.min((prev ?? -1) + 1, rows.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedIndex((prev) => Math.max((prev ?? 1) - 1, 0));
+      }
+    },
+    [rows.length],
+  );
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ACTIVITY_ROW_HEIGHT_PX,
+    overscan: 5,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // Empty states
+  if (rows.length === 0) {
+    const isCleared = hadRows;
+    return (
+      <div
+        data-testid="datatable-empty"
+        style={{
+          textAlign: "center",
+          padding: "64px 16px",
+          color: "#9ca3af",
+        }}
+      >
+        <i
+          className="bi bi-activity"
+          style={{ fontSize: "48px", display: "block", marginBottom: "16px" }}
+          aria-hidden="true"
+        />
+        <p style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "8px" }}>
+          {isCleared ? "Log cleared" : "No activity yet"}
+        </p>
+        <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+          {isCleared
+            ? "New requests will appear as they arrive."
+            : "Requests will appear here once a service is live and receiving traffic."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={parentRef}
+      role="grid"
+      aria-rowcount={rows.length}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      style={{
+        height: "600px",
+        overflow: "auto",
+        border: "1px solid #e5e7eb",
+        borderRadius: "8px",
+      }}
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            tableLayout: "fixed",
+          }}
+        >
+          <colgroup>
+            <col style={{ width: "10%" }} /> {/* Method */}
+            <col style={{ width: "35%" }} /> {/* URL Path */}
+            <col style={{ width: "8%" }} />  {/* Status */}
+            <col style={{ width: "8%" }} />  {/* Type */}
+            <col style={{ width: "20%" }} /> {/* Service */}
+            <col style={{ width: "19%" }} /> {/* Actions */}
+          </colgroup>
+          <thead
+            style={{
+              position: "sticky",
+              top: 0,
+              backgroundColor: "#f9fafb",
+              zIndex: 1,
+            }}
+          >
+            <tr>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                Method
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                URL Path
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                Status
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                <i className="bi bi-funnel" aria-label="Type" />
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                Service
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                  borderBottom: "2px solid #e5e7eb",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {virtualItems.map((virtualItem) => {
+              const row = rows[virtualItem.index];
+              const isServiceLive = serviceStatusMap.get(row.serviceId) ?? false;
+              const is5xx = row.statusCode >= 500 && row.statusCode <= 599;
+              const showAmberBorder =
+                row.type === "Proxied" && isServiceLive;
+
+              const rowBgColor = is5xx
+                ? "var(--error-row-bg, rgba(254, 226, 226, 0.5))"
+                : undefined;
+
+              return (
+                <tr
+                  key={row.id}
+                  data-testid={`activity-row-${row.id}`}
+                  role="row"
+                  aria-rowindex={virtualItem.index + 1}
+                  tabIndex={focusedIndex === virtualItem.index ? 0 : -1}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                    display: "table",
+                    tableLayout: "fixed",
+                    backgroundColor: rowBgColor,
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      borderLeft: showAmberBorder ? "2px solid #f59e0b" : undefined,
+                    }}
+                  >
+                    <MethodChip method={row.method} />
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {row.urlPath}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                  >
+                    {row.statusCode}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      textAlign: "center",
+                    }}
+                  >
+                    <TypeIcon type={row.type} />
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {row.serviceName}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      textAlign: "center",
+                    }}
+                  >
+                    <button
+                      data-testid={`activity-btn-view-${row.id}`}
+                      aria-label="View detail"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px 8px",
+                        color: "#374151",
+                      }}
+                    >
+                      <i className="bi bi-eye" />
+                    </button>
+                    {row.type === "Proxied" && (
+                      <button
+                        data-testid="activity-btn-save-as-mock"
+                        aria-label="Save as Mock"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          color: "#3b82f6", // Brand color
+                        }}
+                      >
+                        <i className="bi bi-lightning-charge" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,6 @@
 import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
 
 // Stub window.location globally so jsdom never fires "Not implemented: navigation".
 // Tests can read/write window.location.href freely as a plain string.

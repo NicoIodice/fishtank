@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./tests/unit/setup.ts"],
+    setupFiles: ["./tests/unit/setup.ts", "./src/test/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     exclude: ["tests/e2e/**", "node_modules/**"],
     // Run all test files in a single fork (Vitest 4: isolate:false + maxWorkers:1
