@@ -159,12 +159,14 @@ export function ActivityTable({
           }}
         >
           <colgroup>
-            <col style={{ width: "10%" }} /> {/* Method */}
-            <col style={{ width: "35%" }} /> {/* URL Path */}
-            <col style={{ width: "8%" }} />  {/* Status */}
-            <col style={{ width: "8%" }} />  {/* Type */}
-            <col style={{ width: "20%" }} /> {/* Service */}
-            <col style={{ width: "19%" }} /> {/* Actions */}
+            <col style={{ width: "8%" }} />   {/* Method */}
+            <col style={{ width: "27%" }} />  {/* URL Path */}
+            <col style={{ width: "7%" }} />   {/* Status */}
+            <col style={{ width: "7%" }} />   {/* ms */}
+            <col style={{ width: "12%" }} />  {/* DateTime */}
+            <col style={{ width: "7%" }} />   {/* Type */}
+            <col style={{ width: "15%" }} />  {/* Service */}
+            <col style={{ width: "17%" }} />  {/* Actions */}
           </colgroup>
           <thead
             style={{
@@ -179,6 +181,9 @@ export function ActivityTable({
                 data-sort-column="method"
                 style={sortableHeaderStyle()}
                 onClick={() => onSort?.("method")}
+                aria-sort={sort.column === "method"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
               >
                 Method
                 <SortIndicator column="method" />
@@ -187,6 +192,9 @@ export function ActivityTable({
                 data-sort-column="urlPath"
                 style={sortableHeaderStyle()}
                 onClick={() => onSort?.("urlPath")}
+                aria-sort={sort.column === "urlPath"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
               >
                 URL Path
                 <SortIndicator column="urlPath" />
@@ -195,9 +203,34 @@ export function ActivityTable({
                 data-sort-column="statusCode"
                 style={sortableHeaderStyle()}
                 onClick={() => onSort?.("statusCode")}
+                aria-sort={sort.column === "statusCode"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
               >
                 Status
                 <SortIndicator column="statusCode" />
+              </th>
+              <th
+                data-sort-column="durationMs"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("durationMs")}
+                aria-sort={sort.column === "durationMs"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
+              >
+                ms
+                <SortIndicator column="durationMs" />
+              </th>
+              <th
+                data-sort-column="timestamp"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("timestamp")}
+                aria-sort={sort.column === "timestamp"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
+              >
+                DateTime
+                <SortIndicator column="timestamp" />
               </th>
               <th
                 style={{
@@ -215,6 +248,9 @@ export function ActivityTable({
                 data-sort-column="serviceName"
                 style={sortableHeaderStyle()}
                 onClick={() => onSort?.("serviceName")}
+                aria-sort={sort.column === "serviceName"
+                  ? (sort.direction === "asc" ? "ascending" : "descending")
+                  : "none"}
               >
                 Service
                 <SortIndicator column="serviceName" />
@@ -291,6 +327,25 @@ export function ActivityTable({
                     }}
                   >
                     {row.statusCode}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {row.durationMs}ms
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      whiteSpace: "nowrap",
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {new Date(row.timestamp).toLocaleTimeString()}
                   </td>
                   <td
                     style={{

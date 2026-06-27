@@ -308,4 +308,47 @@ public class Story3_3_ActivityFilterTests : IntegrationTestBase
         var response = await Client.DeleteAsync("/api/activity");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // T5: AND logic — serviceId + type combined filter (AC-4)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "T5: GET /api/activity?serviceId={A}&type=Mocked uses AND logic, not OR (AC-4)")]
+    public async Task GetActivity_FilterByServiceIdAndType_UsesAndLogic()
+    {
+        var serviceA = Guid.NewGuid();
+        var serviceB = Guid.NewGuid();
+
+        // Row matches BOTH filters (serviceA + Mocked) — should be returned
+        await SeedRowAsync(serviceId: serviceA,
+            type: Fishtank.Api.Models.ActivityType.Mocked,
+            urlPath: "/a-mocked");
+
+        // Row matches serviceA but NOT Mocked — should NOT be returned
+        await SeedRowAsync(serviceId: serviceA,
+            type: Fishtank.Api.Models.ActivityType.Proxied,
+            urlPath: "/a-proxied");
+
+        // Row matches Mocked but NOT serviceA — should NOT be returned
+        await SeedRowAsync(serviceId: serviceB,
+            type: Fishtank.Api.Models.ActivityType.Mocked,
+            urlPath: "/b-mocked");
+
+        var client = await GetAuthenticatedClientAsync();
+        var response = await client.GetAsync(
+            $"/api/activity?serviceId={serviceA}&type=Mocked");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+
+        var data = body.GetProperty("data");
+        data.GetArrayLength().Should().Be(1,
+            because: "only the row matching BOTH serviceId AND type=Mocked should be returned (AND logic)");
+
+        data[0].GetProperty("urlPath").GetString().Should().Be("/a-mocked");
+        data[0].GetProperty("serviceId").GetString().Should().Be(serviceA.ToString());
+        data[0].GetProperty("type").GetString().Should().Be("Mocked");
+    }
 }

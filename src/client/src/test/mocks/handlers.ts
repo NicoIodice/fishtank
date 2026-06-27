@@ -5,10 +5,7 @@ export const handlers = [
   http.get("/api/activity", () => {
     return HttpResponse.json({
       success: true,
-      data: {
-        items: [],
-        total: 0,
-      },
+      data: [],
     });
   }),
 

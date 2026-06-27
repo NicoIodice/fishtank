@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { useAppSettings, APP_SETTINGS_QUERY_KEY } from "../hooks/useAppSettings";
@@ -7,15 +8,24 @@ export function ActivitySettings() {
   const queryClient = useQueryClient();
   const { data: appSettings } = useAppSettings();
   const { settings, updateInterval, updateMaxEntries } = useActivitySettings();
+  const [isTogglingHeaders, setIsTogglingHeaders] = useState(false);
 
   async function handleCaptureHeadersToggle() {
-    const current = appSettings?.captureFullHeaders ?? false;
-    await apiFetch("/api/settings/capture-headers", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: !current }),
-    });
-    await queryClient.invalidateQueries({ queryKey: APP_SETTINGS_QUERY_KEY });
+    if (isTogglingHeaders) return;
+    setIsTogglingHeaders(true);
+    try {
+      const current = appSettings?.captureFullHeaders ?? false;
+      await apiFetch<{ captureFullHeaders: boolean }>("/api/settings/capture-headers", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !current }),
+      });
+      await queryClient.invalidateQueries({ queryKey: APP_SETTINGS_QUERY_KEY });
+    } catch (err) {
+      console.error("Toggle capture headers failed:", err);
+    } finally {
+      setIsTogglingHeaders(false);
+    }
   }
 
   return (
@@ -99,6 +109,7 @@ export function ActivitySettings() {
             data-testid="settings-toggle-capture-full-headers"
             checked={appSettings?.captureFullHeaders ?? false}
             onChange={handleCaptureHeadersToggle}
+            disabled={isTogglingHeaders || !appSettings}
             style={{ marginTop: "2px" }}
           />
           <span>

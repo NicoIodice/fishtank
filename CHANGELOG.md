@@ -25,6 +25,11 @@ _Theme: See every request hitting your mock services in real time._
 - **Proxy counter pill** — live popover showing per-service proxied-request counts with error color (#ef4444) when any 5xx response is present (`feature/3-2-network-activity-page-real-time-log-display`)
 - **Activity toolbar** — refresh, live/paused toggle, recording badge, search input, service filter, type filter (Mocked/Proxied), column picker, and clear-log controls (`feature/3-2-network-activity-page-real-time-log-display`)
 - **Keyboard navigation** — ArrowUp/ArrowDown row focus within the activity grid with `role="grid"` and `aria-rowindex` for screen-reader compatibility (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Activity log filtering** — client-side search (URL path + method, case-insensitive OR logic), service dropdown filter (from React Query cache), and type filter (Mocked/Proxied checkboxes) with AND logic across all active filters; proxy counter pill always reflects unfiltered row count (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Activity log column sorting** — sortable column headers (Method, URL Path, Status, Service, Duration ms, DateTime); cycle: unsorted → ascending → descending → unsorted; one column at a time; default is DateTime descending (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **LIVE/PAUSED toggle** — pauses the activity table at a snapshot; new SignalR rows continue arriving but are not displayed until LIVE is resumed; Refresh icon appears in PAUSED mode for manual re-fetch with `animate-spin` animation and `prefers-reduced-motion` respect (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Clear log** — calls `DELETE /api/activity` and clears the in-memory table and proxy counter pill in one action, no confirmation required (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Settings → Network Activity section** — auto-refresh interval (1 s / 2 s / 5 s / Disabled, persisted in `localStorage`), max log entries display (500 / 1 000 / 5 000), and capture full request headers toggle (wires to `PUT /api/settings/capture-headers`) (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
 
 ---
 

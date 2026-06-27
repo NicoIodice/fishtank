@@ -105,7 +105,7 @@ development_status:
   epic-3: in-progress
   3-1-activity-log-backend-request-capture-and-header-redaction: done
   3-2-network-activity-page-real-time-log-display: done
-  3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls: in-progress
+  3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls: done
   3-4-row-detail-all-three-display-styles: backlog
   epic-3-retrospective: optional
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useActivityLog } from "../useActivityLog";
 import { ActivityTable, type SortableColumn } from "../ActivityTable";
@@ -25,13 +25,31 @@ export function ActivityPage() {
   const [typeMockedChecked, setTypeMockedChecked] = useState(false);
   const [typeProxiedChecked, setTypeProxiedChecked] = useState(false);
   const [typeFilterOpen, setTypeFilterOpen] = useState(false);
+  const typeFilterRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!typeFilterOpen) return;
+    function handleOutside(e: PointerEvent) {
+      if (typeFilterRef.current && !typeFilterRef.current.contains(e.target as Node)) {
+        setTypeFilterOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setTypeFilterOpen(false);
+    }
+    document.addEventListener("pointerdown", handleOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [typeFilterOpen]);
   const [sort, setSort] = useState<{
     column: SortableColumn | null;
     direction: "asc" | "desc" | null;
   }>({ column: null, direction: null });
 
   // LIVE / PAUSED state
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(() => settings.autoRefreshInterval === "disabled");
   const [pauseSnapshot, setPauseSnapshot] = useState<ActivityRow[] | null>(null);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
@@ -41,8 +59,9 @@ export function ActivityPage() {
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false;
 
-  // Source rows: snapshot when paused, live rows otherwise
-  const sourceRows = isPaused && pauseSnapshot !== null ? pauseSnapshot : rows;
+  // Source rows: snapshot when paused or interval disabled, live rows otherwise
+  const effectivelyPaused = isPaused || isIntervalDisabled;
+  const sourceRows = effectivelyPaused && pauseSnapshot !== null ? pauseSnapshot : rows;
 
   // Services from React Query cache for dropdown (no new fetch)
   const cachedServices =
@@ -152,9 +171,13 @@ export function ActivityPage() {
   }
 
   async function handleClearLog() {
-    await clearActivityLog();
-    clearRows();
-    if (isPaused) setPauseSnapshot([]);
+    try {
+      await clearActivityLog();
+      clearRows();
+      if (isPaused) setPauseSnapshot([]);
+    } catch (err) {
+      console.error("Clear log failed:", err);
+    }
   }
 
   if (isLoading) {
@@ -169,7 +192,7 @@ export function ActivityPage() {
 
   const showRefreshIcon = isPaused || isIntervalDisabled;
   const spinClass =
-    isManualRefreshing && !prefersReducedMotion ? "activity-spin" : "";
+    isManualRefreshing && !prefersReducedMotion ? "animate-spin" : "";
 
   return (
     <main data-testid="page-activity" style={{ padding: "24px" }}>
@@ -353,9 +376,10 @@ export function ActivityPage() {
         </select>
 
         {/* Type filter popover */}
-        <div style={{ position: "relative" }}>
+        <div ref={typeFilterRef} style={{ position: "relative" }}>
           <button
             data-testid="activity-btn-type-filter"
+            aria-expanded={typeFilterOpen}
             onClick={() => setTypeFilterOpen((v) => !v)}
             style={{
               padding: "8px 12px",

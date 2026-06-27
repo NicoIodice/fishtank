@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -658,6 +658,115 @@ describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () =>
       // The real assertion here tests AC-12 behavior post-implementation.
       const pill = screen.getByTestId("activity-pill-proxy-count");
       expect(pill).toHaveTextContent("2");
+    });
+  });
+
+  // ─── AC-9: Disabled interval sets PAUSED on mount (new gap coverage) ──────────
+
+  describe("AC-9: Disabled interval → PAUSED on mount", () => {
+    beforeEach(() => {
+      // Store "disabled" in localStorage before rendering so useActivitySettings
+      // returns the disabled interval on the first render.
+      localStorage.setItem(
+        "fishtank-activity-settings",
+        JSON.stringify({ autoRefreshInterval: "disabled", maxEntries: 1000 }),
+      );
+    });
+
+    afterEach(() => {
+      localStorage.removeItem("fishtank-activity-settings");
+    });
+
+    it("AC-9: LIVE/PAUSED button shows 'PAUSED' text when interval is disabled", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
+
+      const livePausedBtn = screen.getByTestId("activity-btn-live-paused");
+      expect(livePausedBtn).toHaveTextContent("PAUSED");
+    });
+
+    it("AC-9: LIVE/PAUSED button has aria-disabled='true' when interval is disabled", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
+
+      const livePausedBtn = screen.getByTestId("activity-btn-live-paused");
+      expect(livePausedBtn).toHaveAttribute("aria-disabled", "true");
+    });
+
+    it("AC-9: Refresh icon is visible when interval is disabled", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-refresh"));
+
+      const refreshBtn = screen.getByTestId("activity-btn-refresh");
+      expect(refreshBtn).toBeVisible();
+    });
+
+    it("AC-9: clicking LIVE/PAUSED button when interval is disabled has no effect (stays PAUSED)", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const user = userEvent.setup();
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-live-paused"));
+
+      const livePausedBtn = screen.getByTestId("activity-btn-live-paused");
+      expect(livePausedBtn).toHaveTextContent("PAUSED");
+
+      // Click the button — should NOT toggle to LIVE
+      await user.click(livePausedBtn);
+
+      // Still shows PAUSED after click
+      expect(livePausedBtn).toHaveTextContent("PAUSED");
+    });
+  });
+
+  // ─── Type-filter aria-expanded (m6 MINOR — accessibility attribute) ───────────
+
+  describe("Type-filter aria-expanded", () => {
+    it("type-filter button has aria-expanded='false' by default (popover closed)", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-type-filter"));
+
+      const typeFilterBtn = screen.getByTestId("activity-btn-type-filter");
+      expect(typeFilterBtn).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("type-filter button has aria-expanded='true' after click (popover open)", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const user = userEvent.setup();
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-type-filter"));
+
+      const typeFilterBtn = screen.getByTestId("activity-btn-type-filter");
+      await user.click(typeFilterBtn);
+
+      expect(typeFilterBtn).toHaveAttribute("aria-expanded", "true");
+    });
+
+    it("type-filter button aria-expanded toggles back to 'false' when clicked again", async () => {
+      const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+      const user = userEvent.setup();
+      render(<ActivityPage />, { wrapper: Wrapper });
+
+      await waitFor(() => screen.getByTestId("activity-btn-type-filter"));
+
+      const typeFilterBtn = screen.getByTestId("activity-btn-type-filter");
+
+      // Open
+      await user.click(typeFilterBtn);
+      expect(typeFilterBtn).toHaveAttribute("aria-expanded", "true");
+
+      // Close
+      await user.click(typeFilterBtn);
+      expect(typeFilterBtn).toHaveAttribute("aria-expanded", "false");
     });
   });
 });
