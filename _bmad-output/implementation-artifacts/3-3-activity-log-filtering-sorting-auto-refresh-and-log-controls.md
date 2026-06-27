@@ -3,7 +3,7 @@ story_id: "3.3"
 story_key: "3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls"
 epic: 3
 story_title: "Activity Log Filtering, Sorting, Auto-Refresh & Log Controls"
-status: ready-for-dev
+status: done
 priority: high
 frs_covered:
   - FR-8
