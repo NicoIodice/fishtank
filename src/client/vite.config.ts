@@ -10,4 +10,17 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.API_URL ?? "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/hubs": {
+        target: process.env.API_URL ?? "http://localhost:5000",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
 });

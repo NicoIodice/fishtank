@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useBreakpoint } from "@/lib/useBreakpoint";
 import { AppearanceSettings } from "../components/AppearanceSettings";
+import { CacheSettings } from "../components/CacheSettings";
 
 type SettingsSection = "appearance" | "activity" | "cache" | "mocks-root";
 
@@ -57,6 +58,7 @@ export function SettingsPage() {
           {sections.map((s) => (
             <button
               key={s.id}
+              data-testid={`settings-nav-${s.id}`}
               onClick={() => setActive(s.id)}
               aria-current={active === s.id ? "page" : undefined}
               style={{
@@ -92,6 +94,8 @@ export function SettingsPage() {
         </h2>
         {active === "appearance" ? (
           <AppearanceSettings />
+        ) : active === "cache" ? (
+          <CacheSettings />
         ) : (
           <p className="text-muted">Configured in a later story.</p>
         )}

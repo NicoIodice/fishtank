@@ -1,7 +1,8 @@
 import { QueryClient, type QueryKey } from "@tanstack/react-query";
 
 export const HUB_INVALIDATION_MAP: Record<string, QueryKey[]> = {
-  // Populated by subsequent epics — DO NOT add entries in this story
+  ServiceStatusChanged: [["services"]],
+  SystemEventCreated: [["events"]],
 };
 
 export const queryClient = new QueryClient({

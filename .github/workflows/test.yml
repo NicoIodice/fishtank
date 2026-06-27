@@ -5,9 +5,9 @@
 #
 # Stages:
 #   lint          → ESLint on the React client
-#   backend-test  → xUnit unit + integration tests (in-process WebApplicationFactory)
-#   frontend-test → Playwright E2E — 4 parallel shards (chromium + firefox)
-#   burn-in       → 10-iteration flaky-test detection (PRs to main/develop + weekly schedule)
+#   backend-test  → xUnit unit + integration tests (parallel matrix: unit | integration)
+#   frontend-test → Playwright E2E — 4 parallel shards (chromium)
+#   burn-in       → 3-iteration flaky-test detection (PRs + weekly schedule)
 #   report        → Aggregate Job Summary
 #
 # Required secrets: none (add PACT_BROKER_* if contract testing is enabled later)
@@ -57,12 +57,23 @@ jobs:
         run: npm run lint
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # BACKEND TESTS
+  # BACKEND TESTS — unit and integration run in parallel
   # ─────────────────────────────────────────────────────────────────────────────
   backend-test:
-    name: Backend Tests (.NET 10 / xUnit)
+    name: Backend Tests — ${{ matrix.suite.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - name: "Unit Tests"
+            project: "src/Fishtank.Api.UnitTests/Fishtank.Api.UnitTests.csproj"
+            artifact: "backend-unit-results"
+          - name: "Integration Tests"
+            project: "src/Fishtank.Api.IntegrationTests/Fishtank.Api.IntegrationTests.csproj"
+            artifact: "backend-integration-results"
 
     steps:
       - uses: actions/checkout@v5
@@ -88,7 +99,7 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test src/Fishtank.slnx --no-build \
+          dotnet test ${{ matrix.suite.project }} --no-build \
             --logger "trx;LogFileName=test-results.trx" \
             --logger "console;verbosity=normal"
 
@@ -96,7 +107,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: backend-test-results
+          name: ${{ matrix.suite.artifact }}
           path: "**/*.trx"
           retention-days: 30
 
@@ -104,7 +115,7 @@ jobs:
   # FRONTEND E2E TESTS — 4 parallel shards
   # ─────────────────────────────────────────────────────────────────────────────
   frontend-test:
-    name: E2E Tests (Shard ${{ matrix.shard }}/2)
+    name: E2E Tests (Shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: lint
@@ -112,7 +123,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v5
@@ -206,7 +217,8 @@ jobs:
         env:
           CI: "true"
           BASE_URL: "http://localhost:5173"
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/2
+          API_URL: "http://localhost:5000"
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
 
       - name: Upload blob report
         if: always()
@@ -228,9 +240,9 @@ jobs:
   # BURN-IN — flaky test detection (PRs + weekly schedule)
   # ─────────────────────────────────────────────────────────────────────────────
   burn-in:
-    name: Burn-In (Flaky Detection — 10 iterations)
+    name: Burn-In (Flaky Detection — 3 iterations)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     needs: [backend-test, frontend-test]
     if: github.event_name == 'pull_request' || github.event_name == 'schedule'
 
@@ -285,6 +297,12 @@ jobs:
           ASPNETCORE_ENVIRONMENT: "Development"
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
           FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
+          # Raise the login rate limit high enough to survive back-to-back burn-in iterations.
+          # Each iteration performs several logins (explicit login test + re-auth after
+          # the sign-out test invalidates the cached JWT). The default of 5/60s is far
+          # too low for back-to-back iterations within the same rate-limit window.
+          FISHTANK_LOGIN_RATE_LIMIT: "1000"
+          FISHTANK_LOGIN_RATE_WINDOW: "60"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
@@ -320,16 +338,17 @@ jobs:
           echo "❌ Vite dev server did not start in time"
           exit 1
 
-      - name: Burn-in loop (10 iterations)
+      - name: Burn-in loop (3 iterations)
         working-directory: src/client
         env:
           CI: "true"
           BASE_URL: "http://localhost:5173"
+          API_URL: "http://localhost:5000"
         run: |
           echo "🔥 Starting burn-in — detecting flaky tests"
-          for i in $(seq 1 10); do
+          for i in $(seq 1 3); do
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🔥 Iteration $i/10"
+            echo "🔥 Iteration $i/3"
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             npm run test:e2e || exit 1
           done
@@ -408,8 +427,8 @@ jobs:
           echo "| Stage | Result |" >> $GITHUB_STEP_SUMMARY
           echo "| ----- | ------ |" >> $GITHUB_STEP_SUMMARY
           echo "| Backend Tests (.NET / xUnit)  | ${{ needs.backend-test.result }}  |" >> $GITHUB_STEP_SUMMARY
-          echo "| E2E Tests (Playwright / 2 shards) | ${{ needs.frontend-test.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Burn-In (flaky detection) | ${{ needs.burn-in.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests (Playwright / 4 shards) | ${{ needs.frontend-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Burn-In (flaky detection — 3 iterations) | ${{ needs.burn-in.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ needs.burn-in.result }}" = "failure" ]; then

@@ -1,5 +1,6 @@
 using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
+using Fishtank.Api.Engine;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -21,10 +22,20 @@ namespace Fishtank.Api.IntegrationTests.Support;
 public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
 {
     private SqliteConnection? _connection;
+    private string? _testWebRoot;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        // Create a minimal wwwroot so UseStaticFiles and MapFallback can serve
+        // index.html during integration tests (no real client build required).
+        _testWebRoot = Path.Combine(Path.GetTempPath(), $"fishtank-test-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testWebRoot);
+        File.WriteAllText(
+            Path.Combine(_testWebRoot, "index.html"),
+            "<!DOCTYPE html><html><head><title>Fishtank</title></head><body><div id=\"root\"></div></body></html>");
+        builder.UseWebRoot(_testWebRoot);
 
         builder.ConfigureServices(services =>
         {
@@ -57,10 +68,24 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         // Apply migrations if not already applied (idempotent)
         await db.Database.MigrateAsync();
 
-        // Clear all data
+        // Clear all data (order matters: dependents before principals)
+        db.SystemEvents.RemoveRange(await db.SystemEvents.ToListAsync());
+        db.Services.RemoveRange(await db.Services.ToListAsync());
         db.Users.RemoveRange(await db.Users.ToListAsync());
         db.ServerConfigs.RemoveRange(await db.ServerConfigs.ToListAsync());
         await db.SaveChangesAsync();
+
+        // Stop all running WireMock servers so ports are freed between test runs,
+        // then clear the registry so stale disposed entries don't accumulate.
+        var registry = Services.GetService<IServicesRegistry>();
+        if (registry is not null)
+        {
+            foreach (var (id, server) in registry.GetAll())
+            {
+                try { server.Stop(); server.Dispose(); } catch { /* best-effort */ }
+                registry.TryRemove(id, out _);
+            }
+        }
 
         // Re-seed BootEpoch (required by IServerConfigService singleton)
         db.ServerConfigs.Add(new ServerConfig { Id = 1, BootEpoch = Guid.NewGuid() });
@@ -77,6 +102,8 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         if (disposing)
         {
             _connection?.Dispose(); // Then release the in-memory connection
+            if (_testWebRoot is not null && Directory.Exists(_testWebRoot))
+                Directory.Delete(_testWebRoot, recursive: true);
         }
     }
 }

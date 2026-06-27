@@ -13,7 +13,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest"
+    "test:unit:watch": "vitest",
+    "postinstall": "node -e \"try{require('./patch-vitest-timeout.cjs')}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}\""
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",

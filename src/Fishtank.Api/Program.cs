@@ -5,6 +5,8 @@ using System.Threading.RateLimiting;
 using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Endpoints;
+using Fishtank.Api.Engine;
+using Fishtank.Api.Hubs;
 using Fishtank.Api.Middleware;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -150,6 +152,13 @@ builder.Services.AddSingleton<IServerConfigService, ServerConfigService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// ─── 6b. Engine + Services layer (Epic 2) ─────────────────────────────────
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IServicesRegistry, ServicesRegistry>();
+builder.Services.AddSingleton<IWireMockServerFactory, DefaultWireMockServerFactory>();
+builder.Services.AddScoped<ISystemEventService, SystemEventService>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -211,10 +220,19 @@ app.UseAuthorization();
 
 // ─── 10. Endpoints ───────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
     app.MapOpenApi();
+    app.MapTestEndpoints();
+}
 
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
+app.MapServicesEndpoints();
+app.MapSettingsEndpoints();
+app.MapSystemEventsEndpoints();
+app.MapCacheEndpoints();
+app.MapHub<ServicesHub>("/hubs/services");
+app.MapHub<EventsHub>("/hubs/events");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.
@@ -227,6 +245,12 @@ app.MapFallback(async (HttpContext ctx, IWebHostEnvironment env) =>
         || path.Equals("/hubs", StringComparison.OrdinalIgnoreCase)
         || path.Equals("/health", StringComparison.OrdinalIgnoreCase)
         || path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    if (env.WebRootPath is null)
     {
         ctx.Response.StatusCode = StatusCodes.Status404NotFound;
         return;

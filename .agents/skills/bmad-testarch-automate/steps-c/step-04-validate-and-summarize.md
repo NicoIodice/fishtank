@@ -94,6 +94,15 @@ Write `{outputFile}` including:
   - Set `lastSaved: '{date}'`
   - Append this step's output to the appropriate section.
 
+## 5. Verify File Exists on Disk
+
+After saving, **confirm `{outputFile}` exists on disk** before proceeding:
+
+- Use a file-read or directory-list tool to verify `{outputFile}` is present.
+- **If the file does NOT exist after the save attempt:**
+  - Output: `🚫 BLOCKED — automation-summary could not be persisted to disk. Manual action required: save the file to {outputFile} and resume.`
+  - **HALT** — do not mark this step complete until the file is confirmed present.
+
 ## 🚨 SYSTEM SUCCESS/FAILURE METRICS:
 
 ### ✅ SUCCESS:

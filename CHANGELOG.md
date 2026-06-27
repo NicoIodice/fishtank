@@ -10,6 +10,33 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.2.0] — 2026-06-27 (Services Management)
+
+_Theme: Define mock services and have WireMock start serving requests immediately._
+
+### Added
+
+- **WireMock engine layer** — `EngineStartup` hosted service auto-starts all Live services on container boot; per-service fault isolation (catch per service, continue loop); port-binding failures recorded as `SystemEvent` with `severity=error` (`story/2-1`)
+- **Services CRUD API** — `POST /api/services` (create + WireMock start), `GET /api/services` (list), `PUT /api/services/{id}` (update), `POST /api/services/{id}/stop`, `POST /api/services/{id}/start`; all require JWT auth (`story/2-1`)
+- **`GET /api/services/next-port`** — returns lowest available port in 30100–30199; reclaims ports from soft-deleted services (`story/2-1`)
+- **System Events API** — `GET /api/system-events` returns all system events ordered by `CreatedAt` desc; auth-required (`story/2-1`)
+- **`Services` and `SystemEvents` EF entities + migration** — `Services` (Id, Name, Slug unique, ExternalUrl, Port, MocksRoot, Status, IsActive, DeletedAt, TagsJson, CreatedAt); `SystemEvents` (Id, Severity, Message, ServiceId nullable FK, CreatedAt, IsRead) (`story/2-1`)
+- **`IServicesRegistry`** — thread-safe singleton `ConcurrentDictionary<Guid, WireMockServer>` for in-process WireMock instances (`story/2-1`)
+- **`IWireMockServerFactory`** — abstraction over `WireMockServer.Start()` enabling fault injection in tests (`story/2-1`)
+- **SSRF guard** — `ExternalUrl` blocks loopback (127.0.0.1, localhost, ::1) and cloud-metadata (169.254.169.254, 100.100.100.200) endpoints with `SERVICE_URL_INVALID` (`story/2-1`)
+- **Structured error codes** — `SERVICE_NAME_REQUIRED`, `SERVICE_NAME_INVALID`, `SERVICE_SLUG_CONFLICT`, `SERVICE_PORT_OUT_OF_RANGE`, `SERVICE_PORT_RANGE_EXHAUSTED`, `SERVICE_URL_INVALID`, `SERVICE_NOT_FOUND` (`story/2-1`)
+- **ServicesHub** — SignalR hub skeleton at `/hubs/services` with `[Authorize]`; real-time push implemented in later stories (`story/2-1`)
+- **Services page** — grid/table dual-view (persistent in sessionStorage) with `ServiceCard` components showing name, port badge, status pill, external URL, mock-file count, and tag chips; tag filter with AND logic; Add Service modal (port pre-filled from `next-port`, 200ms slug debounce, slug-change warning, tag chip input); Edit Service modal with field pre-population; toggle start/stop from card (`story/2-2`)
+- **`DataTable<T>` component** — generic sortable table with `sortValue` accessor, `localeCompare` collation, sticky headers, keyboard navigation (ArrowDown/ArrowUp/Enter), and `aria-sort` attributes; `table-layout: fixed` with `<colgroup>` column widths (`story/2-2`)
+- **`mockFileCount` on ServiceDto** — backend counts `.json` files in the service's mocks root directory; returns 0 when directory is missing or inaccessible (`story/2-2`)
+- **System Events screen** — `/events` route lists all infrastructure events newest-first with severity icon, message, associated service, and timestamp; engine-crash events surface the failure reason/root cause; two-tab view (all events / warnings+errors) with deep-linkable items (`story/2-4`)
+- **Notification bell + Notification Panel** — top-bar bell with live unread badge (warnings+errors only, "99+" overflow, fixed `#ef4444`); panel paginates 20-per-page with "Load more", per-item mark-as-read (click body) and dismiss (✕, removed from view but retained + marked read in DB), "Mark all read" (hidden at zero unread), "N new" sticky pill on prepend, and auto-close on navigation/Esc/outside-click (`story/2-4`)
+- **Real-time System Events via `EventsHub`** — `SystemEventCreated` and `UnreadCountChanged` broadcast over `/hubs/events` on every new warning/error (info suppressed), incrementing the badge across all connected sessions; wired through `HUB_INVALIDATION_MAP` (`SystemEventCreated: [["events"]]`) (`story/2-4`)
+- **System Events API** — paginated, severity-filtered `GET /api/system-events` (`{items,total,hasMore}` envelope); `GET /api/system-events/unread-count`; `POST /api/system-events/{id}/read`; `POST /api/system-events/read-all`; clear-all; all JWT-authorized; deterministic ordering (`CreatedAt` desc, `Id` tiebreaker) (`story/2-4`)
+- **Settings → Cache management** — `GET /api/cache` lists all services with in-memory WireMock mapping entry count and estimated disk size; `DELETE /api/cache/{id}` clears and reloads the mapping cache for a single service (no restart required); `DELETE /api/cache` bulk-clears all running services; Settings → Cache sub-section with per-service rows, individual and global Clear buttons with confirmation dialogs, and empty state when no services exist; available to all authenticated users — not Admin-only (FR-46) (`story/2-5-settings-service-cache-management`)
+
+---
+
 ## [v0.1.0] — 2026-06-20 (Foundation)
 
 _Theme: Pull the image, log in, confirm the container is healthy._

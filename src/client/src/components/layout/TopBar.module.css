@@ -67,6 +67,16 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* Notification bell */
+.bellWrapper {
+  position: relative;
+}
+
+.bellWrapper .iconBtn {
+  position: relative;
+  overflow: visible;
+}
+
 /* Avatar button */
 .avatarWrapper {
   position: relative;

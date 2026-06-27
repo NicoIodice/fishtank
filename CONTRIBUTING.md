@@ -76,6 +76,18 @@ cd src/client && npm run test:e2e
 dotnet test src/Fishtank.slnx
 ```
 
+### E2E mocking rules (Playwright)
+
+E2E tests run against the **live stack** (Vite dev server + .NET API). **Do not mock the backend** in E2E tests except for these specific cases:
+
+- `GET /api/setup/status → needsSetup:true` — the zero-user DB state is not reproducible against a shared test backend that has already gone through first-run setup.
+- **Fault injection** (500, network error, timeout) — intentional failure scenarios that cannot be triggered deterministically from a real backend in CI.
+- **Non-deterministic real-time data** (network activity sniffing, SignalR push with external service traffic) — source data is live and unpredictable.
+
+For everything else — `auth/me`, `login`, `logout`, `setup`, any CRUD endpoint — hit the real backend. Use `storageState` (via `global-setup.ts` / `seedAuthStorageState()`) to pre-authenticate test sessions rather than mocking `auth/me`.
+
+See [project-context.md](_bmad-output/project-context.md) (Testing › E2E Playwright — Backend Mocking Policy) for the full reference.
+
 ## PR Workflow
 
 Fishtank uses a **release branch model**. Each epic maps to a release version (see `releases.yaml` and `ROADMAP.md`).

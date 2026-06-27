@@ -17,6 +17,8 @@ public class FirstRunMiddleware(RequestDelegate next)
         {
             "/api/auth/setup",
             "/api/setup/status",
+            "/api/test/reset-db",
+            "/api/test/reset-services",
             "/health",
         };
 

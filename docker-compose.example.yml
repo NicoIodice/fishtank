@@ -28,6 +28,8 @@ services:
       # - FISHTANK_DB_PATH=/data/fishtank.db
       # Optional — path to WireMock mappings root inside the container
       # - FISHTANK_MOCKS_ROOT=/mocks
+      # Optional — host-side mocks path shown in the UI (display only, default: mocks)
+      # - FISHTANK_MOCKS_HOST_PATH=mocks
       # Optional — port for the management UI (default: 5000)
       # - FISHTANK_MANAGEMENT_PORT=5000
       # Optional — JWT expiry in hours; empty = session cookie (invalidated on restart)

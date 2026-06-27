@@ -80,6 +80,10 @@
   font-weight: 600;
 }
 
+.sidebar.collapsed .navItem {
+  justify-content: center;
+}
+
 .navItem i {
   font-size: 1rem;
   flex-shrink: 0;

@@ -14,27 +14,6 @@ import { test, expect } from "../support/fixtures";
  *   T-1-4-01 — All 4 theme CSS variable blocks present in loaded stylesheet
  */
 
-/** Helper: set up standard "logged-in, setup complete" API mocks. */
-async function mockAuthenticatedSession(page: import("@playwright/test").Page) {
-  await page.route("**/api/setup/status", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ success: true, data: { needsSetup: false } }),
-    }),
-  );
-  await page.route("**/api/auth/me", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        success: true,
-        data: { username: "admin", role: "Admin", forcePasswordChange: false },
-      }),
-    }),
-  );
-}
-
 test.describe("Story 1-4: Additional UI Themes", () => {
   // ─────────────────────────────────────────────────────────────────────────
   // T-1-4-01 — All 4 theme CSS variable blocks present in the loaded stylesheet
@@ -48,7 +27,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
   test("T-1-4-01: all 4 theme CSS variable blocks are present in the stylesheet", async ({
     page,
   }) => {
-    await mockAuthenticatedSession(page);
     await page.goto("/settings");
 
     const blocks = await page.evaluate(() => {
@@ -106,33 +84,34 @@ test.describe("Story 1-4: Additional UI Themes", () => {
   test("AC-1a: Settings → Appearance renders a theme picker with 4 options", async ({
     page,
   }) => {
-    await mockAuthenticatedSession(page);
     await page.goto("/settings");
 
     // Navigate to Appearance section (it is the default active section)
     const appearanceSection = page.getByTestId("settings-appearance");
-    await expect(appearanceSection).toBeVisible({
-      message:
-        "Settings → Appearance section must render a container with " +
+    await expect(
+      appearanceSection,
+      "Settings → Appearance section must render a container with " +
         "data-testid='settings-appearance'. " +
         "Currently shows placeholder text — AppearanceSettings component not yet wired.",
-    });
+    ).toBeVisible();
 
     // All 4 theme radio buttons must be present
-    await expect(page.getByTestId("theme-option-clean-light")).toBeVisible({
-      message: "Clean Light theme radio option must be present.",
-    });
-    await expect(page.getByTestId("theme-option-deep-ocean")).toBeVisible({
-      message: "Deep Ocean theme radio option must be present.",
-    });
-    await expect(page.getByTestId("theme-option-emerald-terminal")).toBeVisible(
-      {
-        message: "Emerald Terminal theme radio option must be present.",
-      },
-    );
-    await expect(page.getByTestId("theme-option-ink-amber")).toBeVisible({
-      message: "Ink & Amber theme radio option must be present.",
-    });
+    await expect(
+      page.getByTestId("theme-option-clean-light"),
+      "Clean Light theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-deep-ocean"),
+      "Deep Ocean theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-emerald-terminal"),
+      "Emerald Terminal theme radio option must be present.",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("theme-option-ink-amber"),
+      "Ink & Amber theme radio option must be present.",
+    ).toBeVisible();
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -144,7 +123,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
   test("AC-1b: selecting Deep Ocean updates data-theme on <html> immediately", async ({
     page,
   }) => {
-    await mockAuthenticatedSession(page);
     await page.goto("/settings");
 
     // When: user selects Deep Ocean
@@ -166,7 +144,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
   test("AC-2: theme selection persists to localStorage and survives page reload", async ({
     page,
   }) => {
-    await mockAuthenticatedSession(page);
     await page.goto("/settings");
 
     // When: user selects Emerald Terminal
@@ -179,7 +156,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
     expect(stored).toBe("emerald-terminal");
 
     // When: page reloads (prefers-color-scheme would be "clean-light" or system default)
-    await mockAuthenticatedSession(page);
     await page.reload();
 
     // Then: the stored theme is applied — NOT the prefers-color-scheme default
@@ -198,7 +174,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
   test("AC-5: Ink & Amber theme applies correct sidebar-fg and content-muted tokens", async ({
     page,
   }) => {
-    await mockAuthenticatedSession(page);
     await page.goto("/settings");
 
     await page.getByTestId("theme-option-ink-amber").click();
@@ -216,8 +191,12 @@ test.describe("Story 1-4: Additional UI Themes", () => {
     expect(tokens.sidebarFg).toBe("#a1a1aa");
     // content-muted must be #52525b (~7.5:1)
     expect(tokens.contentMuted).toBe("#52525b");
-    // topbar icon must contrast against dark topbar
-    expect(tokens.topbarIconFg).toBe("#ffffff");
+    // topbar icon must contrast against dark topbar (#fff and #ffffff are equivalent)
+    expect(
+      tokens.topbarIconFg
+        .replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, "#$1$1$2$2$3$3")
+        .toLowerCase(),
+    ).toBe("#ffffff");
   });
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -236,7 +215,6 @@ test.describe("Story 1-4: Additional UI Themes", () => {
       localStorage.removeItem("fishtank-theme");
     });
 
-    await mockAuthenticatedSession(page);
     await page.goto("/");
 
     // main.tsx should set data-theme="deep-ocean" when prefers dark and no stored theme

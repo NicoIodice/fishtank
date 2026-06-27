@@ -15,8 +15,92 @@ Then open **http://localhost:5000** in your browser.
 
 See [`docker-compose.example.yml`](docker-compose.example.yml) for a full deployment reference including persistent storage and all configurable environment variables.
 
-## Stack
+## Adding Fishtank to an existing Docker Compose project
 
+If you already have a project with a `docker-compose.yml` (e.g. inside a `local-dev/` folder at the project root or any other folder), follow these steps.
+
+### 1 — Generate a secret
+
+`FISHTANK_JWT_SECRET` is the key used to sign JWT tokens. Generate a random string of at least 32 characters:
+
+**PowerShell:**
+```powershell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
+```
+
+**WSL / Linux / macOS:**
+```bash
+openssl rand -base64 32
+```
+
+**Python (cross-platform):**
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+### 2 — Create `.env`
+
+Store the secret in an `.env` file next to your compose file. **Never commit this file.**
+
+```
+FISHTANK_JWT_SECRET=<your generated secret>
+```
+
+Add it to `.gitignore`:
+```
+.env
+fishtank-data/
+fishtank-mocks/
+```
+
+### 3 — Add the service to your `docker-compose.yml`
+
+```yaml
+services:
+
+  # ... your existing services stay here unchanged ...
+
+  fishtank:
+    image: nicoiodice/fishtank:latest
+    container_name: fishtank
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./fishtank-data:/data
+      - ./fishtank-mocks:/mocks
+    environment:
+      - FISHTANK_JWT_SECRET=${FISHTANK_JWT_SECRET}
+      - FISHTANK_DB_PATH=/data/fishtank.db
+      - FISHTANK_MOCKS_ROOT=/mocks
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+```
+
+The `fishtank-data/` and `fishtank-mocks/` folders are created automatically on first run.
+
+### 4 — Start
+
+```bash
+docker compose up -d
+```
+
+### 5 — First-run admin setup
+
+Open **http://localhost:5000**. On a fresh database you will be redirected to the setup screen to create your admin account (password must be ≥ 12 characters). After that you are taken directly to the app.
+
+### Verify
+
+```bash
+docker compose ps                   # fishtank should show "healthy"
+curl http://localhost:5000/health   # → Healthy
+```
+
+## Stack
 | Layer | Technology |
 |---|---|
 | Backend | C# 13 · .NET 10.0 LTS · ASP.NET Core Minimal APIs · SignalR · EF Core + SQLite |

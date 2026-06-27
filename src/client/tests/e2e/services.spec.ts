@@ -1,5 +1,8 @@
 import { test, expect } from "../support/fixtures";
-import { createService } from "../support/factories/service-factory";
+import {
+  createService,
+  type ServiceConfig,
+} from "../support/factories/service-factory";
 import { apiFetch } from "../support/helpers/api-client";
 
 /**
