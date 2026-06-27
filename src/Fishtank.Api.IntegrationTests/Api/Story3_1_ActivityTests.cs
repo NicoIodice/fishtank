@@ -1,0 +1,123 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using FluentAssertions;
+using Fishtank.Api.IntegrationTests.Support;
+
+namespace Fishtank.Api.IntegrationTests.Api;
+
+/// <summary>
+/// ATDD acceptance tests for Story 3-1:
+/// Activity Log Backend — Request Capture &amp; Header Redaction.
+///
+/// All tests in this class are in the RED phase — they compile cleanly but
+/// fail at runtime because the activity endpoints do not exist yet:
+///   - GET    /api/activity
+///   - DELETE /api/activity
+///
+/// RED reasons per test:
+///   GetActivity_Unauthenticated_Returns401:
+///     Endpoint not mapped → ASP.NET Core routing returns 404; test asserts 401.
+///   GetActivity_Authenticated_NoActivity_Returns200WithEmptyArray:
+///     Endpoint not mapped → 404; test asserts 200 OK with empty data array.
+///   DeleteActivity_Authenticated_Returns200WithSuccess:
+///     Endpoint not mapped → 404; test asserts 200 OK with {success:true,data:null}.
+///
+/// Once <c>ActivityEndpoints.cs</c> is implemented and registered in Program.cs,
+/// all three tests should turn GREEN with no other changes.
+///
+/// ACs covered:
+///   AC-7 — GET /api/activity requires authentication; returns 200 + data array.
+///   AC-8 — DELETE /api/activity clears all logs; returns {success:true,data:null}.
+/// </summary>
+[Collection("Integration")]
+public class Story3_1_ActivityTests : IntegrationTestBase
+{
+    public Story3_1_ActivityTests(FishtankWebApplicationFactory factory)
+        : base(factory) { }
+
+    /// <summary>
+    /// Ensure the admin account exists (idempotent) and return an authenticated client.
+    /// Mirrors the helper pattern used in Story2_4_SystemEventsTests and Story2_5_CacheTests.
+    /// </summary>
+    private async Task<HttpClient> GetAuthenticatedClientAsync()
+    {
+        await Client.PostAsJsonAsync(
+            "/api/auth/setup",
+            new { username = "admin", password = "adminpassword123" });
+
+        return await TestAuthHelper.CreateAuthenticatedClientAsync(
+            Factory, "admin", "adminpassword123");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-7: auth guard — unauthenticated requests must be rejected
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity without auth → 401")]
+    public async Task GetActivity_Unauthenticated_Returns401()
+    {
+        // RED: /api/activity endpoint not mapped yet.
+        // Routing returns 404; test asserts Unauthorized (401).
+        var response = await Client.GetAsync("/api/activity");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-7: authenticated request returns 200 with empty array when no activity
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity authenticated with no activity → 200 with empty data array")]
+    public async Task GetActivity_Authenticated_NoActivity_Returns200WithEmptyArray()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        // RED: /api/activity not mapped → 404 instead of 200.
+        var response = await client.GetAsync("/api/activity");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+
+        var data = body.GetProperty("data");
+        data.ValueKind.Should().Be(JsonValueKind.Array);
+        data.GetArrayLength().Should().Be(0);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-8: DELETE /api/activity clears all logs
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-8: DELETE /api/activity authenticated → 200 with {success:true, data:null}")]
+    public async Task DeleteActivity_Authenticated_Returns200WithSuccess()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        // RED: /api/activity DELETE not mapped → 404 instead of 200.
+        var response = await client.DeleteAsync("/api/activity");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+
+        // data must be null (not an array — clear returns no payload)
+        body.TryGetProperty("data", out var data).Should().BeTrue();
+        data.ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-8: DELETE /api/activity without auth must also be rejected
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-8: DELETE /api/activity without auth → 401")]
+    public async Task DeleteActivity_Unauthenticated_Returns401()
+    {
+        // RED: /api/activity endpoint not mapped yet → 404; test asserts 401.
+        var response = await Client.DeleteAsync("/api/activity");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+}
