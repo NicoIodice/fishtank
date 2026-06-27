@@ -14,8 +14,19 @@
 #   in-progress      — Lifecycle orchestrator has started the story
 #   done             — All lifecycle gates passed; story committed to release branch
 #
+# VERSIONING STRATEGY:
+# ====================
+#   PATCH (vX.Y.Z, Z>0) — Bug fix, hotfix, security patch, minor improvement.
+#                          Branch: hotfix/vX.Y.Z from main.
+#   MINOR (v0.X.0)      — Each epic/feature set completion (pre-1.0 phase).
+#                          Branch: release/v0.X.0 from main.
+#   MAJOR (v1.0.0+)     — Production-ready milestone or breaking architectural change.
+#                          v0.x.0 = pre-release builds; v1.0.0 = first stable release
+#                          (see Epic 6 — Release Polish & Distribution in ROADMAP.md).
+#
 # HOTFIX ENTRIES: Use version "vX.Y.Z" where Z > 0, hotfix: true.
-# The lifecycle orchestrator branches hotfix/vX.Y.Z from main.
+# The hotfix branch is branched from main: hotfix/vX.Y.Z.
+# Required fields: version, hotfix: true, base_version, status, branch, started.
 
 releases:
 
@@ -25,11 +36,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.1.0"
     epic: "epic-1"
-    status: "ready-for-merge"
+    status: "released"
     branch: "release/v0.1.0"
     started: "2026-06-15"
     completed: "2026-06-20"
-    released: null
+    released: "2026-06-22"
     stories:
       - id: "1-1-project-scaffold-docker-image-and-ci-pipeline"
         status: "done"
@@ -48,11 +59,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.2.0"
     epic: "epic-2"
-    status: "ready-for-merge"
+    status: "released"
     branch: "release/v0.2.0"
     started: "2026-06-22"
     completed: "2026-06-27"
-    released: null
+    released: "2026-06-27"
     stories:
       - id: "2-1-wiremock-engine-layer-and-services-api-backend"
         status: "done"
@@ -64,6 +75,21 @@ releases:
         status: "done"
       - id: "2-5-settings-service-cache-management"
         status: "done"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # v0.2.1 — Hotfix
+  # Fixes: Dockerfile HEALTHCHECK, support-tool health-wait, lifecycle two-PR warning.
+  # ───────────────────────────────────────────────────────────────────────────
+  - version: "v0.2.1"
+    hotfix: true
+    base_version: "v0.2.0"
+    epic: null
+    status: "in-progress"
+    branch: "hotfix/v0.2.1"
+    started: "2026-06-27"
+    completed: null
+    released: null
+    stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.3.0 — Network Activity (Epic 3)

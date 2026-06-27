@@ -123,9 +123,11 @@ def _wait_for_fishtank(timeout: int = 60) -> bool:
 
     Uses Docker (inside WSL) directly so we don't rely on WSL2 localhost
     port-forwarding being set up correctly on the Windows host.
+    Prints elapsed-time progress so the user knows it is still trying.
     """
     deadline = time.monotonic() + timeout
-    console.print("[grey62]Waiting for Fishtank to be ready…[/grey62]")
+    start = time.monotonic()
+    console.print("[grey62]⏳ Waiting for Fishtank to be ready (up to 60 s)…[/grey62]")
     while time.monotonic() < deadline:
         r = subprocess.run(
             [
@@ -138,10 +140,14 @@ def _wait_for_fishtank(timeout: int = 60) -> bool:
         )
         status = r.stdout.strip()
         if r.returncode == 0 and status == "healthy":
+            elapsed = int(time.monotonic() - start)
+            console.print(f"[bright_green]✔ Fishtank is healthy ({elapsed}s)[/bright_green]")
             return True
+        elapsed = int(time.monotonic() - start)
         # "starting" → keep waiting; anything else (unhealthy / missing) → keep
         # trying up to the deadline so a slow startup doesn't fail immediately.
-        time.sleep(2)
+        console.print(f"[grey62]   still connecting… ({elapsed}s elapsed)[/grey62]")
+        time.sleep(3)
     return False
 
 
@@ -182,10 +188,21 @@ def start_fishtank() -> None:
         return
 
     rc = run_compose_wsl(["up", "-d", "--build"])
-    if rc == 0:
-        console.print("[bright_green]✔ Fishtank started.[/bright_green]")
-    else:
+    if rc != 0:
         console.print("[bright_red]✘ Failed to start Fishtank.[/bright_red]")
+        pause()
+        return
+
+    port = _fishtank_port()
+    if _wait_for_fishtank(timeout=60):
+        console.print(
+            f"[bright_green]✔ Fishtank is up and ready → http://localhost:{port}[/bright_green]"
+        )
+    else:
+        console.print(
+            "[bright_yellow]⚠ Fishtank started but did not become healthy within 60 s.\n"
+            "   Check container logs: wsl -d Ubuntu -- docker logs fishtank-app[/bright_yellow]"
+        )
     pause()
 
 

@@ -202,6 +202,34 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
       <output>▶ Starting new lifecycle for story: {{story_key}} (epic: {{epic_id}})</output>
     </check>
 
+    <!-- ─── Releases housekeeping: stale ready-for-merge / merged-but-not-released ─── -->
+    <action>Read {project-root}/releases.yaml and collect all entries where status is "ready-for-merge" OR (status is "in-progress" AND hotfix == true) — call this set {{active_releases}}</action>
+    <check if="{{active_releases}} is non-empty">
+      <action>Run: git fetch origin (ensure remote refs are current)</action>
+      <action>Run: git branch -r --merged origin/main
+        For each entry in {{active_releases}}:
+          - branch = entry.branch (e.g. "release/v0.2.0" or "hotfix/v0.2.1")
+          - Check whether "origin/{branch}" appears in the merged-branch output
+          - If origin/{branch} no longer exists remotely (git ls-remote --heads origin {branch} returns empty),
+            treat it as merged (deleted-after-merge pattern)
+          - Collect all confirmed-merged entries as {{stale_releases}}
+      </action>
+      <check if="{{stale_releases}} is non-empty">
+        <output>
+
+⚠️ **releases.yaml housekeeping required** — the following branches are merged to `main` but their status has not been updated:
+
+{{#each stale_releases}}
+
+- `{{version}}` (branch: `{{branch}}`, current status: `{{status}}`) — update to `status: "released"` and set `released: YYYY-MM-DD`
+  {{/each}}
+
+Update `releases.yaml` for each entry above, then re-run the lifecycle to continue.
+</output>
+<action>HALT</action>
+</check>
+</check>
+
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -804,10 +832,11 @@ Escalating to {{user_name}}.</output>
     <!-- CHANGELOG update -->
     <action>Update CHANGELOG.md under the [Unreleased] section (or the active versioned section if a release is in progress):
       - Add a bullet point for each user-facing feature, API endpoint, component, or behavior shipped in this story
-      - Format: "- **Feature name** — short description (`story/{{epic_id}}-{{n}}`)" where {{n}} is the story number within the epic
+      - Format: "- **Feature name** — short description (`feature/{{epic_id}}-{{n}}`)" where {{n}} is the story number within the epic
       - INCLUDE: new UI pages/components, new API endpoints, new config options, new runtime behaviors, security controls, data model changes
       - EXCLUDE: test files, unit tests, E2E tests, ATDD scaffolds, test framework/tooling configuration — tests are implementation details, not user-facing changelog entries
       - EXCLUDE: internal code-quality fixes or refactors unless they change observable behavior
+      - EXCLUDE: BMad skill files (.agents/skills/**), lifecycle SKILL.md, sprint/planning artifacts, AI workflow configuration — these are developer-tooling changes, not product changes visible to end users
     </action>
 
     <output>
@@ -849,7 +878,14 @@ Escalating to {{user_name}}.</output>
 
 🚀 **Story {{story_key}} is ready for PR.**
 
-Open a pull request: `story/{{story_key}}` → `release/v{{release_version}}`
+{{#if epic_all_done}}
+⚠️ **This was the last story in epic {{epic_id}}!** Two PRs are required to ship this release:
+
+1. **Now →** `feature/{{story_key}}` → `release/v{{release_version}}`
+2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
+   {{else}}
+   Open a pull request: `feature/{{story_key}}` → `release/v{{release_version}}`
+   {{/if}}
 
 Checklist confirmed:
 

@@ -8,6 +8,21 @@ A tag push (`git tag v0.2.0 && git push --tags`) triggers:
 
 ---
 
+## Versioning Strategy
+
+Fishtank follows [Semantic Versioning](https://semver.org/) with these project-specific rules:
+
+| Increment | When | Branch | Example |
+|---|---|---|---|
+| **PATCH** (`0.0.X`) | Bug fix, hotfix, security patch, minor quality improvement | `hotfix/vX.Y.Z` from `main` | `v0.2.0` → `v0.2.1` |
+| **MINOR** (`0.X.0`) | Completed epic — new feature set shipped | `release/v0.X.0` from `main` | `v0.2.0` → `v0.3.0` |
+| **MAJOR** (`X.0.0`) | Production-ready milestone or breaking architectural change | `release/vX.0.0` from `main` | `v0.5.0` → `v1.0.0` |
+
+**Why `v0.x.0` until Epic 6?**
+All versions below `v1.0.0` are pre-release builds. The product is still gaining core features (network activity, mappings, admin), is not yet production-hardened, and the API surface may change. `v1.0.0` (Epic 6 — Release Polish & Distribution) is the first stable, community-ready release: cross-platform smoke tests, WCAG audit, finalised OpenAPI spec, and curated contributor backlog.
+
+---
+
 ## v0.1.0 — Foundation (Epic 1)
 
 **Theme:** Pull the image, log in, confirm the container is healthy.
@@ -136,10 +151,10 @@ Ideas tracked for future minor/patch releases after v1.0:
 
 ## How releases work
 
-1. **Develop stories** in `story/**` branches created from the release branch (`release/v0.2.0`).
+1. **Develop stories** in `feature/**` branches created from the release branch (`release/v0.2.0`).
    CI runs full tests + Docker smoke test on every push.
-2. **Merge each story** via PR: `story/**` → `release/v0.2.0`.
-   Never merge a story branch directly to `main`.
+2. **Merge each story** via PR: `feature/**` → `release/v0.2.0`.
+   Never merge a feature branch directly to `main`.
 3. **When all stories are done**, open a PR: `release/v0.2.0` → `main`.
 4. **After the PR merges**, GitHub Actions automatically:
    - Extracts the version (`v0.2.0`) from the release branch name

@@ -97,10 +97,11 @@ Fishtank uses a **release branch model**. Each epic maps to a release version (s
 1. Branch from the **release branch** (`release/vX.Y.Z`), not from `main`:
    ```bash
    git checkout release/v0.1.0
-   git checkout -b story/1-2-auth-backend
+   git checkout -b feature/1-2-auth-backend
+   git push -u origin feature/1-2-auth-backend
    ```
 2. Make your changes, ensuring all tests pass locally.
-3. Open a PR: `story/**` → `release/vX.Y.Z` (not `main`).
+3. Open a PR: `feature/**` → `release/vX.Y.Z` (not `main`).
 4. CI runs full tests + Docker build/smoke test on push.
 5. Update `CHANGELOG.md` under `[Unreleased]` for any user-facing change.
 6. Request a review from a maintainer.
@@ -113,10 +114,11 @@ Fishtank uses a **release branch model**. Each epic maps to a release version (s
 
 ### For hotfixes
 
-1. Branch from `main`: `git checkout -b hotfix/v0.1.1`
-2. Apply the fix; add a `CHANGELOG.md` entry.
-3. Open a PR: `hotfix/v0.1.1` → `main`.
-4. CI auto-tags `v0.1.1` and publishes after merge.
+1. Branch from `main` and push immediately: `git checkout -b hotfix/v0.1.1` then `git push -u origin hotfix/v0.1.1`
+2. Apply the fix; add a `CHANGELOG.md` entry under a new `## [v0.1.1]` section.
+3. Add a hotfix entry to `releases.yaml` (see schema comments in that file).
+4. Open a PR: `hotfix/v0.1.1` → `main`.
+5. CI auto-tags `v0.1.1`, publishes the Docker image, and creates the GitHub Release after merge.
 
 ## Commit Message Convention
 
@@ -127,7 +129,7 @@ All commits must follow [Conventional Commits](https://www.conventionalcommits.o
 
 [optional body — explain WHY, not WHAT]
 
-[optional footer — story/1-2, Closes #N, BREAKING CHANGE: ...]
+[optional footer — feature/1-2, Closes #N, BREAKING CHANGE: ...]
 ```
 
 ### Types

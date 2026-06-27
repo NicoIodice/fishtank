@@ -29,4 +29,6 @@ USER fishtank
 EXPOSE 5000
 ENV ASPNETCORE_URLS=http://+:5000
 ENV APP_VERSION=$APP_VERSION
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -qO- http://localhost:5000/health || exit 1
 ENTRYPOINT ["dotnet", "Fishtank.Api.dll"]
