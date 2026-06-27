@@ -1,4 +1,3 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
@@ -62,9 +61,7 @@ describe("ProxyCounterPill — Story 3.2 AC-10", () => {
   });
 
   it("AC-10: renders error color (#ef4444) when a proxied row has 5xx status", () => {
-    const rows: ActivityRow[] = [
-      makeRow({ type: "Proxied", statusCode: 500 }),
-    ];
+    const rows: ActivityRow[] = [makeRow({ type: "Proxied", statusCode: 500 })];
     render(<ProxyCounterPill rows={rows} />);
     const pill = screen.getByTestId("activity-pill-proxy-count");
     // Error color #ef4444 is applied to the pill button itself via inline style
@@ -73,9 +70,7 @@ describe("ProxyCounterPill — Story 3.2 AC-10", () => {
   });
 
   it("AC-10: no error color when all proxied rows are 2xx", () => {
-    const rows: ActivityRow[] = [
-      makeRow({ type: "Proxied", statusCode: 200 }),
-    ];
+    const rows: ActivityRow[] = [makeRow({ type: "Proxied", statusCode: 200 })];
     render(<ProxyCounterPill rows={rows} />);
     const pill = screen.getByTestId("activity-pill-proxy-count");
     expect(pill.style.color).not.toBe("rgb(239, 68, 68)");
@@ -88,7 +83,9 @@ describe("ProxyCounterPill — Story 3.2 AC-10", () => {
   });
 
   it("AC-10: clicking pill opens popover", () => {
-    const rows: ActivityRow[] = [makeRow({ type: "Proxied", serviceName: "Service Alpha" })];
+    const rows: ActivityRow[] = [
+      makeRow({ type: "Proxied", serviceName: "Service Alpha" }),
+    ];
     render(<ProxyCounterPill rows={rows} />);
     const pill = screen.getByTestId("activity-pill-proxy-count");
     fireEvent.click(pill);
@@ -110,7 +107,9 @@ describe("ProxyCounterPill — Story 3.2 AC-10", () => {
   it("AC-10: popover shows empty state when no proxied requests", () => {
     render(<ProxyCounterPill rows={[]} />);
     fireEvent.click(screen.getByTestId("activity-pill-proxy-count"));
-    expect(screen.getByText(/No proxied requests recorded/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No proxied requests recorded/i),
+    ).toBeInTheDocument();
   });
 
   it("AC-10: Escape key closes popover", () => {
