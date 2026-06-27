@@ -14,14 +14,29 @@ interface ServiceStatus {
   status: string;
 }
 
+export type SortableColumn =
+  | "method"
+  | "urlPath"
+  | "statusCode"
+  | "serviceName"
+  | "durationMs"
+  | "timestamp";
+
 const ACTIVITY_ROW_HEIGHT_PX = 48;
 
 interface ActivityTableProps {
   rows: ActivityRow[];
   hadRows: boolean;
+  sort?: { column: SortableColumn | null; direction: "asc" | "desc" | null };
+  onSort?: (column: SortableColumn) => void;
 }
 
-export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
+export function ActivityTable({
+  rows,
+  hadRows,
+  sort = { column: null, direction: null },
+  onSort,
+}: ActivityTableProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
@@ -56,6 +71,35 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
   });
 
   const virtualItems = virtualizer.getVirtualItems();
+
+  // Helper: render sort indicator for a sortable column header
+  function SortIndicator({ column }: { column: SortableColumn }) {
+    if (sort.column !== column) {
+      return (
+        <span aria-hidden="true" style={{ marginLeft: "4px", opacity: 0.3, fontSize: "0.75rem" }}>
+          ↕
+        </span>
+      );
+    }
+    return (
+      <span aria-hidden="true" style={{ marginLeft: "4px", fontSize: "0.75rem" }}>
+        {sort.direction === "asc" ? "↑" : "↓"}
+      </span>
+    );
+  }
+
+  function sortableHeaderStyle(): React.CSSProperties {
+    return {
+      padding: "12px",
+      textAlign: "left",
+      borderBottom: "2px solid #e5e7eb",
+      fontSize: "0.875rem",
+      fontWeight: 600,
+      color: "#374151",
+      cursor: onSort ? "pointer" : "default",
+      userSelect: "none",
+    };
+  }
 
   // Empty states
   if (rows.length === 0) {
@@ -132,40 +176,28 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
           >
             <tr>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="method"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("method")}
               >
                 Method
+                <SortIndicator column="method" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="urlPath"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("urlPath")}
               >
                 URL Path
+                <SortIndicator column="urlPath" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="statusCode"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("statusCode")}
               >
                 Status
+                <SortIndicator column="statusCode" />
               </th>
               <th
                 style={{
@@ -180,16 +212,12 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
                 <i className="bi bi-funnel" aria-label="Type" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="serviceName"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("serviceName")}
               >
                 Service
+                <SortIndicator column="serviceName" />
               </th>
               <th
                 style={{
@@ -329,3 +357,4 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
     </div>
   );
 }
+
