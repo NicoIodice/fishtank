@@ -62,7 +62,7 @@ async function seedService(
   overrides: Partial<{ name: string; externalUrl: string; port: number }> = {},
 ): Promise<CreatedService> {
   const name = overrides.name ?? uniqueName("cache-svc");
-  const port = overrides.port ?? faker.number.int({ min: 30151, max: 30175 });
+  const port = overrides.port ?? faker.number.int({ min: 40001, max: 49999 });
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

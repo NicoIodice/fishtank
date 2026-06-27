@@ -69,7 +69,8 @@ node_modules/
 # Build output
 src/client/dist/
 src/client/dist-ssr/
-src/Fishtank.Api/wwwroot/
+src/Fishtank.Api/wwwroot/*
+!src/Fishtank.Api/wwwroot/.gitkeep
 src/client/.vite/
 
 # Vite cache
