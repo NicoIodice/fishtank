@@ -851,6 +851,13 @@ Escalating to {{user_name}}.</output>
 
 Open a pull request: `story/{{story_key}}` → `release/v{{release_version}}`
 
+{{#if epic_all_done}}
+⚠️ **This was the last story in epic {{epic_id}}!** Two PRs are required to ship this release:
+
+1. **Now →** `story/{{story_key}}` → `release/v{{release_version}}`
+2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
+{{/if}}
+
 Checklist confirmed:
 
 - ✅ PR-1: sprint-status → done
