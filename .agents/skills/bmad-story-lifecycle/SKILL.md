@@ -202,6 +202,27 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
       <output>▶ Starting new lifecycle for story: {{story_key}} (epic: {{epic_id}})</output>
     </check>
 
+    <!-- ─── Story branch: ensure it exists locally AND on remote ─── -->
+    <action>Set {{story_branch}} = "story/{{story_key}}"</action>
+    <action>Run: git rev-parse --abbrev-ref HEAD → {{current_branch}}</action>
+    <check if="{{current_branch}} is NOT {{story_branch}}">
+      <action>Determine the branch state and take the appropriate action:
+        - Run git show-ref --verify --quiet refs/heads/{{story_branch}} (exit 0 = local branch exists)
+        - Run git ls-remote --heads origin {{story_branch}} (non-empty = remote branch exists)
+        Then:
+          - If local exists                 → git checkout {{story_branch}}
+          - Else if only remote exists      → git checkout --track origin/{{story_branch}}
+          - Else (neither local nor remote) → git checkout -b {{story_branch}} ; git push -u origin {{story_branch}}
+      </action>
+      <output>↪ Switched to branch {{story_branch}}</output>
+    </check>
+    <check if="{{current_branch}} IS {{story_branch}}">
+      <action>Run: git ls-remote --heads origin {{story_branch}}
+        - If output is empty (remote branch does not exist) → git push -u origin {{story_branch}}
+        - Otherwise → no action needed
+      </action>
+    </check>
+
     <!-- ─── Releases housekeeping: stale ready-for-merge / merged-but-not-released ─── -->
     <action>Read {project-root}/releases.yaml and collect all entries where status is "ready-for-merge" OR (status is "in-progress" AND hotfix == true) — call this set {{active_releases}}</action>
     <check if="{{active_releases}} is non-empty">
@@ -216,17 +237,19 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
       </action>
       <check if="{{stale_releases}} is non-empty">
         <output>
+
 ⚠️ **releases.yaml housekeeping required** — the following branches are merged to `main` but their status has not been updated:
 
 {{#each stale_releases}}
+
 - `{{version}}` (branch: `{{branch}}`, current status: `{{status}}`) — update to `status: "released"` and set `released: YYYY-MM-DD`
-{{/each}}
+  {{/each}}
 
 Update `releases.yaml` for each entry above, then re-run the lifecycle to continue.
-        </output>
-        <action>HALT</action>
-      </check>
-    </check>
+</output>
+<action>HALT</action>
+</check>
+</check>
 
   </step>
 
@@ -881,9 +904,9 @@ Escalating to {{user_name}}.</output>
 
 1. **Now →** `story/{{story_key}}` → `release/v{{release_version}}`
 2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
-{{else}}
-Open a pull request: `story/{{story_key}}` → `release/v{{release_version}}`
-{{/if}}
+   {{else}}
+   Open a pull request: `story/{{story_key}}` → `release/v{{release_version}}`
+   {{/if}}
 
 Checklist confirmed:
 
