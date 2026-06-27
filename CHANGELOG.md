@@ -12,9 +12,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [v0.2.2] — 2026-06-27 (Hotfix)
 
-### Fixed
+### Changed
 
-- **Story lifecycle branch isolation** — `bmad-story-lifecycle` INIT phase now explicitly invokes `RELEASE BRANCH MANAGEMENT` and `STORY BRANCH CREATION` (from the team override TOML `activation_steps_append`) before any file write; previously, the workflow XML had no anchor calling these rules, so the LLM drove straight through INIT phases writing `lifecycle-state`, `test-design`, `sprint-status`, and story files directly to `main` (`hotfix/v0.2.2`)
+- **Developer tooling** — Minor fixes and improvements (`hotfix/v0.2.2`)
 
 ---
 

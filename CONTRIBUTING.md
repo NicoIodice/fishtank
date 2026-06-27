@@ -120,6 +120,24 @@ Fishtank uses a **release branch model**. Each epic maps to a release version (s
 4. Open a PR: `hotfix/v0.1.1` → `main`.
 5. CI auto-tags `v0.1.1`, publishes the Docker image, and creates the GitHub Release after merge.
 
+### CHANGELOG Guidelines
+
+**Include** user-facing changes: new features, API endpoints, UI screens/components, bug fixes with observable impact, security fixes, new config options, Docker image or CI pipeline behavior changes.
+
+**Exclude** (never mention in CHANGELOG entries):
+- Test files, unit tests, E2E tests, ATDD scaffolds, test framework configuration
+- Internal refactors or code-quality improvements with no observable behavior change
+- Documentation-only changes
+- BMad AI workflow files (`.agents/skills/**`, `_bmad/**`, lifecycle skill files, TOML config) — these are invisible to end users
+
+**Internal-only changes** — when a release or hotfix contains *only* internal tooling changes (e.g. bmad skills, workflow config, dev scripts) with nothing user-facing, write exactly one generic entry under `### Changed`:
+
+```
+- **Developer tooling** — Minor fixes and improvements (`branch-name`)
+```
+
+Do not name skill files, lifecycle phases, TOML configuration, or AI workflow mechanics in any CHANGELOG entry.
+
 ## Commit Message Convention
 
 All commits must follow [Conventional Commits](https://www.conventionalcommits.org/):
