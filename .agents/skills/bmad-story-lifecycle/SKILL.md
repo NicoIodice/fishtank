@@ -1,6 +1,6 @@
 ---
 name: bmad-story-lifecycle
-description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → validate → ATDD → dev → code-review → test-automate → nfr → trace → test-review → done. Hybrid execution (inline vs subagent) with model selection per phase (Sonnet for coding, Opus for analysis/writing). Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
+description: 'Autonomously drives a story through the full dev+test lifecycle: preflight → create-story → validate → ATDD → dev → code-review → test-automate → test-review → nfr → trace → done. Hybrid execution (inline vs subagent) with model selection per phase (Sonnet for coding, Opus for analysis/writing). Handles test-design auto-creation, retry loops, and bug-fix cycles. Use when the user says "run lifecycle for story [id]", "run story lifecycle", or "automate story [id]".'
 ---
 
 # Story Lifecycle Orchestrator
@@ -630,7 +630,7 @@ Manual action required: save the summary to \_bmad-output/test-artifacts/automat
 <action>HALT</action>
 </check>
 </check>
-<action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'nfr', last_updated → now</action>
+<action>Update lifecycle state: append 'test-automate' to phases_completed, current_phase → 'test-review', last_updated → now</action>
 </check>
 
     <check if="verifications fail (test failures detected)">
@@ -654,11 +654,71 @@ Escalating to {{user_name}}.</output>
 </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 9: NFR AUDIT                                         -->
+  <!-- PHASE 9: TEST REVIEW                                        -->
+  <!-- Execution: SUBAGENT · Model: Claude Opus (test-quality review/analysis) -->
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <step n="10" goal="Review test quality" tag="test-review" anchor="test-review">
+    <check if="'test-review' is in phases_completed">
+      <goto anchor="nfr" />
+    </check>
+
+    <output>🔬 Reviewing test quality for {{story_key}}...</output>
+
+    <action>Execute the bmad-testarch-test-review workflow:
+      - Load: {project-root}/.agents/skills/bmad-testarch-test-review/SKILL.md
+      - Scope: tests written for story {{story_key}}
+    </action>
+
+    <check if="zero BLOCKER items — test quality acceptable">
+      <output>✅ Test review passed for {{story_key}}.</output>
+      <action>Verify test-review artifact written to disk: check that {test_artifacts}/test-reviews/test-review-{{story_key}}.md exists as a file</action>
+      <check if="test-review file does NOT exist on disk">
+        <output>⚠ Test review passed but report artifact was not saved to disk. Saving now...</output>
+        <action>Write the test quality review report to {test_artifacts}/test-reviews/test-review-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), quality score, findings table (BLOCKER/MAJOR/MINOR counts), AC coverage table, and overall gate decision with rationale</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — Test review report could not be persisted to disk.
+
+Manual action required: save the review to \_bmad-output/test-artifacts/test-reviews/test-review-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "test-review artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+<action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
+</check>
+
+    <check if="BLOCKER items found (test gaps that require code changes)">
+      <output>⚠ Test review blockers require code changes. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>
+      <action>Increment quickdev_cycle in lifecycle state</action>
+      <check if="quickdev_cycle > 2">
+        <output>🚫 BLOCKED — QuickDev cycle budget exhausted during test-review.
+
+Test review blockers: {{blockers}}
+Escalating to {{user_name}}.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-review", last_updated → now</action>
+<action>HALT</action>
+</check>
+<action>Execute bmad-quick-dev to fix code issues raised by test review: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific code gaps identified in test review
+</action>
+<action>Update sprint-status.yaml: {{story_key}} → review</action>
+<action>Re-run abbreviated code review on changed files, then update sprint-status → in-test</action>
+<action>Remove 'test-automate', 'test-review' from phases_completed in lifecycle state to force re-execution</action>
+<goto anchor="test-automate" />
+</check>
+
+    <check if="BLOCKER items found (test quality issues only — no code changes needed)">
+      <action>Fix test quality issues directly (improve assertions, add missing edge cases, remove duplicates)</action>
+      <goto anchor="test-review" />
+    </check>
+
+  </step>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PHASE 10: NFR AUDIT                                         -->
   <!-- Execution: SUBAGENT · Model: Claude Opus (NFR evidence analysis/writing) -->
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="10" goal="Audit NFR evidence (performance, security, reliability)" tag="nfr" anchor="nfr">
+  <step n="11" goal="Audit NFR evidence (performance, security, reliability)" tag="nfr" anchor="nfr">
     <check if="'nfr' is in phases_completed">
       <goto anchor="trace" />
     </check>
@@ -722,13 +782,13 @@ Escalating to {{user_name}}.</output>
   </step>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 10: TRACEABILITY                                      -->
+  <!-- PHASE 11: TRACEABILITY                                      -->
   <!-- Execution: SUBAGENT · Model: Claude Opus (matrix synthesis/writing) -->
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="11" goal="Generate traceability matrix and coverage gate" tag="trace" anchor="trace">
+  <step n="12" goal="Generate traceability matrix and coverage gate" tag="trace" anchor="trace">
     <check if="'trace' is in phases_completed">
-      <goto anchor="test-review" />
+      <goto anchor="done" />
     </check>
 
     <action>Update lifecycle state: current_phase → 'trace', last_updated → now</action>
@@ -755,7 +815,7 @@ Manual action required: save the matrix to \_bmad-output/test-artifacts/traceabi
 <action>HALT</action>
 </check>
 </check>
-<action>Update lifecycle state: append 'trace' to phases_completed, current_phase → 'test-review', last_updated → now</action>
+<action>Update lifecycle state: append 'trace' to phases_completed, current_phase → 'done', last_updated → now</action>
 </check>
 
     <check if="quality gate decision is FAIL or CONCERNS AND trace_retries < 2">
@@ -773,66 +833,6 @@ Escalating to {{user_name}}.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "traceability gate failed after max retries", last_updated → now</action>
 <action>HALT</action>
 </check>
-
-  </step>
-
-  <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PHASE 11: TEST REVIEW                                       -->
-  <!-- Execution: SUBAGENT · Model: Claude Opus (test-quality review/analysis) -->
-
-  <!-- ═══════════════════════════════════════════════════════════ -->
-  <step n="12" goal="Review test quality" tag="test-review" anchor="test-review">
-    <check if="'test-review' is in phases_completed">
-      <goto anchor="done" />
-    </check>
-
-    <output>🔬 Reviewing test quality for {{story_key}}...</output>
-
-    <action>Execute the bmad-testarch-test-review workflow:
-      - Load: {project-root}/.agents/skills/bmad-testarch-test-review/SKILL.md
-      - Scope: tests written for story {{story_key}}
-    </action>
-
-    <check if="zero BLOCKER items — test quality acceptable">
-      <output>✅ Test review passed for {{story_key}}.</output>
-      <action>Verify test-review artifact written to disk: check that {test_artifacts}/test-reviews/test-review-{{story_key}}.md exists as a file</action>
-      <check if="test-review file does NOT exist on disk">
-        <output>⚠ Test review passed but report artifact was not saved to disk. Saving now...</output>
-        <action>Write the test quality review report to {test_artifacts}/test-reviews/test-review-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), quality score, findings table (BLOCKER/MAJOR/MINOR counts), AC coverage table, and overall gate decision with rationale</action>
-        <check if="file still does not exist after save attempt">
-          <output>🚫 BLOCKED — Test review report could not be persisted to disk.
-
-Manual action required: save the review to \_bmad-output/test-artifacts/test-reviews/test-review-{{story_key}}.md and re-run this lifecycle.</output>
-<action>Update lifecycle state: status → blocked, blocked_reason → "test-review artifact not persisted", last_updated → now</action>
-<action>HALT</action>
-</check>
-</check>
-<action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'done', last_updated → now</action>
-</check>
-
-    <check if="BLOCKER items found (test gaps that require code changes)">
-      <output>⚠ Test review blockers require code changes. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>
-      <action>Increment quickdev_cycle in lifecycle state</action>
-      <check if="quickdev_cycle > 2">
-        <output>🚫 BLOCKED — QuickDev cycle budget exhausted during test-review.
-
-Test review blockers: {{blockers}}
-Escalating to {{user_name}}.</output>
-<action>Update lifecycle state: status → blocked, blocked_reason → "quickdev budget exhausted in test-review", last_updated → now</action>
-<action>HALT</action>
-</check>
-<action>Execute bmad-quick-dev to fix code issues raised by test review: - Load: {project-root}/.agents/skills/bmad-quick-dev/SKILL.md - Target: specific code gaps identified in test review
-</action>
-<action>Update sprint-status.yaml: {{story_key}} → review</action>
-<action>Re-run abbreviated code review on changed files, then update sprint-status → in-test</action>
-<action>Remove 'test-automate', 'nfr', 'trace' from phases_completed in lifecycle state to force re-execution</action>
-<goto anchor="test-automate" />
-</check>
-
-    <check if="BLOCKER items found (test quality issues only — no code changes needed)">
-      <action>Fix test quality issues directly (improve assertions, add missing edge cases, remove duplicates)</action>
-      <goto anchor="test-review" />
-    </check>
 
   </step>
 

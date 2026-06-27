@@ -35,9 +35,9 @@ flowchart LR
     C --> D["⑥ dev-story\nsubagent · Sonnet"]
     D --> E["⑦ code-review\nsubagent · Opus"]
     E --> F["⑧ test-automate\n+ E2E gate\nsubagent · Sonnet"]
-    F --> G["⑨ nfr\nsubagent · Opus"]
-    G --> H["⑩ trace\nsubagent · Opus"]
-    H --> I["⑪ test-review\nsubagent · Opus"]
+    F --> G["⑨ test-review\nsubagent · Opus"]
+    G --> H["⑩ nfr\nsubagent · Opus"]
+    H --> I["⑪ trace\nsubagent · Opus"]
     I --> J(["⑫ done\ninline · Opus"])
     style J fill:#2e7d32,color:#fff
 ```
@@ -62,9 +62,9 @@ flowchart LR
 | `bmad-dev-story` | dev | Implement the story (DoD gates) | subagent | Sonnet |
 | `bmad-code-review` | reviewer | Adversarial multi-lens review | subagent | Opus |
 | `bmad-testarch-automate` | automation | Expand coverage + E2E gate | subagent | Sonnet |
+| `bmad-testarch-test-review` | test quality | Review test assertions/determinism | subagent | Opus |
 | `bmad-testarch-nfr` | NFR audit | Perf / security / reliability evidence | subagent | Opus |
 | `bmad-testarch-trace` | traceability | AC→test matrix + gate | subagent | Opus |
-| `bmad-testarch-test-review` | test quality | Review test assertions/determinism | subagent | Opus |
 | `bmad-quick-dev` | fix engine | Targeted fixes in QuickDev cycles | subagent | Sonnet |
 
 **Persona agents** also present here (talk-to-the-role entry points): `bmad-agent-dev` (Amelia),
