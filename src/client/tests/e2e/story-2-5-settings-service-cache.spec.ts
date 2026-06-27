@@ -62,7 +62,11 @@ async function seedService(
   overrides: Partial<{ name: string; externalUrl: string; port: number }> = {},
 ): Promise<CreatedService> {
   const name = overrides.name ?? uniqueName("cache-svc");
-  const port = overrides.port ?? faker.number.int({ min: 40001, max: 49999 });
+  // Ask the API for the next available port so we never hit SERVICE_PORT_CONFLICT
+  // (hardcoded ranges can collide when other tests in the same shard have already
+  // allocated ports via next-port) and never hit SERVICE_PORT_OUT_OF_RANGE
+  // (the API only accepts 30100–30199).
+  const port = overrides.port ?? await apiFetch<number>(request, "/api/services/next-port");
   return apiFetch<CreatedService>(request, "/api/services", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
