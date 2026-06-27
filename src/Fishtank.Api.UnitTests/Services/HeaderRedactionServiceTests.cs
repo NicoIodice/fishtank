@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Fishtank.Api.Services;
 using Fishtank.Api.UnitTests.Support;
+using Microsoft.Extensions.Configuration;
+using NSubstitute;
 
 namespace Fishtank.Api.UnitTests.Services;
 
@@ -173,5 +175,64 @@ public class HeaderRedactionServiceTests : UnitTestBase
         var result = sut.Redact(headers);
 
         result.Should().BeEmpty();
+    }
+
+    // ─── AC-3/AC-4: DI constructor — env var / DB setting control ────────────
+
+    [Fact(DisplayName = "AC-3/AC-4: DI constructor — FISHTANK_CAPTURE_FULL_HEADERS=true disables redaction")]
+    public void Constructor_EnvVarTrue_EnablesFullCapture()
+    {
+        var configService = Substitute.For<IServerConfigService>();
+        configService.GetCaptureFullHeadersCached().Returns(false);
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([new KeyValuePair<string, string?>("FISHTANK_CAPTURE_FULL_HEADERS", "true")])
+            .Build();
+
+        var sut = new HeaderRedactionService(configService, configuration);
+        var headers = new Dictionary<string, string> { ["Authorization"] = "Bearer secret" };
+
+        var result = sut.Redact(headers);
+
+        result["Authorization"].Should().Be("Bearer secret",
+            "env var=true enables full capture so no redaction should occur");
+    }
+
+    [Fact(DisplayName = "AC-3/AC-4: DI constructor — DB setting=true disables redaction")]
+    public void Constructor_DBSettingTrue_EnablesFullCapture()
+    {
+        var configService = Substitute.For<IServerConfigService>();
+        configService.GetCaptureFullHeadersCached().Returns(true);
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(Array.Empty<KeyValuePair<string, string?>>())
+            .Build();
+
+        var sut = new HeaderRedactionService(configService, configuration);
+        var headers = new Dictionary<string, string> { ["Authorization"] = "Bearer secret" };
+
+        var result = sut.Redact(headers);
+
+        result["Authorization"].Should().Be("Bearer secret",
+            "DB setting=true enables full capture so no redaction should occur");
+    }
+
+    [Fact(DisplayName = "AC-2: DI constructor — env var=false and DB setting=false enables redaction")]
+    public void Constructor_EnvVarFalse_DBFalse_RedactionEnabled()
+    {
+        var configService = Substitute.For<IServerConfigService>();
+        configService.GetCaptureFullHeadersCached().Returns(false);
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([new KeyValuePair<string, string?>("FISHTANK_CAPTURE_FULL_HEADERS", "false")])
+            .Build();
+
+        var sut = new HeaderRedactionService(configService, configuration);
+        var headers = new Dictionary<string, string> { ["Authorization"] = "Bearer secret" };
+
+        var result = sut.Redact(headers);
+
+        result["Authorization"].Should().Be("[REDACTED]",
+            "both env var=false and DB=false means redaction must be active");
     }
 }

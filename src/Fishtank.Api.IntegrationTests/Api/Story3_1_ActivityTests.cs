@@ -120,4 +120,81 @@ public class Story3_1_ActivityTests : IntegrationTestBase
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-7: invalid type filter returns 400 with ACTIVITY_INVALID_TYPE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity?type=BadType → 400 with ACTIVITY_INVALID_TYPE")]
+    public async Task GetActivity_TypeInvalid_Returns400WithActivityInvalidType()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/activity?type=BadType");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeFalse();
+        body.GetProperty("error").GetProperty("code").GetString()
+            .Should().Be("ACTIVITY_INVALID_TYPE");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-7: serviceId filter for non-existent service returns 404
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-7: GET /api/activity?serviceId={nonExistent} → 404 with ACTIVITY_SERVICE_NOT_FOUND")]
+    public async Task GetActivity_ServiceIdNotFound_Returns404WithActivityServiceNotFound()
+    {
+        var client = await GetAuthenticatedClientAsync();
+        var nonExistentId = Guid.NewGuid();
+
+        var response = await client.GetAsync($"/api/activity?serviceId={nonExistentId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeFalse();
+        body.GetProperty("error").GetProperty("code").GetString()
+            .Should().Be("ACTIVITY_SERVICE_NOT_FOUND");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-10: PUT /api/settings/capture-headers persists setting
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-10: PUT /api/settings/capture-headers {enabled:true} → 200 with captureFullHeaders:true")]
+    public async Task PutSettings_CaptureHeaders_UpdatesSetting()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.PutAsJsonAsync(
+            "/api/settings/capture-headers",
+            new { enabled = true });
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+        body.GetProperty("data").GetProperty("captureFullHeaders").GetBoolean().Should().BeTrue();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-10: GET /api/settings includes captureFullHeaders field
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-10: GET /api/settings → response includes captureFullHeaders field")]
+    public async Task GetSettings_IncludesCaptureFullHeaders()
+    {
+        var client = await GetAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/settings");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        body.GetProperty("success").GetBoolean().Should().BeTrue();
+        body.GetProperty("data").TryGetProperty("captureFullHeaders", out _).Should().BeTrue();
+    }
 }

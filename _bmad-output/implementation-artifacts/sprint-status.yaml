@@ -103,7 +103,7 @@ development_status:
   # EPIC 3: Network Activity & Request Monitoring
   # ─────────────────────────────────────────────────────────────────────────────
   epic-3: in-progress
-  3-1-activity-log-backend-request-capture-and-header-redaction: in-progress
+  3-1-activity-log-backend-request-capture-and-header-redaction: done
   3-2-network-activity-page-real-time-log-display: backlog
   3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls: backlog
   3-4-row-detail-all-three-display-styles: backlog

@@ -27,10 +27,12 @@ public sealed class HeaderRedactionService : IHeaderRedactionService
         _captureFullHeaders = captureFullHeaders;
     }
 
-    // For DI: reads CaptureFullHeaders from the singleton config cache
-    public HeaderRedactionService(IServerConfigService configService)
+    // For DI: checks FISHTANK_CAPTURE_FULL_HEADERS env var first, then DB setting
+    public HeaderRedactionService(IServerConfigService configService, IConfiguration configuration)
     {
-        _captureFullHeaders = configService.GetCaptureFullHeadersCached();
+        var envOverride = configuration["FISHTANK_CAPTURE_FULL_HEADERS"];
+        _captureFullHeaders = string.Equals(envOverride, "true", StringComparison.OrdinalIgnoreCase)
+            || configService.GetCaptureFullHeadersCached();
     }
 
     public Dictionary<string, string> Redact(Dictionary<string, string> headers)

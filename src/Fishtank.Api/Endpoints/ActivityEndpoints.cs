@@ -35,6 +35,7 @@ public static class ActivityEndpoints
                     $"Service '{serviceId}' not found."));
         }
 
+        skip = Math.Max(skip, 0);
         take = Math.Min(Math.Max(take, 1), 200);
 
         var rows = await activityService.QueryAsync(serviceId, type, search, skip, take);

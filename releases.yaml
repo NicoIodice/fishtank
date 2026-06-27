@@ -119,7 +119,7 @@ releases:
     released: null
     stories:
       - id: "3-1-activity-log-backend-request-capture-and-header-redaction"
-        status: "in-progress"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.4.0 — Mappings & Mock Capture (Epic 4)
