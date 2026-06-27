@@ -16,7 +16,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 - **Dockerfile `HEALTHCHECK`** — added `HEALTHCHECK` instruction so `docker inspect` returns container health status when running via `docker compose` (support tool) (`hotfix/v0.2.1`)
 - **Support tool start wait** — `Start Fishtank` now polls container health for up to 60 s and prints elapsed-time progress; shows `✔ Fishtank is up and ready → http://localhost:PORT` on success or a log-hint on timeout (`hotfix/v0.2.1`)
-- **Lifecycle two-PR warning** — `bmad-story-lifecycle` done phase now shows distinct messages when the story is or is not the last in its epic, eliminating duplicate PR instructions; last-story case now explicitly instructs to open both `story → release` and `release → main` PRs (`hotfix/v0.2.1`)
 
 ---
 
