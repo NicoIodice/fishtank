@@ -1,7 +1,7 @@
 story_key: "3-1-activity-log-backend-request-capture-and-header-redaction"
 epic_id: "3"
 current_phase: "done"
-status: active
+status: done
 blocked_reason: ""
 test_design_retries: 0
 test_design_auto_created: true
@@ -13,4 +13,4 @@ nfr_retries: 0
 trace_retries: 0
 quickdev_cycle: 1
 last_updated: "2026-06-27T00:00:00"
-phases_completed: ["preflight-framework", "preflight-test-design", "create-story", "validate", "atdd", "dev-story", "code-review", "test-automate", "test-review", "nfr", "trace"]
+phases_completed: ["preflight-framework", "preflight-test-design", "create-story", "validate", "atdd", "dev-story", "code-review", "test-automate", "test-review", "nfr", "trace", "done"]

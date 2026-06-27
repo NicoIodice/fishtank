@@ -3,7 +3,7 @@ story_id: "3.1"
 epic: 3
 story_key: 3-1-activity-log-backend-request-capture-and-header-redaction
 story_title: "Activity Log Backend — Request Capture & Header Redaction"
-status: ready-for-dev
+status: done
 priority: critical
 ---
 
