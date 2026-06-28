@@ -242,6 +242,7 @@ A story is `done` only when **all** of the following are true:
 | 7 | No new critical anti-patterns from the Anti-Patterns table below | Code review |
 | 8 | Story status set to `done` in `_bmad-output/implementation-artifacts/sprint-status.yaml` | Manual / agent |
 | 9 | If last story in an epic: epic status set to `done` in `sprint-status.yaml` | Manual / agent |
+| 10 | Backend unit-test line coverage ≥ 90% on `ServiceManager`, `ServerConfigService`, `ServicesRegistry`, `Exceptions.*` | `dotnet test src/Fishtank.Api.UnitTests --settings src/Fishtank.Api.UnitTests/coverage.runsettings` |
 
 **Story status lifecycle** (edit `sprint-status.yaml` at each transition):
 - `backlog` → story only exists in `epics.md`
