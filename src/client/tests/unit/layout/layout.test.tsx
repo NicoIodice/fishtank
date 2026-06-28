@@ -31,11 +31,10 @@ vi.mock("@/features/auth/hooks/useAuth", () => ({
 vi.mock("@/lib/api", () => ({
   apiFetch: vi.fn().mockResolvedValue(null),
   ApiError: class ApiError extends Error {
-    constructor(
-      public code: string,
-      message: string,
-    ) {
+    code: string;
+    constructor(code: string, message: string) {
       super(message);
+      this.code = code;
     }
   },
 }));
@@ -324,7 +323,7 @@ describe("TopBar", () => {
   it("shows 'User menu' aria-label when user is null", () => {
     mockUseAuth.mockReturnValueOnce({
       user: null,
-      needsSetup: false,
+      isAuthenticated: false,
       isLoading: false,
     });
 

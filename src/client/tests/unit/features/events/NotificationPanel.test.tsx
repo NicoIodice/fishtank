@@ -273,8 +273,6 @@ describe("NotificationPanel — AC-6 mark all read", () => {
 // ── scroll/newCount paths ─────────────────────────────────────────────────────
 
 describe("NotificationPanel — scroll and new-pill paths", () => {
-  let mock: MockBackend;
-
   beforeEach(() => {
     mock = installFetchMock();
   });
