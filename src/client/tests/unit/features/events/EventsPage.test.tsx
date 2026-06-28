@@ -17,7 +17,7 @@ const mockClearAllMutate = vi.fn();
 function emptyPage() {
   return {
     data: {
-      pages: [{ items: [], total: 0, hasMore: false }],
+      pages: [{ items: [] as SystemEvent[], total: 0, hasMore: false }],
       pageParams: [0],
     },
     fetchNextPage: vi.fn(),
