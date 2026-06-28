@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -25,10 +25,10 @@ const mockUseSetup = vi.fn(() => ({
 }));
 
 vi.mock("@/features/auth/hooks/useLogin", () => ({
-  useLogin: (...args: unknown[]) => mockUseLogin(...args),
+  useLogin: () => mockUseLogin(),
 }));
 vi.mock("@/features/auth/hooks/useSetup", () => ({
-  useSetup: (...args: unknown[]) => mockUseSetup(...args),
+  useSetup: () => mockUseSetup(),
 }));
 vi.mock("@/features/auth/hooks/useChangePassword", () => ({
   useChangePassword: vi.fn(() => ({
