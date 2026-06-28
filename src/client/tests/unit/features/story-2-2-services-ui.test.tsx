@@ -123,6 +123,17 @@ describe("ServiceCard — AC-3: card content rendering", () => {
     expect(screen.getByText("No mapping files")).toBeDefined();
   });
 
+  it("renders '1 mapping file' (singular) when mockFileCount is 1", () => {
+    const onEdit = vi.fn();
+    const singleFileSvc = { ...liveService, mockFileCount: 1 };
+    render(
+      <Wrapper>
+        <ServiceCard service={singleFileSvc} onEdit={onEdit} />
+      </Wrapper>,
+    );
+    expect(screen.getByText(/1 mapping file$/i)).toBeDefined();
+  });
+
   it("renders Edit button and calls onEdit when clicked", async () => {
     const onEdit = vi.fn();
     render(

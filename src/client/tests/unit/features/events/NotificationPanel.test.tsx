@@ -11,7 +11,13 @@
  * routing on the request URL to feed the React Query hooks.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  within,
+  fireEvent,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -149,9 +155,7 @@ describe("NotificationPanel — AC-4 content & pagination", () => {
     renderPanel();
     await waitFor(() =>
       expect(
-        screen.getAllByTestId(
-          /^topbar-notification-item-(?!dismiss-)[^/]+$/,
-        ),
+        screen.getAllByTestId(/^topbar-notification-item-(?!dismiss-)[^/]+$/),
       ).toHaveLength(20),
     );
   });
@@ -161,9 +165,7 @@ describe("NotificationPanel — AC-4 content & pagination", () => {
     renderPanel();
     await waitFor(() =>
       expect(
-        screen.getAllByTestId(
-          /^topbar-notification-item-(?!dismiss-)[^/]+$/,
-        ),
+        screen.getAllByTestId(/^topbar-notification-item-(?!dismiss-)[^/]+$/),
       ).toHaveLength(20),
     );
 
@@ -171,9 +173,7 @@ describe("NotificationPanel — AC-4 content & pagination", () => {
 
     await waitFor(() =>
       expect(
-        screen.getAllByTestId(
-          /^topbar-notification-item-(?!dismiss-)[^/]+$/,
-        ),
+        screen.getAllByTestId(/^topbar-notification-item-(?!dismiss-)[^/]+$/),
       ).toHaveLength(25),
     );
     // All loaded → load-more hides.
@@ -222,9 +222,7 @@ describe("NotificationPanel — AC-5 mark read & dismiss", () => {
     );
 
     await waitFor(() =>
-      expect(
-        screen.queryByTestId("topbar-notification-item-evt-0"),
-      ).toBeNull(),
+      expect(screen.queryByTestId("topbar-notification-item-evt-0")).toBeNull(),
     );
   });
 });
@@ -269,5 +267,34 @@ describe("NotificationPanel — AC-6 mark all read", () => {
     renderPanel();
     const item = await screen.findByTestId("topbar-notification-item-evt-0");
     expect(within(item).getByText("Service 0")).toBeTruthy();
+  });
+});
+
+// ── scroll/newCount paths ─────────────────────────────────────────────────────
+
+describe("NotificationPanel — scroll and new-pill paths", () => {
+  beforeEach(() => {
+    mock = installFetchMock();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("fires handleScroll without throwing when body div is scrolled", async () => {
+    renderPanel();
+    await waitFor(() =>
+      expect(
+        screen.queryAllByTestId(/^topbar-notification-item-/).length,
+      ).toBeGreaterThan(0),
+    );
+
+    // Simulate scroll on the panel body
+    const body = document.querySelector('[class*="body"]');
+    if (body) {
+      fireEvent.scroll(body, { target: { scrollTop: 0 } });
+    }
+    // No crash, no new-pill visible (scrollTop = 0 ≤ threshold)
+    expect(screen.queryByTestId("topbar-btn-notification-new-pill")).toBeNull();
   });
 });

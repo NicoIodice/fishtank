@@ -17,6 +17,19 @@ export default defineConfig({
     // timeout on Windows when the system is loaded (e.g. after a dotnet build).
     isolate: false,
     maxWorkers: 1,
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/**/*.d.ts",
+        "src/test/**",
+        "src/**/__tests__/**",
+      ],
+      reporter: ["text", "json-summary", "lcov"],
+      reportsDirectory: "./coverage",
+    },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

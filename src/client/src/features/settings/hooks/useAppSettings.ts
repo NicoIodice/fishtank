@@ -3,6 +3,7 @@ import { apiFetch } from "@/lib/api";
 
 interface AppSettings {
   mocksHostPath: string;
+  captureFullHeaders: boolean;
 }
 
 export const APP_SETTINGS_QUERY_KEY = ["app-settings"] as const;

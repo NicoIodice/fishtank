@@ -58,6 +58,20 @@ describe("useToast", () => {
     });
     expect(result.current.toasts).toHaveLength(0);
   });
+  it("dismissToast is a no-op when called with an unknown id", () => {
+    const { result } = renderHook(() => useToast());
+
+    act(() => {
+      result.current.showToast("Existing", "info");
+    });
+    expect(result.current.toasts).toHaveLength(1);
+
+    // Dismiss a non-existent ID — should not throw or remove the real toast
+    act(() => {
+      result.current.dismissToast("does-not-exist");
+    });
+    expect(result.current.toasts).toHaveLength(1);
+  });
 });
 
 // ─── ToastContainer ───────────────────────────────────────────────────────────

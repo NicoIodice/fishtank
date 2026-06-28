@@ -14,21 +14,37 @@ interface ServiceStatus {
   status: string;
 }
 
+export type SortableColumn =
+  | "method"
+  | "urlPath"
+  | "statusCode"
+  | "serviceName"
+  | "durationMs"
+  | "timestamp";
+
 const ACTIVITY_ROW_HEIGHT_PX = 48;
 
 interface ActivityTableProps {
   rows: ActivityRow[];
   hadRows: boolean;
+  sort?: { column: SortableColumn | null; direction: "asc" | "desc" | null };
+  onSort?: (column: SortableColumn) => void;
 }
 
-export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
+export function ActivityTable({
+  rows,
+  hadRows,
+  sort = { column: null, direction: null },
+  onSort,
+}: ActivityTableProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   // Read service statuses from React Query cache (no refetch).
   // Uses minimal local ServiceStatus type to avoid cross-feature imports.
-  const services = queryClient.getQueryData<ServiceStatus[]>(["services"]) ?? [];
+  const services =
+    queryClient.getQueryData<ServiceStatus[]>(["services"]) ?? [];
   const serviceStatusMap = new Map(
     services.map((s) => [s.id, s.status === "live"]),
   );
@@ -57,6 +73,41 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
 
   const virtualItems = virtualizer.getVirtualItems();
 
+  // Helper: render sort indicator for a sortable column header
+  function SortIndicator({ column }: { column: SortableColumn }) {
+    if (sort.column !== column) {
+      return (
+        <span
+          aria-hidden="true"
+          style={{ marginLeft: "4px", opacity: 0.3, fontSize: "0.75rem" }}
+        >
+          ↕
+        </span>
+      );
+    }
+    return (
+      <span
+        aria-hidden="true"
+        style={{ marginLeft: "4px", fontSize: "0.75rem" }}
+      >
+        {sort.direction === "asc" ? "↑" : "↓"}
+      </span>
+    );
+  }
+
+  function sortableHeaderStyle(): React.CSSProperties {
+    return {
+      padding: "12px",
+      textAlign: "left",
+      borderBottom: "2px solid #e5e7eb",
+      fontSize: "0.875rem",
+      fontWeight: 600,
+      color: "#374151",
+      cursor: onSort ? "pointer" : "default",
+      userSelect: "none",
+    };
+  }
+
   // Empty states
   if (rows.length === 0) {
     const isCleared = hadRows;
@@ -74,7 +125,9 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
           style={{ fontSize: "48px", display: "block", marginBottom: "16px" }}
           aria-hidden="true"
         />
-        <p style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "8px" }}>
+        <p
+          style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "8px" }}
+        >
           {isCleared ? "Log cleared" : "No activity yet"}
         </p>
         <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>
@@ -115,12 +168,14 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
           }}
         >
           <colgroup>
-            <col style={{ width: "10%" }} /> {/* Method */}
-            <col style={{ width: "35%" }} /> {/* URL Path */}
-            <col style={{ width: "8%" }} />  {/* Status */}
-            <col style={{ width: "8%" }} />  {/* Type */}
-            <col style={{ width: "20%" }} /> {/* Service */}
-            <col style={{ width: "19%" }} /> {/* Actions */}
+            <col style={{ width: "8%" }} /> {/* Method */}
+            <col style={{ width: "27%" }} /> {/* URL Path */}
+            <col style={{ width: "7%" }} /> {/* Status */}
+            <col style={{ width: "7%" }} /> {/* ms */}
+            <col style={{ width: "12%" }} /> {/* DateTime */}
+            <col style={{ width: "7%" }} /> {/* Type */}
+            <col style={{ width: "15%" }} /> {/* Service */}
+            <col style={{ width: "17%" }} /> {/* Actions */}
           </colgroup>
           <thead
             style={{
@@ -132,40 +187,79 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
           >
             <tr>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="method"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("method")}
+                aria-sort={
+                  sort.column === "method"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
                 Method
+                <SortIndicator column="method" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="urlPath"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("urlPath")}
+                aria-sort={
+                  sort.column === "urlPath"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
                 URL Path
+                <SortIndicator column="urlPath" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="statusCode"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("statusCode")}
+                aria-sort={
+                  sort.column === "statusCode"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
                 Status
+                <SortIndicator column="statusCode" />
+              </th>
+              <th
+                data-sort-column="durationMs"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("durationMs")}
+                aria-sort={
+                  sort.column === "durationMs"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
+              >
+                ms
+                <SortIndicator column="durationMs" />
+              </th>
+              <th
+                data-sort-column="timestamp"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("timestamp")}
+                aria-sort={
+                  sort.column === "timestamp"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
+              >
+                DateTime
+                <SortIndicator column="timestamp" />
               </th>
               <th
                 style={{
@@ -180,16 +274,19 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
                 <i className="bi bi-funnel" aria-label="Type" />
               </th>
               <th
-                style={{
-                  padding: "12px",
-                  textAlign: "left",
-                  borderBottom: "2px solid #e5e7eb",
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "#374151",
-                }}
+                data-sort-column="serviceName"
+                style={sortableHeaderStyle()}
+                onClick={() => onSort?.("serviceName")}
+                aria-sort={
+                  sort.column === "serviceName"
+                    ? sort.direction === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
                 Service
+                <SortIndicator column="serviceName" />
               </th>
               <th
                 style={{
@@ -208,10 +305,10 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
           <tbody>
             {virtualItems.map((virtualItem) => {
               const row = rows[virtualItem.index];
-              const isServiceLive = serviceStatusMap.get(row.serviceId) ?? false;
+              const isServiceLive =
+                serviceStatusMap.get(row.serviceId) ?? false;
               const is5xx = row.statusCode >= 500 && row.statusCode <= 599;
-              const showAmberBorder =
-                row.type === "Proxied" && isServiceLive;
+              const showAmberBorder = row.type === "Proxied" && isServiceLive;
 
               const rowBgColor = is5xx
                 ? "var(--error-row-bg, rgba(254, 226, 226, 0.5))"
@@ -240,7 +337,9 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
                     style={{
                       padding: "12px",
                       borderBottom: "1px solid #f3f4f6",
-                      borderLeft: showAmberBorder ? "2px solid #f59e0b" : undefined,
+                      borderLeft: showAmberBorder
+                        ? "2px solid #f59e0b"
+                        : undefined,
                     }}
                   >
                     <MethodChip method={row.method} />
@@ -263,6 +362,25 @@ export function ActivityTable({ rows, hadRows }: ActivityTableProps) {
                     }}
                   >
                     {row.statusCode}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {row.durationMs}ms
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #f3f4f6",
+                      whiteSpace: "nowrap",
+                      fontSize: "0.8rem",
+                    }}
+                  >
+                    {new Date(row.timestamp).toLocaleTimeString()}
                   </td>
                   <td
                     style={{
