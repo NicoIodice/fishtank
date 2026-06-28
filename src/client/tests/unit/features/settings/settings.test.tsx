@@ -1,10 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
-import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
 import { AppearanceSettings } from "@/features/settings/components/AppearanceSettings";
 import { ActivitySettings } from "@/features/settings/components/ActivitySettings";
 import { SettingsPage } from "@/features/settings/pages/SettingsPage";
@@ -279,7 +277,10 @@ describe("ActivitySettings", () => {
     const { useAppSettings } =
       await import("@/features/settings/hooks/useAppSettings");
     vi.mocked(useAppSettings).mockReturnValueOnce({
-      data: { captureFullHeaders: undefined as unknown as boolean },
+      data: {
+        captureFullHeaders: undefined as unknown as boolean,
+        mocksHostPath: "",
+      },
       isLoading: false,
     });
 
