@@ -165,6 +165,10 @@ builder.Services.AddScoped<IHeaderRedactionService, HeaderRedactionService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddHostedService<EngineStartup>();
 builder.Services.AddHostedService<ActivityPollingService>();
+
+// ─── 6c. File management (Story 4.1) ─────────────────────────────────────
+builder.Services.AddScoped<IMappingService, MappingService>();
+builder.Services.AddScoped<IResyncService, ResyncService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -234,6 +238,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
+app.MapMappingsEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();

@@ -14,6 +14,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 _Theme: Edit mock files in the browser and record real traffic into permanent stubs._
 
+### Added
+
+- **Mappings file CRUD backend** — `POST /api/mappings`, `GET /api/mappings`, `PUT /api/mappings/{path}`, `DELETE /api/mappings/{path}` for creating, listing, updating, and deleting WireMock mapping/response files via API (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Path traversal protection** — `MappingService.SanitizePath` blocks `../`, URL-encoded traversal sequences, absolute paths, and any path resolving outside the configured mocks root (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **`IFileWatcher` abstraction** — `FakeFileWatcher` test double enabling synchronous, deterministic file-change simulation in integration tests without OS-level `FileSystemWatcher` noise (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Resync engine** — `POST /api/resync` reloads all mapping and response files for every registered service; returns `{ mappingsLoaded, responsesLoaded, elapsedMs, failures[], conflicts[] }` (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Conflict detection** — resync flags files that were externally modified (disk `LastWriteTimeUtc` newer than `_lastKnownModified` baseline set by the API) (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Concurrent resync guard** — `SemaphoreSlim(1,1)` static lock returns HTTP 409 `RESYNC_IN_PROGRESS` if a resync is already running (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **ResyncCompleted SignalR broadcast** — on resync completion, `ServicesHub` broadcasts `ResyncCompleted` to all connected clients (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+
 ---
 
 ## [v0.3.0] — 2026-06-28 (Network Activity)
