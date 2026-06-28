@@ -159,6 +159,12 @@ builder.Services.AddSingleton<IWireMockServerFactory, DefaultWireMockServerFacto
 builder.Services.AddScoped<ISystemEventService, SystemEventService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddSingleton<IActivityStore>(sp =>
+    new ActivityStore(sp.GetRequiredService<IConfiguration>()));
+builder.Services.AddScoped<IHeaderRedactionService, HeaderRedactionService>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddHostedService<EngineStartup>();
+builder.Services.AddHostedService<ActivityPollingService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -231,8 +237,10 @@ app.MapServicesEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();
+app.MapActivityEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 app.MapHub<EventsHub>("/hubs/events");
+app.MapHub<ActivityHub>("/hubs/activity");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.

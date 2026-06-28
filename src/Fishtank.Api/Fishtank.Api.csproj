@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Fishtank.Api.IntegrationTests" />
+    <InternalsVisibleTo Include="Fishtank.Api.UnitTests" />
   </ItemGroup>
 
 </Project>

@@ -7,4 +7,5 @@ public class ServerConfig
 {
     public int Id { get; set; } = 1; // Always 1
     public Guid BootEpoch { get; set; } = Guid.NewGuid();
+    public bool CaptureFullHeaders { get; set; } = false;
 }

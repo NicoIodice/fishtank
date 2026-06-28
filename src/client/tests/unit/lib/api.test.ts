@@ -184,6 +184,40 @@ describe("apiFetch", () => {
     expect(err.code).toBe("VALIDATION_ERROR");
   });
 
+  it("uses AUTH_UNAUTHORIZED fallback code when 401 body has no error.code", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ success: false }, 401),
+    );
+
+    const err = (await apiFetch("/api/protected", {
+      redirectOn401: false,
+    }).catch((e) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.code).toBe("AUTH_UNAUTHORIZED");
+    expect(err.message).toBe("Not authenticated");
+  });
+
+  it("uses UNKNOWN_ERROR fallback code when success=false body has no error field", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ success: false }, 200),
+    );
+
+    const err = (await apiFetch("/api/test").catch((e) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.code).toBe("UNKNOWN_ERROR");
+    expect(err.message).toBe("Unknown error");
+  });
+
+  it("uses HTTP_xxx fallback code when non-2xx body has no error field", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ success: false }, 503),
+    );
+
+    const err = (await apiFetch("/api/test").catch((e) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.code).toBe("HTTP_503");
+  });
+
   // ─── ApiError class ─────────────────────────────────────────────────────────
 
   it("ApiError has correct name, code, and message", () => {

@@ -64,7 +64,11 @@ start_api() {
 
   echo "🚀 Starting .NET API (dotnet run)..."
   cd "$ROOT/src/Fishtank.Api"
-  ASPNETCORE_ENVIRONMENT=Development dotnet run --urls "http://+:5000" &
+  ASPNETCORE_ENVIRONMENT=Development \
+  ASPNETCORE_URLS="http://+:5000" \
+  FISHTANK_JWT_SECRET="${FISHTANK_JWT_SECRET:-fishtank-ci-test-only-not-for-production-use-xk9}" \
+  FISHTANK_DB_PATH="${FISHTANK_DB_PATH:-/tmp/fishtank-ci-local.db}" \
+  dotnet run --urls "http://+:5000" &
   API_PID=$!
   echo "  API PID: $API_PID"
   cd "$ROOT"

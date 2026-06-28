@@ -63,7 +63,7 @@ Execute each entry in `{workflow.activation_steps_append}` in order.
 
 ## Lifecycle State File
 
-The orchestrator writes and reads `{implementation_artifacts}/lifecycle-state-{story_key}.yaml` after every phase transition. Schema:
+The orchestrator writes and reads `{implementation_artifacts}/lifecycle-state/lifecycle-state-{story_key}.yaml` after every phase transition. Schema:
 
 ```yaml
 story_key: "" # e.g. "1-2-auth-backend"
@@ -94,8 +94,8 @@ phases_completed: [] # list of completed phase tags
 | --------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------- |
 | preflight-framework   | `framework-setup-progress.md` exists + `step-05` completed                                    | HALT — not auto-fixable               |
 | preflight-test-design | test-design for epic covers story scope + quality gate passes                                 | Auto-create (retry ≤ 2)               |
-| create-story          | story file exists in `{implementation_artifacts}/`, status `ready-for-dev`                    | Retry creation                        |
-| validate              | `bmad-check-implementation-readiness` scores PASS                                             | Fix spec gaps (retry ≤ 2)             |
+| create-story          | story file exists in `{implementation_artifacts}/stories/`, status `ready-for-dev`            | Retry creation                        |
+| validate              | `bmad-create-story:validate` scores PASS                                                       | Fix spec gaps (retry ≤ 2)             |
 | atdd                  | ≥1 acceptance test scaffold file exists in `src/client/tests/` or test project, all tests RED | Rework with spec feedback (retry ≤ 2) |
 | dev-story             | All ATDD tests GREEN; TypeScript builds clean; .NET builds clean                              | Retry dev (retry ≤ 2)                 |
 | code-review           | `bmad-code-review` finds zero BLOCKER items                                                   | QuickDev fix → re-review (retry ≤ 1)  |
@@ -118,7 +118,7 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
 | preflight-framework   | — (file check)                        | inline    | Opus   | read a progress file                             |
 | preflight-test-design | `bmad-testarch-test-design`           | subagent  | Opus   | test-strategy authoring/analysis                 |
 | create-story          | `bmad-create-story`                   | subagent  | Opus   | exhaustive artifact analysis + story writing     |
-| validate              | `bmad-check-implementation-readiness` | inline    | Opus   | light spec-readiness reasoning over full context |
+| validate              | `bmad-create-story:validate`          | inline    | Opus   | story readiness and completeness check           |
 | atdd                  | `bmad-testarch-atdd`                  | subagent  | Sonnet | writing red test scaffolds (coding)              |
 | dev-story             | `bmad-dev-story`                      | subagent  | Sonnet | feature implementation (coding)                  |
 | code-review           | `bmad-code-review`                    | subagent  | Opus   | adversarial review/analysis                      |
@@ -141,7 +141,7 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
 
 <workflow>
   <critical>Orchestrator rules — read before every phase:
-    1. At the START of each phase: read {implementation_artifacts}/lifecycle-state-{story_key}.yaml and confirm current_phase.
+    1. At the START of each phase: read {implementation_artifacts}/lifecycle-state/lifecycle-state-{story_key}.yaml and confirm current_phase.
     2. If current_phase is already past a step (listed in phases_completed), skip that step immediately.
     3. At the END of each phase: update lifecycle state (current_phase, phases_completed, retries) and write file before advancing.
     4. Never skip a phase. Never proceed past a HALT instruction.
@@ -170,7 +170,7 @@ The orchestrator runs phases with a **hybrid execution model**. Lightweight step
     </check>
 
     <action>Derive {{epic_id}} from story_key prefix (e.g. "1-2-auth-backend" → "1")</action>
-    <action>Set {{lifecycle_state_file}} = {implementation_artifacts}/lifecycle-state-{{story_key}}.yaml</action>
+    <action>Set {{lifecycle_state_file}} = {implementation_artifacts}/lifecycle-state/lifecycle-state-{{story_key}}.yaml</action>
     <action>Set {{sprint_status}} = {implementation_artifacts}/sprint-status.yaml</action>
     <action>Set {{test_artifacts}} = {project-root}/_bmad-output/test-artifacts</action>
 
@@ -282,7 +282,7 @@ Lifecycle state saved. Re-run this skill after completing the framework setup.</
       <goto anchor="create-story" />
     </check>
 
-    <action>Search {{test_artifacts}}/ for a file whose name matches EXACTLY the pattern test-design-epic-{{epic_id}}.md or test-design-epic-{{epic_id}}-*.md — ONLY files with the epic-{{epic_id}} prefix qualify. System-level files (e.g. test-design-architecture.md, test-design-progress.md, test-design-qa.md) MUST NOT be accepted as a substitute, even if their content mentions epic {{epic_id}}.</action>
+    <action>Search {{test_artifacts}}/test-design/ for a file whose name matches EXACTLY the pattern test-design-epic-{{epic_id}}.md or test-design-epic-{{epic_id}}-*.md — ONLY files with the epic-{{epic_id}} prefix qualify. System-level files (e.g. test-design-architecture.md, test-design-progress.md, test-design-qa.md) MUST NOT be accepted as a substitute, even if their content mentions epic {{epic_id}}.</action>
     <action>For each qualifying per-epic candidate file: check that it explicitly declares epic {{epic_id}} as its scope, contains a risk assessment section with ≥3 risk items, test layer assignments, and ≥1 test scenario per story in the epic</action>
 
     <check if="valid per-epic test-design file (test-design-epic-{{epic_id}}*.md) found AND quality check passes">
@@ -297,7 +297,7 @@ Lifecycle state saved. Re-run this skill after completing the framework setup.</
       <action>Execute the bmad-testarch-test-design workflow in Create mode:
         - Load: {project-root}/.agents/skills/bmad-testarch-test-design/SKILL.md
         - Scope: Epic {{epic_id}} only
-        - Target output: {{test_artifacts}}/test-design-epic-{{epic_id}}.md
+        - Target output: {{test_artifacts}}/test-design/test-design-epic-{{epic_id}}.md
         - Do NOT ask user for mode — proceed in Create mode directly
       </action>
 
@@ -327,7 +327,7 @@ Lifecycle state saved. Re-run this skill after completing the framework setup.</
 Gaps that could not be resolved automatically:
 {{quality_gate_failures}}
 
-Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and restart this lifecycle.</output>
+Manual fix required: edit {{test_artifacts}}/test-design/test-design-epic-{{epic_id}}.md and restart this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "test-design quality gate failed after max retries", last_updated → now</action>
 <action>HALT</action>
 </check>
@@ -342,7 +342,7 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
       <goto anchor="validate" />
     </check>
 
-    <check if="story file already exists in {implementation_artifacts}/ with status ready-for-dev or higher">
+    <check if="story file already exists in {implementation_artifacts}/stories/ with status ready-for-dev or higher">
       <output>✅ Story file already exists for {{story_key}}. Skipping creation.</output>
       <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'validate', last_updated → now</action>
       <goto anchor="validate" />
@@ -356,16 +356,16 @@ Manual fix required: edit {{test_artifacts}}/test-design-epic-{{epic_id}}.md and
       - Execution: dispatch as a SUBAGENT on Claude Opus — exhaustive artifact analysis + story authoring is a writing/analysis task.
     </action>
 
-    <action>After creation: verify story file exists in {implementation_artifacts}/ with correct YAML frontmatter (story_key, status: ready-for-dev)</action>
+    <action>After creation: verify story file exists in {implementation_artifacts}/stories/ with correct YAML frontmatter (story_key, status: ready-for-dev)</action>
     <action>Verify sprint-status.yaml updated: story → ready-for-dev, epic → in-progress</action>
 
-    <check if="story file exists in {implementation_artifacts}/ with status ready-for-dev">
+    <check if="story file exists in {implementation_artifacts}/stories/ with status ready-for-dev">
       <output>✅ Story {{story_key}} created and sprint-status updated.</output>
       <action>Update lifecycle state: append 'create-story' to phases_completed, current_phase → 'validate', last_updated → now</action>
     </check>
 
     <check if="story file missing OR status is not ready-for-dev">
-      <output>🚫 BLOCKED — Story creation failed. Expected: {implementation_artifacts}/{{story_key}}.md with status ready-for-dev.
+      <output>🚫 BLOCKED — Story creation failed. Expected: {implementation_artifacts}/stories/{{story_key}}.md with status ready-for-dev.
 
 Manual fix required: run bmad-create-story directly and verify the output before re-running this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "story creation failed — file missing or incorrect status", last_updated → now</action>
@@ -385,30 +385,32 @@ Manual fix required: run bmad-create-story directly and verify the output before
 
     <output>🔍 Validating implementation readiness for {{story_key}} (attempt {{validate_retries + 1}})...</output>
 
-    <action>Execute the bmad-check-implementation-readiness workflow scoped to story {{story_key}}:
-      - Load: {project-root}/.agents/skills/bmad-check-implementation-readiness/SKILL.md
-      - Scope: this story only
-      - Execution: run INLINE (orchestrator context) on Claude Opus — readiness reasoning is light and benefits from full story context.
+    <action>Execute the bmad-create-story validate workflow for story {{story_key}}:
+      - Load: {project-root}/.agents/skills/bmad-create-story/SKILL.md
+      - Action: validate
+      - Target story: {implementation_artifacts}/stories/{{story_key}}.md
+      - Run the checklist (./checklist.md) against the story file and apply any required fixes
+      - Execution: run INLINE (orchestrator context) on Claude Opus — story readiness check benefits from full story context.
     </action>
 
-    <check if="readiness check scores PASS (no BLOCKER items)">
+    <check if="validation scores PASS (no BLOCKER items)">
       <output>✅ Story {{story_key}} is implementation-ready.</output>
       <action>Update lifecycle state: append 'validate' to phases_completed, current_phase → 'atdd', last_updated → now</action>
     </check>
 
-    <check if="readiness check finds BLOCKERS AND validate_retries < 2">
+    <check if="validation finds BLOCKERS AND validate_retries < 2">
       <action>Increment validate_retries in lifecycle state, last_updated → now</action>
-      <output>⚠ Readiness blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
+      <output>⚠ Story validation blockers found: {{blockers}}. Fixing story spec ({{validate_retries}} of 2)...</output>
       <action>Fix the story file to address each BLOCKER (missing ACs, ambiguous tasks, undefined dependencies)</action>
       <goto anchor="validate" />
     </check>
 
     <check if="validate_retries >= 2">
-      <output>🚫 BLOCKED — Story readiness check failed after 3 attempts.
+      <output>🚫 BLOCKED — Story validation check failed after 3 attempts.
 
 Remaining blockers: {{blockers}}
 Manual story refinement required before implementation can proceed.</output>
-<action>Update lifecycle state: status → blocked, blocked_reason → "implementation readiness check failed after max retries", last_updated → now</action>
+<action>Update lifecycle state: status → blocked, blocked_reason → "story validation check failed after max retries", last_updated → now</action>
 <action>HALT</action>
 </check>
 </step>
@@ -441,14 +443,14 @@ Manual story refinement required before implementation can proceed.</output>
 
     <check if="exit criteria pass">
       <output>✅ ATDD scaffolds written and confirmed RED for {{story_key}}.</output>
-      <action>Verify ATDD checklist artifact written to disk: check that {test_artifacts}/atdd-checklist-{{story_key}}.md exists as a file</action>
+      <action>Verify ATDD checklist artifact written to disk: check that {test_artifacts}/atdd/atdd-checklist-{{story_key}}.md exists as a file</action>
       <check if="atdd checklist file does NOT exist on disk">
         <output>⚠ ATDD phase passed but checklist artifact was not saved to disk. Saving now...</output>
-        <action>Write the ATDD checklist to {test_artifacts}/atdd-checklist-{{story_key}}.md — include: phase gate status table (test file created, ACs referenced, compile clean, tests RED), scaffold file path, list of generated tests with AC mapping, and (if applicable) data-testid contract table</action>
+        <action>Write the ATDD checklist to {test_artifacts}/atdd/atdd-checklist-{{story_key}}.md — include: phase gate status table (test file created, ACs referenced, compile clean, tests RED), scaffold file path, list of generated tests with AC mapping, and (if applicable) data-testid contract table</action>
         <check if="file still does not exist after save attempt">
           <output>🚫 BLOCKED — ATDD checklist artifact could not be persisted to disk.
 
-Manual action required: save the checklist to \_bmad-output/test-artifacts/atdd-checklist-{{story_key}}.md and re-run this lifecycle.</output>
+Manual action required: save the checklist to \_bmad-output/test-artifacts/atdd/atdd-checklist-{{story_key}}.md and re-run this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "atdd-checklist artifact not persisted", last_updated → now</action>
 <action>HALT</action>
 </check>
@@ -492,7 +494,7 @@ Manual review of story acceptance criteria and test scaffolds required.</output>
 
     <action>Execute the bmad-dev-story workflow:
       - Load: {project-root}/.agents/skills/bmad-dev-story/SKILL.md
-      - Story: {implementation_artifacts}/{{story_key}}.md
+      - Story: {implementation_artifacts}/stories/{{story_key}}.md
       - The skill's ATDD preflight will pass — scaffolds confirmed in the atdd phase (phase 5)
     </action>
 
@@ -547,6 +549,11 @@ Escalating to {{user_name}} for manual intervention.</output>
     <check if="zero BLOCKER items found">
       <output>✅ Code review passed. No blockers.</output>
       <action>Update sprint-status.yaml: {{story_key}} → ready-for-testing</action>
+      <action>Verify code-review artifact written to disk: check that {implementation_artifacts}/code-reviews/code-review-{{story_key}}.md exists as a file</action>
+      <check if="code-review file does NOT exist on disk">
+        <output>⚠ Code review passed but report was not saved. Saving now...</output>
+        <action>Write the code review report to {implementation_artifacts}/code-reviews/code-review-{{story_key}}.md — include: YAML frontmatter (story_key, date, verdict: pass), findings summary (counts by severity), full findings list, and overall gate decision</action>
+      </check>
       <action>Update lifecycle state: append 'code-review' to phases_completed, current_phase → 'test-automate', last_updated → now</action>
     </check>
 
@@ -599,7 +606,7 @@ Escalating to {{user_name}}.</output>
       - Scope: story {{story_key}} — new code paths only
       - Mode: Create
       - Execution: dispatch as a SUBAGENT on Claude Sonnet (writing/expanding test code is a coding task).
-      - The base automate skill writes a generic {test_artifacts}/automation-summary.md — instruct the subagent to write the PER-STORY file {test_artifacts}/automation-summary-{{story_key}}.md.
+      - The base automate skill writes a generic {test_artifacts}/automation-summary.md — instruct the subagent to write the PER-STORY file {test_artifacts}/automation-summaries/automation-summary-{{story_key}}.md.
       - If the story requires E2E/container tests, load {project-root}/docs/testing/test-environment.md for how to bring the stack up.
     </action>
 
@@ -611,14 +618,14 @@ Escalating to {{user_name}}.</output>
 
     <check if="all verifications pass">
       <output>✅ Test automation complete for {{story_key}}.</output>
-      <action>Verify automation-summary artifact written to disk: check that {test_artifacts}/automation-summary-{{story_key}}.md exists as a file</action>
+      <action>Verify automation-summary artifact written to disk: check that {test_artifacts}/automation-summaries/automation-summary-{{story_key}}.md exists as a file</action>
       <check if="automation-summary file does NOT exist on disk">
         <output>⚠ Test-automate phase passed but the automation-summary artifact was not saved to disk. Saving now...</output>
-        <action>Write the automation summary to {test_artifacts}/automation-summary-{{story_key}}.md — include: YAML frontmatter (story_key, generated date), a coverage table (AC → test file → layer → status), tests added this phase, total test counts per suite, and any intentional coverage gaps with rationale</action>
+        <action>Write the automation summary to {test_artifacts}/automation-summaries/automation-summary-{{story_key}}.md — include: YAML frontmatter (story_key, generated date), a coverage table (AC → test file → layer → status), tests added this phase, total test counts per suite, and any intentional coverage gaps with rationale</action>
         <check if="file still does not exist after save attempt">
           <output>🚫 BLOCKED — automation-summary artifact could not be persisted to disk.
 
-Manual action required: save the summary to \_bmad-output/test-artifacts/automation-summary-{{story_key}}.md and re-run this lifecycle.</output>
+Manual action required: save the summary to \_bmad-output/test-artifacts/automation-summaries/automation-summary-{{story_key}}.md and re-run this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "automation-summary artifact not persisted", last_updated → now</action>
 <action>HALT</action>
 </check>
@@ -665,8 +672,20 @@ Escalating to {{user_name}}.</output>
 
     <check if="zero BLOCKER items — test quality acceptable">
       <output>✅ Test review passed for {{story_key}}.</output>
-      <action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
-    </check>
+      <action>Verify test-review artifact written to disk: check that {test_artifacts}/test-reviews/test-review-{{story_key}}.md exists as a file</action>
+      <check if="test-review file does NOT exist on disk">
+        <output>⚠ Test review passed but report artifact was not saved to disk. Saving now...</output>
+        <action>Write the test quality review report to {test_artifacts}/test-reviews/test-review-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), quality score, findings table (BLOCKER/MAJOR/MINOR counts), AC coverage table, and overall gate decision with rationale</action>
+        <check if="file still does not exist after save attempt">
+          <output>🚫 BLOCKED — Test review report could not be persisted to disk.
+
+Manual action required: save the review to \_bmad-output/test-artifacts/test-reviews/test-review-{{story_key}}.md and re-run this lifecycle.</output>
+<action>Update lifecycle state: status → blocked, blocked_reason → "test-review artifact not persisted", last_updated → now</action>
+<action>HALT</action>
+</check>
+</check>
+<action>Update lifecycle state: append 'test-review' to phases_completed, current_phase → 'nfr', last_updated → now</action>
+</check>
 
     <check if="BLOCKER items found (test gaps that require code changes)">
       <output>⚠ Test review blockers require code changes. Running QuickDev fix (cycle {{quickdev_cycle + 1}} of 2)...</output>
@@ -717,14 +736,14 @@ Escalating to {{user_name}}.</output>
 
     <check if="zero BLOCKER items found — all audited NFR areas pass">
       <output>✅ NFR audit passed for {{story_key}}.</output>
-      <action>Verify NFR assessment artifact written to disk: check that {test_artifacts}/nfr-assessment-{{story_key}}.md exists as a file</action>
+      <action>Verify NFR assessment artifact written to disk: check that {test_artifacts}/nfr/nfr-assessment-{{story_key}}.md exists as a file</action>
       <check if="nfr assessment file does NOT exist on disk">
         <output>⚠ NFR audit passed but assessment artifact was not saved to disk. Saving now...</output>
-        <action>Write the NFR assessment to {test_artifacts}/nfr-assessment-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), evidence table per NFR category (performance, security, reliability, maintainability), and overall gate decision with rationale</action>
+        <action>Write the NFR assessment to {test_artifacts}/nfr/nfr-assessment-{{story_key}}.md — include: YAML frontmatter (story_key, generated date, verdict), evidence table per NFR category (performance, security, reliability, maintainability), and overall gate decision with rationale</action>
         <check if="file still does not exist after save attempt">
           <output>🚫 BLOCKED — NFR assessment artifact could not be persisted to disk.
 
-Manual action required: save the assessment to \_bmad-output/test-artifacts/nfr-assessment-{{story_key}}.md and re-run this lifecycle.</output>
+Manual action required: save the assessment to \_bmad-output/test-artifacts/nfr/nfr-assessment-{{story_key}}.md and re-run this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "nfr-assessment artifact not persisted", last_updated → now</action>
 <action>HALT</action>
 </check>
@@ -784,14 +803,14 @@ Escalating to {{user_name}}.</output>
 
     <check if="quality gate decision is PASS or WAIVED">
       <output>✅ Traceability gate passed for {{story_key}}.</output>
-      <action>Verify artifact written to disk: check that {test_artifacts}/traceability-matrix-{{story_key}}.md exists as a file</action>
+      <action>Verify artifact written to disk: check that {test_artifacts}/traceability/traceability-matrix-{{story_key}}.md exists as a file</action>
       <check if="traceability matrix file does NOT exist on disk">
         <output>⚠ Gate passed but traceability matrix was not saved to disk. Saving artifact now...</output>
-        <action>Write the traceability matrix generated by bmad-testarch-trace to {test_artifacts}/traceability-matrix-{{story_key}}.md — use create_file or equivalent tool; do NOT rely on in-context output only</action>
+        <action>Write the traceability matrix generated by bmad-testarch-trace to {test_artifacts}/traceability/traceability-matrix-{{story_key}}.md — use create_file or equivalent tool; do NOT rely on in-context output only</action>
         <check if="file still does not exist after save attempt">
           <output>🚫 BLOCKED — Traceability matrix could not be persisted to disk.
 
-Manual action required: save the matrix to \_bmad-output/test-artifacts/traceability-matrix-{{story_key}}.md and re-run this lifecycle.</output>
+Manual action required: save the matrix to \_bmad-output/test-artifacts/traceability/traceability-matrix-{{story_key}}.md and re-run this lifecycle.</output>
 <action>Update lifecycle state: status → blocked, blocked_reason → "traceability matrix artifact not persisted", last_updated → now</action>
 <action>HALT</action>
 </check>
@@ -883,8 +902,8 @@ Escalating to {{user_name}}.</output>
     <action>Evaluate PR readiness by checking ALL of the following conditions:
       PR-1: sprint-status.yaml shows {{story_key}} → done
       PR-2: All DoD gates still pass (dotnet test + npm run build + dotnet build — re-run if last run was >30 min ago)
-      PR-3: {test_artifacts}/traceability-matrix-{{story_key}}.md exists on disk
-      PR-4: {implementation_artifacts}/{{story_key}}.md status field = "review" or "done"
+      PR-3: {test_artifacts}/traceability/traceability-matrix-{{story_key}}.md exists on disk
+      PR-4: {implementation_artifacts}/stories/{{story_key}}.md status field = "review" or "done"
       PR-5: No uncommitted changes remain (git status clean, or only untracked _bmad-output files)
     </action>
 
@@ -899,7 +918,7 @@ Escalating to {{user_name}}.</output>
 1. **Now →** `feature/{{story_key}}` → `release/v{{release_version}}`
 2. **After PR 1 is merged →** `release/v{{release_version}}` → `main` — triggers Docker publish + GitHub Release.
    {{else}}
-   Open a pull request: `feature/{{story_key}}` → `release/v{{release_version}}`
+   Target: `feature/{{story_key}}` → `release/v{{release_version}}`
    {{/if}}
 
 Checklist confirmed:
@@ -910,7 +929,26 @@ Checklist confirmed:
 - ✅ PR-4: Story file status correct
 - ✅ PR-5: Working tree clean
   </output>
-  </check>
+
+      <action>Ask the user: "Shall I create the pull request now? Reply **yes** to open it automatically, or **no** to skip."</action>
+
+      <check if="user replied yes">
+        <action>Create the pull request:
+          1. Read {implementation_artifacts}/stories/{{story_key}}.md — extract the story title from the frontmatter `title` field or the first H1 heading
+          2. Run in terminal: gh pr create --title "{{story_title}}" --body "Lifecycle complete — all 11 phases passed.\n\nTraceability matrix: `_bmad-output/test-artifacts/traceability/traceability-matrix-{{story_key}}.md`" --base "release/v{{release_version}}" --head "feature/{{story_key}}"
+          3. Capture the PR URL printed by the CLI (the https://github.com/... line)
+        </action>
+        <output>✅ Pull request created: {{pr_url}}
+{{#if epic_all_done}}
+⚠️ After this PR merges, open a second PR: `release/v{{release_version}}` → `main` to trigger the Docker publish + GitHub Release.
+{{/if}}</output>
+      </check>
+
+      <check if="user replied no or did not answer yes">
+        <output>PR creation skipped — open manually when ready:
+  `feature/{{story_key}}` → `release/v{{release_version}}`</output>
+      </check>
+    </check>
 
       <check if="any PR condition fails">
         <output>
@@ -919,7 +957,7 @@ Checklist confirmed:
 
 {{#if !PR-1}}❌ PR-1: sprint-status is not 'done' for this story{{/if}}
 {{#if !PR-2}}❌ PR-2: DoD gate failure detected — fix before opening PR{{/if}}
-{{#if !PR-3}}❌ PR-3: Traceability matrix missing from disk (\_bmad-output/test-artifacts/traceability-matrix-{{story_key}}.md){{/if}}
+{{#if !PR-3}}❌ PR-3: Traceability matrix missing from disk (\_bmad-output/test-artifacts/traceability/traceability-matrix-{{story_key}}.md){{/if}}
 {{#if !PR-4}}❌ PR-4: Story file status incorrect (expected 'review' or 'done'){{/if}}
 {{#if !PR-5}}❌ PR-5: Uncommitted changes remain — commit or stash before opening PR{{/if}}
 

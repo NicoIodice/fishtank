@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./tests/unit/setup.ts"],
+    setupFiles: ["./tests/unit/setup.ts", "./src/test/setup.ts"],
     include: ["tests/unit/**/*.test.{ts,tsx}"],
     exclude: ["tests/e2e/**", "node_modules/**"],
     // Run all test files in a single fork (Vitest 4: isolate:false + maxWorkers:1
@@ -17,6 +17,19 @@ export default defineConfig({
     // timeout on Windows when the system is loaded (e.g. after a dotnet build).
     isolate: false,
     maxWorkers: 1,
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/**/*.d.ts",
+        "src/test/**",
+        "src/**/__tests__/**",
+      ],
+      reporter: ["text", "json-summary", "lcov"],
+      reportsDirectory: "./coverage",
+    },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

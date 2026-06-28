@@ -26,6 +26,9 @@ namespace Fishtank.Api.Migrations
                     b.Property<Guid>("BootEpoch")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("CaptureFullHeaders")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.ToTable("ServerConfigs");

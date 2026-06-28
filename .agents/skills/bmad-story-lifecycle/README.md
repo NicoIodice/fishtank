@@ -18,14 +18,14 @@ Phase order: `create-story → validate → atdd → dev-story` (validate runs *
 | 1 | `preflight-framework` | `bmad-testarch-framework` *(pre-req)* | inline | Opus | `framework-setup-progress.md` + step-05 done |
 | 2 | `preflight-test-design` | `bmad-testarch-test-design` | subagent | Opus | `test-design-epic-N.md` exists + quality gate |
 | 3 | `create-story` | `bmad-create-story` | subagent | Opus | story file exists, status: `ready-for-dev` |
-| 4 | `validate` | `bmad-check-implementation-readiness` | inline | Opus | zero BLOCKERs |
+| 4 | `validate` | `bmad-create-story:validate` | inline | Opus | zero BLOCKERs |
 | 5 | `atdd` | `bmad-testarch-atdd` | subagent | Sonnet | ≥1 test file exists, all tests **RED** |
 | 6 | `dev-story` | `bmad-dev-story` | subagent | Sonnet | DoD gates 1–4 all **GREEN** |
 | 7 | `code-review` | `bmad-code-review` | subagent | Opus | zero BLOCKERs |
 | 8 | `test-automate` | `bmad-testarch-automate` | subagent | Sonnet | ATDD GREEN + no regressions + **E2E gate** |
-| 9 | `nfr` | `bmad-testarch-nfr` | subagent | Opus | zero BLOCKERs (perf / security / reliability) |
-| 10 | `trace` | `bmad-testarch-trace` | subagent | Opus | gate: PASS or WAIVED |
-| 11 | `test-review` | `bmad-testarch-test-review` | subagent | Opus | zero BLOCKERs |
+| 9 | `test-review` | `bmad-testarch-test-review` | subagent | Opus | zero BLOCKERs |
+| 10 | `nfr` | `bmad-testarch-nfr` | subagent | Opus | zero BLOCKERs (perf / security / reliability) |
+| 11 | `trace` | `bmad-testarch-trace` | subagent | Opus | gate: PASS or WAIVED |
 | 12 | `done` | — *(+ team-override done phase)* | inline | Opus | sprint-status/releases updated, CHANGELOG, commit, push |
 
 > **`bmad-testarch-ci`** is a one-time infrastructure setup skill (run once per project), not a per-story phase.
@@ -39,14 +39,14 @@ Phase order: `create-story → validate → atdd → dev-story` (validate runs *
 | `bmad-testarch-framework` | Test framework scaffold (Playwright + xUnit) — preflight pre-req |
 | `bmad-testarch-test-design` | Epic-level test strategy / risk assessment — preflight |
 | `bmad-create-story` | Story context engine — authors the implementation-ready story file |
-| `bmad-check-implementation-readiness` | Gatekeeper — confirms the story spec has no blockers before coding |
+| `bmad-create-story:validate` | Gatekeeper — validates the story spec against the checklist and confirms zero BLOCKERs before coding |
 | `bmad-testarch-atdd` | Writes red-phase acceptance tests against the ACs |
 | `bmad-dev-story` | Senior engineer — implements the story to pass the DoD gates |
 | `bmad-code-review` | Adversarial reviewer — Blind Hunter / Edge-Case Hunter / Acceptance Auditor |
 | `bmad-testarch-automate` | Expands automated coverage on new code paths |
+| `bmad-testarch-test-review` | Reviews test quality (assertions, determinism, anti-patterns) |
 | `bmad-testarch-nfr` | Audits NFR evidence (performance, security, reliability, maintainability) |
 | `bmad-testarch-trace` | Builds the AC→test traceability matrix + coverage gate |
-| `bmad-testarch-test-review` | Reviews test quality (assertions, determinism, anti-patterns) |
 | `bmad-quick-dev` | Targeted fix engine used inside QuickDev fix cycles |
 
 ---
@@ -80,7 +80,7 @@ When `quickdev_cycle > 2` the lifecycle **HALTS** and escalates regardless of wh
 
 ### Fix Cycle Re-entry Rule
 
-When `test-review` triggers a code fix and sends flow back to `test-automate`, the phases `test-automate`, `nfr`, and `trace` are removed from `phases_completed` to force full re-execution of all three.
+When `test-review` triggers a code fix and sends flow back to `test-automate`, the phases `test-automate` and `test-review` are removed from `phases_completed` to force re-execution of both (nfr and trace have not yet run).
 
 ---
 
@@ -142,7 +142,7 @@ flowchart TD
 
     subgraph PH4["④ VALIDATE · inline · Opus"]
         direction TB
-        PH4A["bmad-check-implementation-readiness"]
+        PH4A["bmad-create-story:validate"]
         PH4A_OK{"zero\nBLOCKERs?"}
         PH4A_FIX["Fix story spec\n(retry ≤ 2)"]
         PH4A_PASS["✅ Story implementation-ready"]
@@ -209,48 +209,48 @@ flowchart TD
     PH8E -->|fail, budget| PH8A_FIX
     PH8E -->|app down| PH8A_HALT
 
-    subgraph PH9["⑨ NFR AUDIT · subagent · Opus"]
+    subgraph PH9["⑨ TEST REVIEW · subagent · Opus"]
         direction TB
-        PH9A["bmad-testarch-nfr\nperf · security · reliability"]
+        PH9A["bmad-testarch-test-review"]
         PH9A_OK{"zero\nBLOCKERs?"}
-        PH9A_FIX["bmad-quick-dev (Sonnet)"]
-        PH9A_PASS["✅ NFR audited + assessment saved"]
+        PH9A_CODE{"code changes\nrequired?"}
+        PH9A_FIX_CODE["bmad-quick-dev (Sonnet)\nclear test-automate+test-review"]
+        PH9A_FIX_TEST["Fix test logic directly"]
+        PH9A_PASS["✅ Test quality approved"]
         PH9A_HALT(["🚫 HALT — escalate"])
     end
     PH9A --> PH9A_OK
     PH9A_OK -->|yes| PH9A_PASS --> PH10A
-    PH9A_OK -->|no, budget| PH9A_FIX --> PH9A
-    PH9A_OK -->|no, exhausted| PH9A_HALT
+    PH9A_OK -->|no| PH9A_CODE
+    PH9A_CODE -->|yes, budget| PH9A_FIX_CODE --> PH8A
+    PH9A_CODE -->|yes, exhausted| PH9A_HALT
+    PH9A_CODE -->|no| PH9A_FIX_TEST --> PH9A
 
-    subgraph PH10["⑩ TRACEABILITY · subagent · Opus"]
+    subgraph PH10["⑩ NFR AUDIT · subagent · Opus"]
         direction TB
-        PH10A["bmad-testarch-trace\nreq → test matrix"]
-        PH10A_OK{"gate: PASS\nor WAIVED?"}
-        PH10A_FIX["Add coverage (retry ≤ 2)"]
-        PH10A_PASS["✅ Traceability gate passed"]
+        PH10A["bmad-testarch-nfr\nperf · security · reliability"]
+        PH10A_OK{"zero\nBLOCKERs?"}
+        PH10A_FIX["bmad-quick-dev (Sonnet)"]
+        PH10A_PASS["✅ NFR audited + assessment saved"]
         PH10A_HALT(["🚫 HALT — escalate"])
     end
     PH10A --> PH10A_OK
     PH10A_OK -->|yes| PH10A_PASS --> PH11A
-    PH10A_OK -->|no, retry| PH10A_FIX --> PH10A
+    PH10A_OK -->|no, budget| PH10A_FIX --> PH10A
     PH10A_OK -->|no, exhausted| PH10A_HALT
 
-    subgraph PH11["⑪ TEST REVIEW · subagent · Opus"]
+    subgraph PH11["⑪ TRACEABILITY · subagent · Opus"]
         direction TB
-        PH11A["bmad-testarch-test-review"]
-        PH11A_OK{"zero\nBLOCKERs?"}
-        PH11A_CODE{"code changes\nrequired?"}
-        PH11A_FIX_CODE["bmad-quick-dev (Sonnet)\nclear test-automate+nfr+trace"]
-        PH11A_FIX_TEST["Fix test logic directly"]
-        PH11A_PASS["✅ Test quality approved"]
+        PH11A["bmad-testarch-trace\nreq → test matrix"]
+        PH11A_OK{"gate: PASS\nor WAIVED?"}
+        PH11A_FIX["Add coverage (retry ≤ 2)"]
+        PH11A_PASS["✅ Traceability gate passed"]
         PH11A_HALT(["🚫 HALT — escalate"])
     end
     PH11A --> PH11A_OK
     PH11A_OK -->|yes| PH11A_PASS --> PH12A
-    PH11A_OK -->|no| PH11A_CODE
-    PH11A_CODE -->|yes, budget| PH11A_FIX_CODE --> PH8A
-    PH11A_CODE -->|yes, exhausted| PH11A_HALT
-    PH11A_CODE -->|no| PH11A_FIX_TEST --> PH11A
+    PH11A_OK -->|no, retry| PH11A_FIX --> PH11A
+    PH11A_OK -->|no, exhausted| PH11A_HALT
 
     subgraph PH12["⑫ DONE · inline · Opus"]
         direction TB
@@ -310,7 +310,8 @@ Each is verified-on-disk before the phase advances (the orchestrator re-saves if
 
 | Artifact | Phase | Path |
 |----------|-------|------|
-| `atdd-checklist-{key}.md` | atdd | `_bmad-output/test-artifacts/` |
-| `automation-summary-{key}.md` | test-automate | `_bmad-output/test-artifacts/` |
-| `nfr-assessment-{key}.md` | nfr | `_bmad-output/test-artifacts/` |
-| `traceability-matrix-{key}.md` | trace | `_bmad-output/test-artifacts/` |
+| `atdd-checklist-{key}.md` | atdd | `_bmad-output/test-artifacts/atdd/` |
+| `automation-summary-{key}.md` | test-automate | `_bmad-output/test-artifacts/automation-summaries/` |
+| `nfr-assessment-{key}.md` | nfr | `_bmad-output/test-artifacts/nfr/` |
+| `traceability-matrix-{key}.md` | trace | `_bmad-output/test-artifacts/traceability/` |
+| `code-review-{key}.md` | code-review | `_bmad-output/implementation-artifacts/code-reviews/` |

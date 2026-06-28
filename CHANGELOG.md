@@ -10,7 +10,32 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [v0.2.2] — 2026-06-27 (Hotfix)
+## [v0.3.0] — 2026-06-28 (Network Activity)
+
+_Theme: See every request hitting your mock services in real time._
+
+### Added
+
+- **Activity log backend** — in-memory per-service request capture from WireMock mock services, with sensitive header redaction (`Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, `X-Auth-Token`, and any header containing `secret` or `token`) applied at storage time (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`GET /api/activity`** — query the activity log with filters: `serviceId`, `type` (Mocked/Proxied), `search` (URL path or method), and pagination (`skip`/`take`) (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`DELETE /api/activity`** — clear all in-memory activity log entries (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **`PUT /api/settings/capture-headers`** — opt-in toggle to capture headers unredacted; instance-wide setting persisted in the database (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **ActivityHub** — SignalR hub at `/hubs/activity` broadcasting `ActivityRowAdded` events to connected clients within 500 ms of each request (`feature/3-1-activity-log-backend-request-capture-and-header-redaction`)
+- **Network Activity page** — real-time log display at `/activity` showing HTTP request/response rows streamed via SignalR append-only push with virtual scrolling (handles 10 k+ rows, ≤100 DOM nodes), method color chips (GET/POST/PUT/PATCH/DELETE), 5xx error row highlighting via CSS variable `--error-row-bg`, status code badge, URL truncation, and newest-first ordering (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Proxy counter pill** — live popover showing per-service proxied-request counts with error color (#ef4444) when any 5xx response is present (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Activity toolbar** — refresh, live/paused toggle, recording badge, search input, service filter, type filter (Mocked/Proxied), column picker, and clear-log controls (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Keyboard navigation** — ArrowUp/ArrowDown row focus within the activity grid with `role="grid"` and `aria-rowindex` for screen-reader compatibility (`feature/3-2-network-activity-page-real-time-log-display`)
+- **Activity log filtering** — client-side search (URL path + method, case-insensitive OR logic), service dropdown filter (from React Query cache), and type filter (Mocked/Proxied checkboxes) with AND logic across all active filters; proxy counter pill always reflects unfiltered row count (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Activity log column sorting** — sortable column headers (Method, URL Path, Status, Service, Duration ms, DateTime); cycle: unsorted → ascending → descending → unsorted; one column at a time; default is DateTime descending (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **LIVE/PAUSED toggle** — pauses the activity table at a snapshot; new SignalR rows continue arriving but are not displayed until LIVE is resumed; Refresh icon appears in PAUSED mode for manual re-fetch with `animate-spin` animation and `prefers-reduced-motion` respect (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Clear log** — calls `DELETE /api/activity` and clears the in-memory table and proxy counter pill in one action, no confirmation required (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Settings → Network Activity section** — auto-refresh interval (1 s / 2 s / 5 s / Disabled, persisted in `localStorage`), max log entries display (500 / 1 000 / 5 000), and capture full request headers toggle (wires to `PUT /api/settings/capture-headers`) (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Row detail overlays** — click (or press Enter on) any activity log row to open full request/response detail in your preferred style: Modal (560 px centered, focus-trapped), Right Drawer (320 px from right edge, updates in-place on row change), or Bottom Panel (tabbed Request/Response view, close collapses and clears selection); mobile viewports (< 640 px) always use Modal regardless of preference; redacted header values shown as `[REDACTED]`; request/response bodies pretty-printed when valid JSON; "Save as Mock" placeholder rendered for proxied rows (`feature/3-4-row-detail-all-three-display-styles`)
+- **Settings → Appearance — Row detail style** — segmented button group (Modal / Right Drawer / Bottom Panel) lets users choose how row detail appears; preference persisted in `localStorage` and respected across sessions (`feature/3-4-row-detail-all-three-display-styles`)
+
+---
+
+## [v0.3.0] — 2026-06-28 (Network Activity)
 
 ### Changed
 

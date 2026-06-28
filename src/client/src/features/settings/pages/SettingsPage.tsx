@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useBreakpoint } from "@/lib/useBreakpoint";
 import { AppearanceSettings } from "../components/AppearanceSettings";
 import { CacheSettings } from "../components/CacheSettings";
+import { ActivitySettings } from "../components/ActivitySettings";
 
 type SettingsSection = "appearance" | "activity" | "cache" | "mocks-root";
 
@@ -94,6 +95,8 @@ export function SettingsPage() {
         </h2>
         {active === "appearance" ? (
           <AppearanceSettings />
+        ) : active === "activity" ? (
+          <ActivitySettings />
         ) : active === "cache" ? (
           <CacheSettings />
         ) : (

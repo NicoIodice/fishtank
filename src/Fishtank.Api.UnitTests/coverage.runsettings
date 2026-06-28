@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!--
+            Measure coverage only on the unit-tested surface area:
+              - ServiceManager (business logic: create/list/update/stop/start)
+              - ServerConfigService (caching layer)
+              - ServicesRegistry (in-process registry)
+              - Domain exceptions
+
+            CacheService is intentionally excluded: its core paths call
+            WireMock.Server methods directly (ResetMappings, ReadStaticMappings)
+            and are covered by integration tests, not unit tests.
+          -->
+          <Include>[Fishtank.Api]Fishtank.Api.Services.ServiceManager,[Fishtank.Api]Fishtank.Api.Services.ServerConfigService,[Fishtank.Api]Fishtank.Api.Engine.ServicesRegistry,[Fishtank.Api]Fishtank.Api.Exceptions.*</Include>
+          <ExcludeByAttribute>ExcludeFromCodeCoverage,GeneratedCodeAttribute</ExcludeByAttribute>
+          <!-- Enforce >= 90 % line coverage on the included scope -->
+          <Threshold>90</Threshold>
+          <ThresholdType>line</ThresholdType>
+          <ThresholdStat>total</ThresholdStat>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

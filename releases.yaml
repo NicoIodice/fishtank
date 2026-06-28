@@ -84,11 +84,11 @@ releases:
     hotfix: true
     base_version: "v0.2.0"
     epic: null
-    status: "in-progress"
+    status: "released"
     branch: "hotfix/v0.2.1"
     started: "2026-06-27"
-    completed: null
-    released: null
+    completed: "2026-06-27"
+    released: "2026-06-27"
     stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -99,11 +99,11 @@ releases:
     hotfix: true
     base_version: "v0.2.1"
     epic: null
-    status: "in-progress"
+    status: "released"
     branch: "hotfix/v0.2.2"
     started: "2026-06-27"
-    completed: null
-    released: null
+    completed: "2026-06-27"
+    released: "2026-06-27"
     stories: []
 
   # ───────────────────────────────────────────────────────────────────────────
@@ -112,12 +112,20 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.3.0"
     epic: "epic-3"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v0.3.0"
-    started: null
-    completed: null
+    started: "2026-06-27"
+    completed: "2026-06-28"
     released: null
-    stories: []
+    stories:
+      - id: "3-1-activity-log-backend-request-capture-and-header-redaction"
+        status: "done"
+      - id: "3-2-network-activity-page-real-time-log-display"
+        status: "done"
+      - id: "3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls"
+        status: "done"
+      - id: "3-4-row-detail-all-three-display-styles"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.4.0 — Mappings & Mock Capture (Epic 4)

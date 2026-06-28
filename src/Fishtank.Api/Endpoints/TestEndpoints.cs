@@ -1,6 +1,7 @@
 using Fishtank.Api.Data;
 using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Engine;
+using Fishtank.Api.Models;
 using Fishtank.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,8 +25,8 @@ public static class TestEndpoints
                 var severity = body.Severity?.ToLowerInvariant() switch
                 {
                     "warning" => SystemEventSeverity.Warning,
-                    "info"    => SystemEventSeverity.Info,
-                    _         => SystemEventSeverity.Error,
+                    "info" => SystemEventSeverity.Info,
+                    _ => SystemEventSeverity.Error,
                 };
                 await svc.AddAsync(severity, body.Message ?? "Test event", ct: ct);
                 return Results.Json(new { success = true });
@@ -37,9 +38,10 @@ public static class TestEndpoints
         // ServerConfigs is intentionally preserved — it is infrastructure state
         // seeded at startup (BootEpoch) and must not be deleted.
         // Also stops all in-memory WireMock servers so ports are freed between runs.
-        app.MapPost("/api/test/reset-db", async (FishtankDbContext db, IServicesRegistry registry) =>
+        app.MapPost("/api/test/reset-db", async (FishtankDbContext db, IServicesRegistry registry, IActivityStore activityStore) =>
         {
             StopAllWireMock(registry);
+            activityStore.Clear();
             await db.SystemEvents.ExecuteDeleteAsync();
             await db.Services.ExecuteDeleteAsync();
             await db.Users.ExecuteDeleteAsync();
@@ -51,13 +53,52 @@ public static class TestEndpoints
         // Also stops all in-memory WireMock servers so ports are freed.
         // Use before tests that require an empty services list (e.g. P0-1 empty state)
         // without invalidating the authenticated session.
-        app.MapPost("/api/test/reset-services", async (FishtankDbContext db, IServicesRegistry registry) =>
+        app.MapPost("/api/test/reset-services", async (FishtankDbContext db, IServicesRegistry registry, IActivityStore activityStore) =>
         {
             StopAllWireMock(registry);
+            activityStore.Clear();
             await db.SystemEvents.ExecuteDeleteAsync();
             await db.Services.ExecuteDeleteAsync();
             return Results.Json(new { success = true });
         });
+
+        // POST /api/activity/test-seed
+        // Injects an activity row directly into the in-memory store and broadcasts via
+        // SignalR. Allows E2E tests to seed activity rows without real WireMock traffic.
+        // Body: { id?, serviceId, urlPath, method, statusCode, type, durationMs,
+        //         requestHeaders?, requestBody?, responseHeaders?, responseBody? }
+        app.MapPost("/api/activity/test-seed",
+            async (SeedActivityRowRequest body, IActivityService activityService,
+                FishtankDbContext db, CancellationToken ct) =>
+            {
+                var service = await db.Services
+                    .Where(s => s.Id == body.ServiceId && s.DeletedAt == null)
+                    .FirstOrDefaultAsync(ct);
+                if (service is null)
+                    return Results.NotFound(ApiResponse.Fail(
+                        "SERVICE_NOT_FOUND", $"Service '{body.ServiceId}' not found."));
+
+                var row = new ActivityRow
+                {
+                    Id = body.Id ?? Guid.NewGuid(),
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Method = body.Method ?? "GET",
+                    UrlPath = body.UrlPath ?? "/",
+                    StatusCode = body.StatusCode,
+                    Type = Enum.TryParse<ActivityType>(body.Type, ignoreCase: true, out var t)
+                        ? t : ActivityType.Mocked,
+                    ServiceId = body.ServiceId,
+                    ServiceName = service.Name,
+                    ServicePort = service.Port,
+                    DurationMs = body.DurationMs,
+                    RequestHeaders = body.RequestHeaders ?? new(),
+                    RequestBody = body.RequestBody,
+                    ResponseHeaders = body.ResponseHeaders ?? new(),
+                    ResponseBody = body.ResponseBody,
+                };
+                await activityService.CaptureAsync(row);
+                return Results.Json(new { success = true, data = (object?)null });
+            }).RequireAuthorization();
     }
 
     /// <summary>Stops and disposes every WireMock server held in the registry.</summary>
@@ -75,3 +116,17 @@ public static class TestEndpoints
 /// <param name="Severity">"error" | "warning" | "info" — defaults to "error" when omitted or unrecognised.</param>
 /// <param name="Message">Free-text event message inserted verbatim.</param>
 public record SeedEventRequest(string? Severity, string? Message);
+
+/// <summary>Request body for POST /api/activity/test-seed.</summary>
+public record SeedActivityRowRequest(
+    Guid? Id,
+    Guid ServiceId,
+    string? UrlPath,
+    string? Method,
+    int StatusCode,
+    string? Type,
+    int DurationMs,
+    Dictionary<string, string>? RequestHeaders,
+    string? RequestBody,
+    Dictionary<string, string>? ResponseHeaders,
+    string? ResponseBody);
