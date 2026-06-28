@@ -23,6 +23,9 @@ export type SortableColumn =
   | "timestamp";
 
 const ACTIVITY_ROW_HEIGHT_PX = 48;
+// Header height: 12px padding-top + ~14px text + 12px padding-bottom + 2px border = ~40px.
+// Add a couple of px buffer so the first row never slides under the sticky header.
+const ACTIVITY_HEADER_HEIGHT_PX = 44;
 
 interface ActivityTableProps {
   rows: ActivityRow[];
@@ -81,6 +84,7 @@ export function ActivityTable({
     getScrollElement: () => parentRef.current,
     estimateSize: () => ACTIVITY_ROW_HEIGHT_PX,
     overscan: 5,
+    paddingStart: ACTIVITY_HEADER_HEIGHT_PX,
   });
 
   const virtualItems = virtualizer.getVirtualItems();

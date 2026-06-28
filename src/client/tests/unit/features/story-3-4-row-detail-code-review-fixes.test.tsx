@@ -284,9 +284,7 @@ describe("M-4 — useRowDetailStyle accessible from shared hooks path", () => {
 
   it("@/features/activity/hooks/useRowDetailStyle re-exports the same hook", async () => {
     const shared = await import("@/hooks/useRowDetailStyle");
-    const feature = await import(
-      "@/features/activity/hooks/useRowDetailStyle"
-    );
+    const feature = await import("@/features/activity/hooks/useRowDetailStyle");
     // Same function reference via re-export
     expect(feature.useRowDetailStyle).toBe(shared.useRowDetailStyle);
   });
@@ -379,7 +377,6 @@ describe("M-5 — JSON bodies are pretty-printed", () => {
     const { RowDetailPanel } =
       await import("@/features/activity/components/RowDetailPanel");
 
-    const user = userEvent.setup();
     render(
       <Wrapper>
         <RowDetailPanel
@@ -597,9 +594,7 @@ describe("useRowDetailStyle: localStorage error fallback", () => {
   });
 
   it("falls back gracefully when localStorage.getItem throws", async () => {
-    const { useRowDetailStyle } = await import(
-      "@/hooks/useRowDetailStyle"
-    );
+    const { useRowDetailStyle } = await import("@/hooks/useRowDetailStyle");
     const { renderHook, act } = await import("@testing-library/react");
 
     // First render — getItem throws during setRowDetailStyle
@@ -642,9 +637,8 @@ describe("AppearanceSettings: row detail style selector", () => {
   });
 
   it("renders all three row detail style buttons", async () => {
-    const { AppearanceSettings } = await import(
-      "@/features/settings/components/AppearanceSettings"
-    );
+    const { AppearanceSettings } =
+      await import("@/features/settings/components/AppearanceSettings");
 
     render(<AppearanceSettings />);
 
@@ -660,9 +654,8 @@ describe("AppearanceSettings: row detail style selector", () => {
   });
 
   it("clicking a style button persists the choice to localStorage", async () => {
-    const { AppearanceSettings } = await import(
-      "@/features/settings/components/AppearanceSettings"
-    );
+    const { AppearanceSettings } =
+      await import("@/features/settings/components/AppearanceSettings");
 
     const user = userEvent.setup();
     render(<AppearanceSettings />);
@@ -683,20 +676,15 @@ describe("AppearanceSettings: row detail style selector", () => {
       JSON.stringify({ rowDetailStyle: "panel" }),
     );
 
-    const { AppearanceSettings } = await import(
-      "@/features/settings/components/AppearanceSettings"
-    );
+    const { AppearanceSettings } =
+      await import("@/features/settings/components/AppearanceSettings");
 
     render(<AppearanceSettings />);
 
-    const panelBtn = screen.getByTestId(
-      "settings-appearance-row-detail-panel",
-    );
+    const panelBtn = screen.getByTestId("settings-appearance-row-detail-panel");
     expect(panelBtn).toHaveAttribute("aria-pressed", "true");
 
-    const modalBtn = screen.getByTestId(
-      "settings-appearance-row-detail-modal",
-    );
+    const modalBtn = screen.getByTestId("settings-appearance-row-detail-modal");
     expect(modalBtn).toHaveAttribute("aria-pressed", "false");
   });
 });

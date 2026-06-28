@@ -41,53 +41,53 @@ export function RowDetailDrawer({
         data-testid="activity-row-detail-drawer"
         role="complementary"
         aria-label="Request detail"
-      style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: "320px",
-        backgroundColor: "var(--surface-card, #fff)",
-        boxShadow: "var(--shadow-overlay, -4px 0 20px rgba(0,0,0,.15))",
-        zIndex: 50,
-        overflow: "auto",
-        padding: "24px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Header */}
-      <div
         style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: "320px",
+          backgroundColor: "var(--surface-card, #fff)",
+          boxShadow: "var(--shadow-overlay, -4px 0 20px rgba(0,0,0,.15))",
+          zIndex: 50,
+          overflow: "auto",
+          padding: "24px",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-          flexShrink: 0,
+          flexDirection: "column",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 600 }}>
-          Request Detail
-        </h2>
-        <button
-          data-testid="activity-row-detail-close"
-          aria-label="Close"
-          onClick={onClose}
+        {/* Header */}
+        <div
           style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "4px",
-            color: "var(--content-fg, #374151)",
-            lineHeight: 1,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px",
+            flexShrink: 0,
           }}
         >
-          <i className="bi bi-x-lg" aria-hidden="true" />
-        </button>
-      </div>
+          <h2 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 600 }}>
+            Request Detail
+          </h2>
+          <button
+            data-testid="activity-row-detail-close"
+            aria-label="Close"
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px",
+              color: "var(--content-fg, #374151)",
+              lineHeight: 1,
+            }}
+          >
+            <i className="bi bi-x-lg" aria-hidden="true" />
+          </button>
+        </div>
 
-      <RowDetailContent row={row} />
-    </div>
+        <RowDetailContent row={row} />
+      </div>
     </>
   );
 }

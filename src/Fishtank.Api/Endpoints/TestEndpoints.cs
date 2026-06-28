@@ -65,7 +65,8 @@ public static class TestEndpoints
         // POST /api/activity/test-seed
         // Injects an activity row directly into the in-memory store and broadcasts via
         // SignalR. Allows E2E tests to seed activity rows without real WireMock traffic.
-        // Body: { serviceId, urlPath, method, statusCode, type, durationMs }
+        // Body: { id?, serviceId, urlPath, method, statusCode, type, durationMs,
+        //         requestHeaders?, requestBody?, responseHeaders?, responseBody? }
         app.MapPost("/api/activity/test-seed",
             async (SeedActivityRowRequest body, IActivityService activityService,
                 FishtankDbContext db, CancellationToken ct) =>
@@ -79,6 +80,7 @@ public static class TestEndpoints
 
                 var row = new ActivityRow
                 {
+                    Id = body.Id ?? Guid.NewGuid(),
                     Timestamp = DateTimeOffset.UtcNow,
                     Method = body.Method ?? "GET",
                     UrlPath = body.UrlPath ?? "/",
@@ -89,6 +91,10 @@ public static class TestEndpoints
                     ServiceName = service.Name,
                     ServicePort = service.Port,
                     DurationMs = body.DurationMs,
+                    RequestHeaders = body.RequestHeaders ?? new(),
+                    RequestBody = body.RequestBody,
+                    ResponseHeaders = body.ResponseHeaders ?? new(),
+                    ResponseBody = body.ResponseBody,
                 };
                 await activityService.CaptureAsync(row);
                 return Results.Json(new { success = true, data = (object?)null });
@@ -113,9 +119,14 @@ public record SeedEventRequest(string? Severity, string? Message);
 
 /// <summary>Request body for POST /api/activity/test-seed.</summary>
 public record SeedActivityRowRequest(
+    Guid? Id,
     Guid ServiceId,
     string? UrlPath,
     string? Method,
     int StatusCode,
     string? Type,
-    int DurationMs);
+    int DurationMs,
+    Dictionary<string, string>? RequestHeaders,
+    string? RequestBody,
+    Dictionary<string, string>? ResponseHeaders,
+    string? ResponseBody);

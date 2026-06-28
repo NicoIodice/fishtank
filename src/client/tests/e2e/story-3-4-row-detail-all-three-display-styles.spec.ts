@@ -131,7 +131,7 @@ async function setRowDetailStyle(
   style: "modal" | "drawer" | "panel",
 ): Promise<void> {
   await page.click('[data-testid="sidebar-nav-settings"]');
-  await expect(page.locator("h1, h2").first()).toContainText(/settings/i);
+  await page.waitForURL(/\/settings/, { timeout: 5000 });
 
   // Click the Appearance sub-nav link if it exists
   const appearanceLink = page.locator(
@@ -245,10 +245,10 @@ test("T15: AC-1 AC-2 — clicking a row opens the Modal with all fields (P0)", a
   ).toContainText("[REDACTED]");
   await expect(
     modal.locator('[data-testid="activity-row-detail-request-body"]'),
-  ).toContainText('{"amount":42}');
+  ).toContainText('"amount": 42');
   await expect(
     modal.locator('[data-testid="activity-row-detail-response-body"]'),
-  ).toContainText('{"id":"mock-1"}');
+  ).toContainText('"id": "mock-1"');
 
   // Assert Esc closes the modal
   await page.keyboard.press("Escape");
@@ -313,10 +313,10 @@ test("T16: AC-2 AC-9 — setting preference to Right Drawer opens drawer on row 
   await page.keyboard.press("Escape");
   await expect(drawer).not.toBeVisible({ timeout: 2000 });
 
-  // Assert click outside closes the drawer
+  // Assert click outside (backdrop) closes the drawer
   await rowLocator.click();
   await expect(drawer).toBeVisible({ timeout: 3000 });
-  await page.locator("h1").click(); // click outside
+  await page.locator('[data-testid="activity-row-detail-drawer-backdrop"]').click();
   await expect(drawer).not.toBeVisible({ timeout: 2000 });
 });
 
@@ -426,10 +426,13 @@ test("T18: AC-8 — keyboard Enter on focused row opens row detail (P1)", async 
   const rowLocator = page.locator(`[data-testid="activity-row-${rowId}"]`);
   await expect(rowLocator).toBeVisible({ timeout: 5000 });
 
-  // Focus the row (click without opening detail — the row gets focus)
-  await rowLocator.focus();
+  // Focus the grid container, then use ArrowDown to select the first row.
+  // (The Enter handler requires focusedIndex to be non-null, which is set by
+  // arrow-key navigation, not by direct element focus.)
+  await page.locator('[role="grid"]').focus();
+  await page.keyboard.press("ArrowDown");
 
-  // RED: Enter key does not open detail
+  // Enter on the focused row opens the row detail
   await page.keyboard.press("Enter");
 
   const modal = page.locator('[data-testid="activity-row-detail-modal"]');
@@ -478,14 +481,17 @@ test("T19: AC-5 — proxied row shows disabled Save as Mock button in detail (P2
   const modal = page.locator('[data-testid="activity-row-detail-modal"]');
   await expect(modal).toBeVisible({ timeout: 3000 });
 
-  // Assert "Save as Mock" button is visible (proxied row)
+  // Assert "Save as Mock" button is visible and disabled (proxied rows have it disabled
+  // until the feature is fully implemented — M-3 fix from code review).
   const saveMockBtn = modal.locator(
     '[data-testid="activity-row-detail-save-mock"]',
   );
   await expect(saveMockBtn).toBeVisible();
+  await expect(saveMockBtn).toBeDisabled();
 
-  // Clicking is a no-op — page should not navigate away
-  await saveMockBtn.click();
+  // Clicking a disabled button is a no-op — page should not navigate away.
+  // force: true is required to click a disabled element.
+  await saveMockBtn.click({ force: true });
   await expect(modal).toBeVisible(); // still open
   await expect(page).toHaveURL(/\/activity/);
 });
