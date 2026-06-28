@@ -7,7 +7,7 @@
 #   lint          → ESLint on the React client
 #   backend-test  → xUnit unit + integration tests (parallel matrix: unit | integration)
 #   frontend-test → Playwright E2E — 4 parallel shards (chromium)
-#   burn-in       → 3-iteration flaky-test detection (PRs + weekly schedule)
+#   burn-in       → 3-iteration flaky-test detection (nightly schedule only)
 #   report        → Aggregate Job Summary
 #
 # Required secrets: none (add PACT_BROKER_* if contract testing is enabled later)
@@ -22,8 +22,8 @@ on:
     branches-ignore:
       - main
   schedule:
-    # Weekly burn-in — Sundays 02:00 UTC
-    - cron: "0 2 * * 0"
+    # Nightly Burn-In (Flaky Detection) — 02:00 UTC
+    - cron: "0 2 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
@@ -237,14 +237,14 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # BURN-IN — flaky test detection (PRs + weekly schedule)
+  # BURN-IN — flaky test detection (nightly schedule only)
   # ─────────────────────────────────────────────────────────────────────────────
   burn-in:
-    name: Burn-In (Flaky Detection — 3 iterations)
+    name: Nightly Burn-In (Flaky Detection — 3 iterations)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [backend-test, frontend-test]
-    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
 
     steps:
       - uses: actions/checkout@v5
