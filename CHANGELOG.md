@@ -10,6 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — v0.4.0 (Mappings & Mock Capture)
+
+_Theme: Edit mock files in the browser and record real traffic into permanent stubs._
+
+---
+
 ## [v0.3.0] — 2026-06-28 (Network Activity)
 
 _Theme: See every request hitting your mock services in real time._

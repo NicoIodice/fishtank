@@ -112,11 +112,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.3.0"
     epic: "epic-3"
-    status: "in-progress"
+    status: "released"
     branch: "release/v0.3.0"
     started: "2026-06-27"
     completed: "2026-06-28"
-    released: null
+    released: "2026-06-28"
     stories:
       - id: "3-1-activity-log-backend-request-capture-and-header-redaction"
         status: "done"
@@ -133,12 +133,14 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.4.0"
     epic: "epic-4"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v0.4.0"
-    started: null
+    started: "2026-06-28"
     completed: null
     released: null
-    stories: []
+    stories:
+      - id: "4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine"
+        status: "in-progress"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.5.0 — Admin Console (Epic 5)
