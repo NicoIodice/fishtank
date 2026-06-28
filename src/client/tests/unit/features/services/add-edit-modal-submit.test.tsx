@@ -14,7 +14,6 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const mockApiFetch = vi.hoisted(() => vi.fn());
