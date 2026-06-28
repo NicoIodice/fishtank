@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { ProxyCounterPill } from "@/features/activity/ProxyCounterPill";
 import type { ActivityRow } from "@/features/activity/types";
@@ -119,5 +120,32 @@ describe("ProxyCounterPill — Story 3.2 AC-10", () => {
     // Popover open — press Escape
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByText(/No proxied requests/)).not.toBeInTheDocument();
+  });
+
+  it("AC-10: clicking outside the pill and popover closes the popover", async () => {
+    const rows: ActivityRow[] = [makeRow({ type: "Proxied" })];
+    const user = userEvent.setup();
+    render(
+      <div>
+        <ProxyCounterPill rows={rows} />
+        <button data-testid="outside">outside</button>
+      </div>,
+    );
+    await user.click(screen.getByTestId("activity-pill-proxy-count")); // open
+    // Popover is open — should show proxied count text
+    expect(screen.getByTestId("activity-pill-proxy-count")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+
+    // Click something entirely outside — triggers handleClickOutside
+    fireEvent.mouseDown(screen.getByTestId("outside"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("activity-pill-proxy-count")).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      ),
+    );
   });
 });

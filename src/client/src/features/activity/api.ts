@@ -17,3 +17,7 @@ export async function fetchActivityRows(
   // API returns ApiResponse.Ok(rows) → apiFetch unwraps body.data → ActivityRow[]
   return apiFetch<ActivityRow[]>(path);
 }
+
+export async function clearActivityLog(): Promise<void> {
+  await apiFetch<null>("/api/activity", { method: "DELETE" });
+}

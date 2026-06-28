@@ -202,4 +202,190 @@ public class ServiceManagerTests : IDisposable
         var service = new Service { TagsJson = "" };
         service.Tags.Should().BeEmpty();
     }
+
+    // ─── ListAsync ────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "ListAsync returns only non-deleted services ordered by CreatedAt")]
+    public async Task ListAsync_ReturnsNonDeletedServicesInOrder()
+    {
+        var sut = BuildSut();
+        var earlier = DateTimeOffset.UtcNow.AddHours(-1);
+        var later = DateTimeOffset.UtcNow;
+
+        _db.Services.Add(new Service { Name = "B", Slug = "b", ExternalUrl = "https://b.example.com", Port = 30101, MocksRoot = "/mocks/b", CreatedAt = later });
+        _db.Services.Add(new Service { Name = "A", Slug = "a", ExternalUrl = "https://a.example.com", Port = 30100, MocksRoot = "/mocks/a", CreatedAt = earlier });
+        _db.Services.Add(new Service { Name = "Deleted", Slug = "del", ExternalUrl = "https://del.example.com", Port = 30102, MocksRoot = "/mocks/del", DeletedAt = DateTimeOffset.UtcNow });
+        await _db.SaveChangesAsync();
+
+        var result = await sut.ListAsync();
+
+        result.Should().HaveCount(2);
+        result[0].Name.Should().Be("A");
+        result[1].Name.Should().Be("B");
+    }
+
+    [Fact(DisplayName = "ListAsync returns empty list when no services exist")]
+    public async Task ListAsync_NoServices_ReturnsEmpty()
+    {
+        var sut = BuildSut();
+
+        var result = await sut.ListAsync();
+
+        result.Should().BeEmpty();
+    }
+
+    // ─── UpdateAsync ──────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "UpdateAsync throws NotFoundException for unknown service id")]
+    public async Task UpdateAsync_UnknownId_ThrowsNotFound()
+    {
+        var sut = BuildSut();
+
+        var act = async () => await sut.UpdateAsync(Guid.NewGuid(),
+            new UpdateServiceRequest("New Name", null, "https://api.example.com", 30100, null));
+
+        (await act.Should().ThrowAsync<NotFoundException>())
+            .Which.ErrorCode.Should().Be("SERVICE_NOT_FOUND");
+    }
+
+    [Fact(DisplayName = "UpdateAsync updates name, description, and tags")]
+    public async Task UpdateAsync_ValidRequest_UpdatesFields()
+    {
+        var service = new Service
+        {
+            Name = "Old Name",
+            Slug = "old-name",
+            ExternalUrl = "https://api.example.com",
+            Port = 30100,
+            MocksRoot = "/mocks/old-name"
+        };
+        _db.Services.Add(service);
+        await _db.SaveChangesAsync();
+
+        var sut = BuildSut();
+
+        var result = await sut.UpdateAsync(service.Id,
+            new UpdateServiceRequest("New Name", "desc", "https://api.example.com", 30100, ["tag1"]));
+
+        result.Name.Should().Be("New Name");
+        result.Slug.Should().Be("new-name");
+        result.Tags.Should().BeEquivalentTo(["tag1"]);
+    }
+
+    [Fact(DisplayName = "UpdateAsync throws SERVICE_SLUG_CONFLICT when new slug already exists")]
+    public async Task UpdateAsync_SlugConflict_ThrowsSlugConflict()
+    {
+        _db.Services.Add(new Service { Name = "Service A", Slug = "service-a", ExternalUrl = "https://a.example.com", Port = 30100, MocksRoot = "/mocks/a" });
+        var serviceB = new Service { Name = "Service B", Slug = "service-b", ExternalUrl = "https://b.example.com", Port = 30101, MocksRoot = "/mocks/b" };
+        _db.Services.Add(serviceB);
+        await _db.SaveChangesAsync();
+
+        var sut = BuildSut();
+
+        var act = async () => await sut.UpdateAsync(serviceB.Id,
+            new UpdateServiceRequest("Service A", null, "https://b.example.com", 30101, null));
+
+        (await act.Should().ThrowAsync<ValidationException>())
+            .Which.ErrorCode.Should().Be("SERVICE_SLUG_CONFLICT");
+    }
+
+    [Fact(DisplayName = "UpdateAsync throws SERVICE_PORT_CONFLICT when new port already used")]
+    public async Task UpdateAsync_PortConflict_ThrowsPortConflict()
+    {
+        _db.Services.Add(new Service { Name = "Alpha API", Slug = "alpha-api", ExternalUrl = "https://a.example.com", Port = 30100, MocksRoot = "/mocks/alpha-api" });
+        var serviceBeta = new Service { Name = "Beta API", Slug = "beta-api", ExternalUrl = "https://b.example.com", Port = 30101, MocksRoot = "/mocks/beta-api" };
+        _db.Services.Add(serviceBeta);
+        await _db.SaveChangesAsync();
+
+        var sut = BuildSut();
+
+        var act = async () => await sut.UpdateAsync(serviceBeta.Id,
+            new UpdateServiceRequest("Beta API", null, "https://b.example.com", 30100, null));
+
+        (await act.Should().ThrowAsync<ValidationException>())
+            .Which.ErrorCode.Should().Be("SERVICE_PORT_CONFLICT");
+    }
+
+    // ─── StopAsync ────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "StopAsync throws NotFoundException for unknown service id")]
+    public async Task StopAsync_UnknownId_ThrowsNotFound()
+    {
+        var sut = BuildSut();
+
+        var act = async () => await sut.StopAsync(Guid.NewGuid());
+
+        (await act.Should().ThrowAsync<NotFoundException>())
+            .Which.ErrorCode.Should().Be("SERVICE_NOT_FOUND");
+    }
+
+    [Fact(DisplayName = "StopAsync sets service status to Stopped and IsActive to false")]
+    public async Task StopAsync_RunningService_SetsStatusStopped()
+    {
+        var service = new Service
+        {
+            Name = "My Service",
+            Slug = "my-service",
+            ExternalUrl = "https://api.example.com",
+            Port = 30100,
+            MocksRoot = "/mocks/my-service",
+            Status = ServiceStatus.Live,
+            IsActive = true
+        };
+        _db.Services.Add(service);
+        await _db.SaveChangesAsync();
+
+        _registry.TryRemove(service.Id, out _).Returns(false);
+
+        var sut = BuildSut();
+        var result = await sut.StopAsync(service.Id);
+
+        result.Status.Should().Be("stopped");
+        result.IsActive.Should().BeFalse();
+    }
+
+    // ─── StartAsync ───────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "StartAsync throws NotFoundException for unknown service id")]
+    public async Task StartAsync_UnknownId_ThrowsNotFound()
+    {
+        var sut = BuildSut();
+
+        var act = async () => await sut.StartAsync(Guid.NewGuid());
+
+        (await act.Should().ThrowAsync<NotFoundException>())
+            .Which.ErrorCode.Should().Be("SERVICE_NOT_FOUND");
+    }
+
+    [Fact(DisplayName = "StartAsync sets status to Stopped when WireMock fails to start")]
+    public async Task StartAsync_WireMockFails_SetsStatusStopped()
+    {
+        var service = new Service
+        {
+            Name = "My Service",
+            Slug = "my-service",
+            ExternalUrl = "https://api.example.com",
+            Port = 30100,
+            MocksRoot = "/mocks/my-service",
+            Status = ServiceStatus.Stopped,
+            IsActive = false
+        };
+        _db.Services.Add(service);
+        await _db.SaveChangesAsync();
+
+        _registry.TryRemove(service.Id, out _).Returns(false);
+
+        // Default factory throws — already configured in constructor
+        var sut = BuildSut();
+        var result = await sut.StartAsync(service.Id);
+
+        // Factory throws → status stays Stopped
+        result.Status.Should().Be("stopped");
+        result.IsActive.Should().BeFalse();
+        await _events.Received(1).AddAsync(
+            SystemEventSeverity.Error,
+            Arg.Any<string>(),
+            service.Id,
+            Arg.Any<CancellationToken>());
+    }
 }

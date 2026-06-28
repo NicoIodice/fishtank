@@ -45,13 +45,13 @@ function uniquePath(): string {
  */
 async function triggerMockRequest(request: Request): Promise<string> {
   const path = uniquePath();
-  
+
   // Hit a running mock service on port 30100 (first service port)
   // This will trigger ActivityHub broadcast
   await request.fetch(`http://127.0.0.1:30100${path}`, {
     method: "GET",
   });
-  
+
   return path;
 }
 
@@ -126,12 +126,12 @@ test("AC-11: Page header renders all elements in correct order", async ({
   await expect(proxyPill).toBeVisible();
   await expect(proxyPill).toContainText("Proxied:");
 
-  // Verify Clear log button stub
+  // Verify Clear log button — enabled since story 3-3
   const clearBtn = page.locator('[data-testid="activity-btn-clear-log"]');
   await expect(clearBtn).toBeVisible();
-  await expect(clearBtn).toBeDisabled();
+  await expect(clearBtn).toBeEnabled();
 
-  // Verify Record button stub
+  // Verify Record button stub — still disabled, deferred to a future story
   const recordBtn = page.locator('[data-testid="activity-btn-record"]');
   await expect(recordBtn).toBeVisible();
   await expect(recordBtn).toBeDisabled();
@@ -145,31 +145,29 @@ test("AC-11: Toolbar filter controls render as disabled stubs", async ({
   // RED phase: Toolbar stubs don't exist yet
   await page.goto("/activity");
 
-  // Verify search input stub
+  // Verify search input — enabled since story 3-3
   const searchInput = page.locator('[data-testid="activity-input-search"]');
   await expect(searchInput).toBeVisible();
-  await expect(searchInput).toBeDisabled();
+  await expect(searchInput).toBeEnabled();
 
-  // Verify service dropdown stub
-  const serviceSelect = page.locator(
-    '[data-testid="activity-select-service"]',
-  );
+  // Verify service dropdown — enabled since story 3-3
+  const serviceSelect = page.locator('[data-testid="activity-select-service"]');
   await expect(serviceSelect).toBeVisible();
-  await expect(serviceSelect).toBeDisabled();
+  await expect(serviceSelect).toBeEnabled();
 
-  // Verify type filter button stub
+  // Verify type filter button — enabled since story 3-3
   const typeFilterBtn = page.locator(
     '[data-testid="activity-btn-type-filter"]',
   );
   await expect(typeFilterBtn).toBeVisible();
-  await expect(typeFilterBtn).toBeDisabled();
+  await expect(typeFilterBtn).toBeEnabled();
 
-  // Verify clear filters button stub
+  // Verify clear filters button — enabled since story 3-3
   const clearFiltersBtn = page.locator(
     '[data-testid="activity-btn-clear-filters"]',
   );
   await expect(clearFiltersBtn).toBeVisible();
-  await expect(clearFiltersBtn).toBeDisabled();
+  await expect(clearFiltersBtn).toBeEnabled();
 });
 
 // ─── AC-16: data-testid attributes ──────────────────────────────────────────

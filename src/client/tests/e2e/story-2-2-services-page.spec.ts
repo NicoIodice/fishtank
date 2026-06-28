@@ -200,6 +200,7 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
   // AC-6 — Create service end-to-end
   test("P1-1: Add Service form creates a service and card appears in grid", async ({
     page,
+    request,
     interceptNetworkCall,
   }) => {
     const name = uniqueName("e2e-create");
@@ -214,7 +215,14 @@ test.describe("Story 2.2 — P1: Services Page feature tests", () => {
     // Fill form
     await page.getByTestId("input-service-name").fill(name);
     await page.getByTestId("input-service-url").fill("http://my-service.local");
-    // Port is pre-filled; accept the default
+
+    // Wait for the modal to pre-fill the port via the next-port API, then
+    // immediately re-fetch a fresh port to minimise the race window caused by
+    // parallel shards seeding services concurrently with this UI test.
+    const portInput = page.getByTestId("input-service-port");
+    await expect(portInput).not.toHaveValue("");
+    const freshPort = await getNextPort(request);
+    await portInput.fill(String(freshPort));
 
     // Intercept POST before submit
     const createCall = interceptNetworkCall({

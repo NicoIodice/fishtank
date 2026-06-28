@@ -27,7 +27,13 @@ import type { ActivityRow } from "@/features/activity/types";
 const MAX_VIRTUAL_ROWS = 50;
 vi.mock("@tanstack/react-virtual", () => ({
   useVirtualizer: vi.fn(
-    ({ count, estimateSize }: { count: number; estimateSize: (i: number) => number }) => ({
+    ({
+      count,
+      estimateSize,
+    }: {
+      count: number;
+      estimateSize: (i: number) => number;
+    }) => ({
       getVirtualItems: () =>
         Array.from({ length: Math.min(count, MAX_VIRTUAL_ROWS) }, (_, i) => ({
           index: i,
@@ -58,7 +64,9 @@ function makeQc() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+  );
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,7 +91,9 @@ const generateMockRows = (count: number): ActivityRow[] =>
 
 // Use a helper that always wraps with QueryClientProvider (ActivityTable needs useQueryClient)
 function renderTable(rows: ActivityRow[], hadRows = true) {
-  return render(<ActivityTable rows={rows} hadRows={hadRows} />, { wrapper: Wrapper });
+  return render(<ActivityTable rows={rows} hadRows={hadRows} />, {
+    wrapper: Wrapper,
+  });
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -97,15 +107,26 @@ describe("ActivityTable — Story 3.2", () => {
     renderTable(generateMockRows(3));
 
     const headers = screen.getAllByRole("columnheader");
-    const texts = headers.map((h) => h.textContent?.trim() ?? "");
+    // Strip sort-indicator glyphs (↕ ↑ ↓) that the SortIndicator component appends.
+    const texts = headers.map(
+      (h) => h.textContent?.replace(/[↕↑↓]/g, "").trim() ?? "",
+    );
 
     // Type column uses a bi-funnel icon (aria-label="Type"), has no text content.
     // Other columns are text-based.
     expect(texts).toEqual(
-      expect.arrayContaining(["Method", "URL Path", "Status", "Service", "Actions"]),
+      expect.arrayContaining([
+        "Method",
+        "URL Path",
+        "Status",
+        "Service",
+        "Actions",
+      ]),
     );
     // Verify the Type column is present via its aria-label on the icon
-    expect(screen.getByRole("columnheader", { name: /type/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /type/i }),
+    ).toBeInTheDocument();
   });
 
   // ─── AC-5: Method chips ─────────────────────────────────────────────────────
@@ -113,7 +134,9 @@ describe("ActivityTable — Story 3.2", () => {
   // jsdom converts hex colors to rgb in inline style properties.
 
   it("AC-5: GET method chip renders with blue color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "GET" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "GET" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("GET");
     // GET → #3b82f6 → rgb(59, 130, 246)
@@ -121,7 +144,9 @@ describe("ActivityTable — Story 3.2", () => {
   });
 
   it("AC-5: POST method chip renders with emerald color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "POST" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "POST" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("POST");
     // POST → #10b981 → rgb(16, 185, 129)
@@ -129,7 +154,9 @@ describe("ActivityTable — Story 3.2", () => {
   });
 
   it("AC-5: DELETE method chip renders with red color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "DELETE" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "DELETE" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("DELETE");
     // DELETE → #ef4444 → rgb(239, 68, 68)
@@ -137,7 +164,9 @@ describe("ActivityTable — Story 3.2", () => {
   });
 
   it("AC-5: unknown method chip renders with slate fallback color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "UNKNOWN" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "UNKNOWN" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("UNKNOWN");
     // DEFAULT_COLOR → #475569 → rgb(71, 85, 105)
@@ -145,7 +174,9 @@ describe("ActivityTable — Story 3.2", () => {
   });
 
   it("AC-5: PUT method chip renders with amber color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "PUT" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "PUT" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("PUT");
     // PUT → #d97706 → rgb(217, 119, 6)
@@ -153,7 +184,9 @@ describe("ActivityTable — Story 3.2", () => {
   });
 
   it("AC-5: PATCH method chip renders with purple color", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", method: "PATCH" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", method: "PATCH" },
+    ];
     renderTable(rows);
     const chip = screen.getByText("PATCH");
     // PATCH → #8b5cf6 → rgb(139, 92, 246)
@@ -163,14 +196,18 @@ describe("ActivityTable — Story 3.2", () => {
   // ─── AC-6: Type column icons ─────────────────────────────────────────────────
 
   it("AC-6: Mocked row renders bi-database icon with tooltip", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", type: "Mocked" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", type: "Mocked" },
+    ];
     renderTable(rows);
     const icon = document.querySelector(".bi-database");
     expect(icon).toBeInTheDocument();
   });
 
   it("AC-6: Proxied row renders bi-arrow-repeat icon with tooltip", () => {
-    const rows: ActivityRow[] = [{ ...generateMockRows(1)[0], id: "r1", type: "Proxied" }];
+    const rows: ActivityRow[] = [
+      { ...generateMockRows(1)[0], id: "r1", type: "Proxied" },
+    ];
     renderTable(rows);
     const icon = document.querySelector(".bi-arrow-repeat");
     expect(icon).toBeInTheDocument();
@@ -181,7 +218,12 @@ describe("ActivityTable — Story 3.2", () => {
 
   it("AC-7: proxied row with Live service has amber border-left on first cell", () => {
     const rows: ActivityRow[] = [
-      { ...generateMockRows(1)[0], id: "proxied-live", type: "Proxied", serviceId: "service-1" },
+      {
+        ...generateMockRows(1)[0],
+        id: "proxied-live",
+        type: "Proxied",
+        serviceId: "service-1",
+      },
     ];
     renderTable(rows);
     const row = screen.getByTestId("activity-row-proxied-live");
@@ -192,7 +234,12 @@ describe("ActivityTable — Story 3.2", () => {
 
   it("AC-7: proxied row with Stopped service has NO amber border", () => {
     const rows: ActivityRow[] = [
-      { ...generateMockRows(1)[0], id: "proxied-stopped", type: "Proxied", serviceId: "service-2" },
+      {
+        ...generateMockRows(1)[0],
+        id: "proxied-stopped",
+        type: "Proxied",
+        serviceId: "service-2",
+      },
     ];
     renderTable(rows);
     const row = screen.getByTestId("activity-row-proxied-stopped");
@@ -209,7 +256,9 @@ describe("ActivityTable — Story 3.2", () => {
       { ...generateMockRows(1)[0], id: "error-row", statusCode: 500 },
     ];
     renderTable(rows);
-    const row = screen.getByTestId("activity-row-error-row") as HTMLTableRowElement;
+    const row = screen.getByTestId(
+      "activity-row-error-row",
+    ) as HTMLTableRowElement;
     // Background is applied on the <tr> via var(--error-row-bg, ...)
     // jsdom preserves the CSS variable string in cssText
     expect(row.style.cssText).toMatch(/var\(--error-row-bg/);
@@ -220,7 +269,9 @@ describe("ActivityTable — Story 3.2", () => {
       { ...generateMockRows(1)[0], id: "ok-row", statusCode: 200 },
     ];
     renderTable(rows);
-    const row = screen.getByTestId("activity-row-ok-row") as HTMLTableRowElement;
+    const row = screen.getByTestId(
+      "activity-row-ok-row",
+    ) as HTMLTableRowElement;
     expect(row.style.backgroundColor).toBe("");
   });
 
@@ -237,7 +288,9 @@ describe("ActivityTable — Story 3.2", () => {
       },
     ];
     renderTable(rows);
-    const row = screen.getByTestId("activity-row-dual-highlight") as HTMLTableRowElement;
+    const row = screen.getByTestId(
+      "activity-row-dual-highlight",
+    ) as HTMLTableRowElement;
     const firstCell = row.querySelector("td:first-child") as HTMLElement;
 
     // Amber border on first cell: #f59e0b → rgb(245, 158, 11)
@@ -325,4 +378,3 @@ describe("ActivityTable — Story 3.2", () => {
     expect(screen.getByLabelText("Save as Mock")).toBeInTheDocument();
   });
 });
-

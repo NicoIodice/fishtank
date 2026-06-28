@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -44,7 +44,13 @@ vi.mock("@/features/activity/api", () => ({
 // ─── Mock @tanstack/react-virtual (jsdom has no layout engine) ───────────────
 vi.mock("@tanstack/react-virtual", () => ({
   useVirtualizer: vi.fn(
-    ({ count, estimateSize }: { count: number; estimateSize: (i: number) => number }) => ({
+    ({
+      count,
+      estimateSize,
+    }: {
+      count: number;
+      estimateSize: (i: number) => number;
+    }) => ({
       getVirtualItems: () =>
         Array.from({ length: Math.min(count, 50) }, (_, i) => ({
           index: i,
@@ -67,12 +73,21 @@ function makeQc() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+  );
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe("ActivityPage — Story 3.2", () => {
+  // With isolate:false all test files share the module registry. The last file
+  // to vi.mock a module has its factory cached; earlier files may get stale
+  // module objects (e.g. story-3-3's mockConnection instead of ours). Resetting
+  // the module cache here forces ActivityPage to re-resolve @/lib/signalr using
+  // *this* file's factory, so our mockConnection is used.
+  beforeAll(() => vi.resetModules());
+
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(capturedHandlers).forEach((k) => delete capturedHandlers[k]);
@@ -91,7 +106,8 @@ describe("ActivityPage — Story 3.2", () => {
   // ─── AC-2: SignalR subscription ────────────────────────────────────────────
 
   it("AC-2: ActivityPage subscribes to ActivityRowAdded on mount", async () => {
-    const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+    const { ActivityPage } =
+      await import("@/features/activity/pages/ActivityPage");
     render(<ActivityPage />, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -103,7 +119,8 @@ describe("ActivityPage — Story 3.2", () => {
   });
 
   it("AC-2: new rows prepended via SignalR appear in table newest-first", async () => {
-    const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+    const { ActivityPage } =
+      await import("@/features/activity/pages/ActivityPage");
     render(<ActivityPage />, { wrapper: Wrapper });
 
     // Wait for SignalR subscription to be established
@@ -194,7 +211,8 @@ describe("ActivityPage initial load — AC-1", () => {
     ];
     mockFetchActivityRows.mockResolvedValueOnce(seedRows);
 
-    const { ActivityPage } = await import("@/features/activity/pages/ActivityPage");
+    const { ActivityPage } =
+      await import("@/features/activity/pages/ActivityPage");
     render(<ActivityPage />, { wrapper: Wrapper });
 
     await waitFor(() => {

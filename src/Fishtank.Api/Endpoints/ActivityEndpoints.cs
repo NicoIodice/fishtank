@@ -1,4 +1,5 @@
 using Fishtank.Api.Data;
+using Fishtank.Api.Engine;
 using Fishtank.Api.Models;
 using Fishtank.Api.Services;
 
@@ -14,6 +15,7 @@ public static class ActivityEndpoints
 
     private static async Task<IResult> GetActivityAsync(
         IActivityService activityService,
+        IActivityStore activityStore,
         FishtankDbContext db,
         Guid? serviceId = null,
         string? type = null,
@@ -26,13 +28,21 @@ public static class ActivityEndpoints
                 "ACTIVITY_INVALID_TYPE",
                 $"Invalid type '{type}'. Must be 'Mocked' or 'Proxied'."));
 
+        // Validate serviceId: 404 only if neither the service exists in the DB
+        // nor any captured activity rows exist for that serviceId in the store.
+        // This allows filtering by serviceIds that have rows but whose service
+        // entries may have been removed (or seeded directly via the store).
         if (serviceId.HasValue)
         {
-            var svc = await db.Services.FindAsync(serviceId.Value);
-            if (svc is null)
-                return Results.NotFound(ApiResponse.Fail(
-                    "ACTIVITY_SERVICE_NOT_FOUND",
-                    $"Service '{serviceId}' not found."));
+            var serviceExists = await db.Services.FindAsync(serviceId.Value) is not null;
+            if (!serviceExists)
+            {
+                var hasRows = activityStore.GetAll(serviceId.Value).Count > 0;
+                if (!hasRows)
+                    return Results.NotFound(ApiResponse.Fail(
+                        "ACTIVITY_SERVICE_NOT_FOUND",
+                        $"Service '{serviceId}' not found."));
+            }
         }
 
         skip = Math.Max(skip, 0);

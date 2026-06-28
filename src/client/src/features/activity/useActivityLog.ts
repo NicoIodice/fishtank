@@ -14,15 +14,17 @@ export function useActivityLog() {
   // so the fetch result doesn't overwrite them (M-2 race condition fix).
   const pendingSignalRRows = useRef<ActivityRow[]>([]);
   const fetchSettled = useRef(false);
+  // Use a ref so refreshRows can close over the mounted status safely.
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    let mounted = true;
+    mountedRef.current = true;
 
     // Subscribe to real-time events BEFORE the initial fetch so we never miss a row.
     const connection = createHubConnection("/hubs/activity");
 
     connection.on("ActivityRowAdded", (newRow: ActivityRow) => {
-      if (!mounted) return;
+      if (!mountedRef.current) return;
       if (!fetchSettled.current) {
         // Buffer rows that arrive before the initial fetch settles.
         pendingSignalRRows.current = [newRow, ...pendingSignalRRows.current];
@@ -40,7 +42,7 @@ export function useActivityLog() {
     // Initial load via direct apiFetch (not useQuery) — after subscription is set up.
     fetchActivityRows({ take: 200 })
       .then((initialRows) => {
-        if (!mounted) return;
+        if (!mountedRef.current) return;
         fetchSettled.current = true;
         // Prepend any SignalR rows that arrived during the fetch.
         const buffered = pendingSignalRRows.current;
@@ -51,7 +53,7 @@ export function useActivityLog() {
       })
       .catch((err) => {
         console.error("Failed to load initial activity rows:", err);
-        if (!mounted) return;
+        if (!mountedRef.current) return;
         fetchSettled.current = true;
         const buffered = pendingSignalRRows.current;
         pendingSignalRRows.current = [];
@@ -60,7 +62,7 @@ export function useActivityLog() {
       });
 
     return () => {
-      mounted = false;
+      mountedRef.current = false;
       connection.stop();
     };
   }, []);
@@ -70,5 +72,14 @@ export function useActivityLog() {
     // hadRows remains true to distinguish "cleared" from "never had rows"
   }
 
-  return { rows, clearRows, isLoading, hadRows };
+  async function refreshRows() {
+    try {
+      const freshRows = await fetchActivityRows({ take: 200 });
+      if (mountedRef.current) setRows(freshRows);
+    } catch (err) {
+      console.error("Failed to refresh activity rows:", err);
+    }
+  }
+
+  return { rows, clearRows, refreshRows, isLoading, hadRows };
 }
