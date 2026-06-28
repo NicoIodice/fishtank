@@ -1,7 +1,7 @@
 story_key: "3-4-row-detail-all-three-display-styles"
 epic_id: "3"
-current_phase: "dev-story"
-status: active
+current_phase: "done"
+status: done
 blocked_reason: ""
 test_design_retries: 0
 test_design_auto_created: false
@@ -19,3 +19,10 @@ phases_completed:
   - create-story
   - validate
   - atdd
+  - dev-story
+  - code-review
+  - test-automate
+  - test-review
+  - nfr
+  - trace
+  - done

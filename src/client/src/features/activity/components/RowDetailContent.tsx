@@ -8,6 +8,16 @@ interface RowDetailContentProps {
  * Shared content renderer for row detail — used by RowDetailModal and RowDetailDrawer.
  * Renders all ActivityRow fields with canonical data-testid attributes.
  */
+
+/** Pretty-print JSON if parseable; fall back to raw string (M-5). */
+function formatBody(body: string | null): string {
+  if (body === null) return "";
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch {
+    return body;
+  }
+}
 export function RowDetailContent({ row }: RowDetailContentProps) {
   return (
     <div>
@@ -162,7 +172,7 @@ export function RowDetailContent({ row }: RowDetailContentProps) {
             minHeight: "32px",
           }}
         >
-          {row.requestBody ?? ""}
+          {formatBody(row.requestBody)}
         </div>
       </section>
 
@@ -229,7 +239,7 @@ export function RowDetailContent({ row }: RowDetailContentProps) {
             minHeight: "32px",
           }}
         >
-          {row.responseBody ?? ""}
+          {formatBody(row.responseBody)}
         </div>
       </section>
 
@@ -238,9 +248,7 @@ export function RowDetailContent({ row }: RowDetailContentProps) {
         <button
           data-testid="activity-row-detail-save-mock"
           aria-label="Save as Mock"
-          onClick={() => {
-            /* no-op placeholder until Epic 4 Story 4.4 */
-          }}
+          disabled
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -248,11 +256,12 @@ export function RowDetailContent({ row }: RowDetailContentProps) {
             background: "none",
             border: "1px solid var(--brand, #3b82f6)",
             borderRadius: "4px",
-            cursor: "pointer",
+            cursor: "not-allowed",
             padding: "6px 12px",
             color: "var(--brand, #3b82f6)",
             fontSize: "0.875rem",
             fontWeight: 500,
+            opacity: 0.5,
           }}
         >
           <i className="bi bi-lightning-charge" aria-hidden="true" />

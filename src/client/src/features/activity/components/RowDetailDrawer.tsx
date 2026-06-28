@@ -25,10 +25,22 @@ export function RowDetailDrawer({
   }, [onClose]);
 
   return (
-    <div
-      data-testid="activity-row-detail-drawer"
-      role="complementary"
-      aria-label="Request detail"
+    <>
+      {/* Transparent backdrop captures click-outside to close (AC-2) */}
+      <div
+        data-testid="activity-row-detail-drawer-backdrop"
+        aria-hidden="true"
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 49,
+        }}
+      />
+      <div
+        data-testid="activity-row-detail-drawer"
+        role="complementary"
+        aria-label="Request detail"
       style={{
         position: "fixed",
         top: 0,
@@ -76,5 +88,6 @@ export function RowDetailDrawer({
 
       <RowDetailContent row={row} />
     </div>
+    </>
   );
 }

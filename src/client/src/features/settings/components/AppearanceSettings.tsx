@@ -1,7 +1,7 @@
 import { useTheme } from "@/lib/useTheme";
 import type { Theme } from "@/lib/useTheme";
-import { useRowDetailStyle } from "@/features/activity/hooks/useRowDetailStyle";
-import type { RowDetailStyleValue } from "@/features/activity/hooks/useRowDetailStyle";
+import { useRowDetailStyle } from "@/hooks/useRowDetailStyle";
+import type { RowDetailStyleValue } from "@/hooks/useRowDetailStyle";
 
 const THEMES: { value: Theme; label: string }[] = [
   { value: "clean-light", label: "Clean Light" },

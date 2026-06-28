@@ -219,13 +219,13 @@ describe("RowDetailModal — CT-1 (AC-1, P0)", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByTestId("activity-row-detail-request-body"),
-    ).toHaveTextContent('{"amount":99}');
+    ).toHaveTextContent('"amount": 99');
     expect(
       screen.getByTestId("activity-row-detail-response-headers"),
     ).toBeInTheDocument();
     expect(
       screen.getByTestId("activity-row-detail-response-body"),
-    ).toHaveTextContent('{"success":true}');
+    ).toHaveTextContent('"success": true');
   });
 
   it("Esc key calls onClose", async () => {

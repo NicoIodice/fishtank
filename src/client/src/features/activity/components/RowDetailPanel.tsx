@@ -1,5 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { ActivityRow } from "@/features/activity/types";
+
+/** Pretty-print JSON if parseable; fall back to raw string (M-5). */
+function formatBody(body: string | null): string {
+  if (body === null) return "";
+  try {
+    return JSON.stringify(JSON.parse(body), null, 2);
+  } catch {
+    return body;
+  }
+}
 
 /**
  * RowDetailPanel — Story 3.4
@@ -16,6 +26,15 @@ export function RowDetailPanel({
   onClose,
 }: RowDetailPanelProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<"request" | "response">("request");
+
+  // Esc key closes the panel (AC-2)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   return (
     <div
@@ -108,9 +127,7 @@ export function RowDetailPanel({
           <button
             data-testid="activity-row-detail-save-mock"
             aria-label="Save as Mock"
-            onClick={() => {
-              /* no-op placeholder until Epic 4 Story 4.4 */
-            }}
+            disabled
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -118,10 +135,11 @@ export function RowDetailPanel({
               background: "none",
               border: "1px solid var(--brand, #3b82f6)",
               borderRadius: "4px",
-              cursor: "pointer",
+              cursor: "not-allowed",
               padding: "4px 8px",
               color: "var(--brand, #3b82f6)",
               fontSize: "0.8125rem",
+              opacity: 0.5,
             }}
           >
             <i className="bi bi-lightning-charge" aria-hidden="true" />
@@ -237,7 +255,7 @@ export function RowDetailPanel({
                 data-testid="activity-row-detail-request-body"
                 style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
               >
-                {row.requestBody}
+                {formatBody(row.requestBody)}
               </div>
             )}
           </>
@@ -264,7 +282,7 @@ export function RowDetailPanel({
                 data-testid="activity-row-detail-response-body"
                 style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
               >
-                {row.responseBody}
+                {formatBody(row.responseBody)}
               </div>
             )}
           </>

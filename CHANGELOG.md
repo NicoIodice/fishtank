@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v0.3.0 (Network Activity)
+## [v0.3.0] — 2026-06-28 (Network Activity)
 
 _Theme: See every request hitting your mock services in real time._
 
@@ -30,10 +30,12 @@ _Theme: See every request hitting your mock services in real time._
 - **LIVE/PAUSED toggle** — pauses the activity table at a snapshot; new SignalR rows continue arriving but are not displayed until LIVE is resumed; Refresh icon appears in PAUSED mode for manual re-fetch with `animate-spin` animation and `prefers-reduced-motion` respect (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
 - **Clear log** — calls `DELETE /api/activity` and clears the in-memory table and proxy counter pill in one action, no confirmation required (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
 - **Settings → Network Activity section** — auto-refresh interval (1 s / 2 s / 5 s / Disabled, persisted in `localStorage`), max log entries display (500 / 1 000 / 5 000), and capture full request headers toggle (wires to `PUT /api/settings/capture-headers`) (`feature/3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls`)
+- **Row detail overlays** — click (or press Enter on) any activity log row to open full request/response detail in your preferred style: Modal (560 px centered, focus-trapped), Right Drawer (320 px from right edge, updates in-place on row change), or Bottom Panel (tabbed Request/Response view, close collapses and clears selection); mobile viewports (< 640 px) always use Modal regardless of preference; redacted header values shown as `[REDACTED]`; request/response bodies pretty-printed when valid JSON; "Save as Mock" placeholder rendered for proxied rows (`feature/3-4-row-detail-all-three-display-styles`)
+- **Settings → Appearance — Row detail style** — segmented button group (Modal / Right Drawer / Bottom Panel) lets users choose how row detail appears; preference persisted in `localStorage` and respected across sessions (`feature/3-4-row-detail-all-three-display-styles`)
 
 ---
 
-## [v0.2.2] — 2026-06-27 (Hotfix)
+## [v0.3.0] — 2026-06-28 (Network Activity)
 
 ### Changed
 
