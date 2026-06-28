@@ -60,6 +60,11 @@ function makeRow(overrides: Partial<ActivityRow> = {}): ActivityRow {
 describe("useActivityLog — refreshRows", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // isolate:false shares the module registry across all test files, so a cached
+    // useActivityLog.ts may hold a reference to a different test file's mock of
+    // fetchActivityRows. Resetting modules forces a fresh import that picks up
+    // this file's vi.mock("@/features/activity/api") factory.
+    vi.resetModules();
     Object.keys(capturedHandlers).forEach((k) => delete capturedHandlers[k]);
   });
 

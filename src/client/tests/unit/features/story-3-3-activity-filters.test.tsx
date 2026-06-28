@@ -1,5 +1,13 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+} from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -146,6 +154,10 @@ function makeRow(overrides: Partial<ActivityRow> = {}): ActivityRow {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("ActivityPage — Story 3.3 (filter/sort/live-paused/clear-log)", () => {
+  // Clear the module cache once before this suite so ActivityPage loads fresh
+  // with this file's mocks, not a stale cached version from a previous test file.
+  beforeAll(() => vi.resetModules());
+
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(capturedHandlers).forEach((k) => delete capturedHandlers[k]);
