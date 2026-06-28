@@ -45,13 +45,13 @@ function uniquePath(): string {
  */
 async function triggerMockRequest(request: Request): Promise<string> {
   const path = uniquePath();
-  
+
   // Hit a running mock service on port 30100 (first service port)
   // This will trigger ActivityHub broadcast
   await request.fetch(`http://127.0.0.1:30100${path}`, {
     method: "GET",
   });
-  
+
   return path;
 }
 
@@ -151,9 +151,7 @@ test("AC-11: Toolbar filter controls render as disabled stubs", async ({
   await expect(searchInput).toBeEnabled();
 
   // Verify service dropdown — enabled since story 3-3
-  const serviceSelect = page.locator(
-    '[data-testid="activity-select-service"]',
-  );
+  const serviceSelect = page.locator('[data-testid="activity-select-service"]');
   await expect(serviceSelect).toBeVisible();
   await expect(serviceSelect).toBeEnabled();
 

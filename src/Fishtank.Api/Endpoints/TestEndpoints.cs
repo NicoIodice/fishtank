@@ -25,8 +25,8 @@ public static class TestEndpoints
                 var severity = body.Severity?.ToLowerInvariant() switch
                 {
                     "warning" => SystemEventSeverity.Warning,
-                    "info"    => SystemEventSeverity.Info,
-                    _         => SystemEventSeverity.Error,
+                    "info" => SystemEventSeverity.Info,
+                    _ => SystemEventSeverity.Error,
                 };
                 await svc.AddAsync(severity, body.Message ?? "Test event", ct: ct);
                 return Results.Json(new { success = true });
