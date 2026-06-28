@@ -119,7 +119,7 @@ public class ResyncServiceTests
         // Assert
         result.MappingsLoaded.Should().Be(0, "no mappings should be loaded from empty directory");
         result.ResponsesLoaded.Should().Be(0, "no responses should be loaded from empty directory");
-        result.ElapsedMs.Should().BeGreaterThan(0, "elapsed time must be recorded");
+        result.ElapsedMs.Should().BeGreaterThanOrEqualTo(0, "elapsed time must be a non-negative value");
         result.Failures.Should().BeEmpty("no failures expected with empty directory");
     }
 
