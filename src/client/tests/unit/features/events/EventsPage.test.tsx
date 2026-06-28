@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -76,7 +76,7 @@ describe("EventsPage", () => {
   it("shows loading state while fetching", () => {
     mockUseSystemEvents.mockReturnValue({
       ...emptyPage(),
-      data: undefined,
+      data: undefined as unknown as ReturnType<typeof emptyPage>["data"],
       isLoading: true,
     });
 
@@ -170,7 +170,7 @@ describe("EventsPage", () => {
       data: {
         pages: [
           {
-            items: [{ id: "ev-1", severity: "warning", message: "test" }],
+            items: [{ id: "ev-1", severity: "warning" as const, message: "test", serviceId: null, serviceName: null, createdAt: "2025-01-01T00:00:00Z", isRead: false }],
             total: 10,
             hasMore: true,
           },
@@ -193,7 +193,7 @@ describe("EventsPage", () => {
       data: {
         pages: [
           {
-            items: [{ id: "ev-1", severity: "warning", message: "test" }],
+            items: [{ id: "ev-1", severity: "warning" as const, message: "test", serviceId: null, serviceName: null, createdAt: "2025-01-01T00:00:00Z", isRead: false }],
             total: 10,
             hasMore: true,
           },

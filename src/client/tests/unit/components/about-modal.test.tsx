@@ -5,7 +5,7 @@ import "@testing-library/jest-dom/vitest";
 import { AboutModal } from "@/components/modals/AboutModal";
 
 describe("AboutModal", () => {
-  let onClose: ReturnType<typeof vi.fn>;
+  let onClose: () => void;
 
   beforeEach(() => {
     onClose = vi.fn();

@@ -124,7 +124,7 @@ describe("useEventsHub", () => {
       on: vi.fn(),
       start: vi.fn().mockRejectedValue(new Error("Network error")),
       stop: vi.fn().mockResolvedValue(undefined),
-    });
+    } as unknown as ReturnType<typeof createHubConnection>);
 
     const qc = new QueryClient();
     renderHook(() => useEventsHub(), { wrapper: makeNamedWrapper(qc) });

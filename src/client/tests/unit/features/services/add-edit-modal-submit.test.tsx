@@ -56,18 +56,6 @@ describe("AddEditServiceModal — submit and tags", () => {
     });
   });
 
-  function makeWrapper() {
-    const qc = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
-    return ({ children }: { children: React.ReactNode }) => (
-      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-    );
-  }
-
   const validService = {
     id: "svc-1",
     name: "My Service",
@@ -307,7 +295,7 @@ describe("AddEditServiceModal — submit and tags", () => {
         return Promise.resolve({ port: 30100 });
       if (url === "/api/services")
         return Promise.reject(
-          new ApiError("UNKNOWN_CODE", "Something went wrong", 500),
+          new ApiError("UNKNOWN_CODE", "Something went wrong"),
         );
       return Promise.resolve({});
     });
