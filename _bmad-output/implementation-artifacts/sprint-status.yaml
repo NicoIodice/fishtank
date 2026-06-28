@@ -128,6 +128,7 @@ development_status:
   5-1-feature-toggles-runtime-control-and-signalr-broadcast: backlog
   5-2-user-management-create-view-and-deactivate: backlog
   5-3-health-dashboard-audit-log-and-auto-registration-toggle: backlog
+  5-4-structured-file-logging-rolling-daily-files: backlog
   epic-5-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────

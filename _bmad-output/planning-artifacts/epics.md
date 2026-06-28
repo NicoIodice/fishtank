@@ -1190,6 +1190,28 @@ So that I have full operational visibility and control over the Fishtank instanc
 
 ---
 
+### Story 5.4: Structured File Logging — Rolling Daily Files
+
+*Completes FR-39 and NFR-17 — the rolling daily file sink half of structured logging (stdout is already implemented via `Serilog.AspNetCore` + `CompactJsonFormatter` in `Program.cs`). Adds `Serilog.Sinks.File` with configurable path (`FISHTANK_LOG_PATH`, default `/data/logs`) and retention (`FISHTANK_LOG_RETENTION_DAYS`, default `7`). An unwritable path logs a stdout warning and continues — the app must not crash on a missing log directory. Updates `docker-compose.example.yml` with both env vars.*
+
+**Acceptance Criteria:**
+
+**Given** `FISHTANK_LOG_PATH` is set (or defaults to `/data/logs`) and the directory is writable,
+**When** the container starts,
+**Then** Serilog writes rolling daily JSON log files to that path (FR-39, NFR-17).
+
+**Given** the log directory is not writable or does not exist,
+**When** the container starts,
+**Then** a warning is written to stdout and the application continues — the app does not crash due to a missing log directory.
+
+**Given** `FISHTANK_LOG_RETENTION_DAYS` (default `7`),
+**Then** Serilog retains at most that many daily log files; older files are deleted automatically.
+
+**Given** `docker-compose.example.yml`,
+**Then** it documents `FISHTANK_LOG_PATH` and `FISHTANK_LOG_RETENTION_DAYS` with inline comments.
+
+---
+
 ## Epic 6: Release Polish & Distribution
 
 The Fishtank v1 image is published on Docker Hub with a pre-seeded demo image, the OpenAPI spec is finalized and served from the container, a pipeline reset endpoint enables automated CI/CD test environment cleanup, and the project ships with all community resources. **The REST API surface (FR-43) was built progressively in Epics 2–5; Epic 6 verifies completeness, publishes the spec, and adds the one discrete new endpoint (pipeline reset).**
