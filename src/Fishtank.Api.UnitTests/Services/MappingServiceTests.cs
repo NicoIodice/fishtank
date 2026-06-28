@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using FluentAssertions;
+using Fishtank.Api.Data.Entities;
 using Fishtank.Api.Exceptions;
 using Fishtank.Api.Services;
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using Xunit;
@@ -227,5 +228,35 @@ public class MappingServiceTests
         await act.Should().ThrowAsync<NotFoundException>()
             .Where(e => e.ErrorCode == "MAPPING_FILE_NOT_FOUND",
                 "deleting a non-existent file must throw MAPPING_FILE_NOT_FOUND");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-5: I/O failure creates System Event
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "CreateFileAsync I/O failure — creates System Event and throws MAPPING_WRITE_FAILED")]
+    public async Task CreateFileAsync_IoFailure_CreatesSystemEventAndThrows()
+    {
+        // Arrange: create a directory where we expect to write a file so
+        // File.WriteAllTextAsync throws UnauthorizedAccessException (directory, not file)
+        var service = CreateService();
+        var collidingName = "io-collision.json";
+        var collidingPath = Path.Combine(_testMocksRoot, collidingName);
+        Directory.CreateDirectory(collidingPath); // directory at file path → I/O failure
+
+        // Act
+        Func<Task> act = async () => await service.CreateFileAsync(collidingName, "content");
+
+        // Assert: service layer wraps the OS error as MAPPING_WRITE_FAILED
+        await act.Should().ThrowAsync<ValidationException>()
+            .Where(e => e.ErrorCode == "MAPPING_WRITE_FAILED",
+                "I/O failures must be surfaced as MAPPING_WRITE_FAILED");
+
+        // Assert: system event was recorded with Error severity
+        await _systemEvents.Received(1).AddAsync(
+            SystemEventSeverity.Error,
+            Arg.Is<string>(msg => msg.Contains(collidingName)),
+            Arg.Any<Guid?>(),
+            Arg.Any<CancellationToken>());
     }
 }

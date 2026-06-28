@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Fishtank.Api.Engine;
 using Xunit;
+using Fishtank.Api.IntegrationTests.Fakes;
 
 namespace Fishtank.Api.IntegrationTests.Engine;
 
@@ -203,5 +204,80 @@ public class FileWatcherContractTests
             if (Directory.Exists(testPath))
                 Directory.Delete(testPath, true);
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-10: FakeFileWatcher.Simulate* fires callbacks synchronously
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher.SimulateCreated -- fires OnCreated synchronously")]
+    public void FakeFileWatcher_SimulateCreated_FiresOnCreatedSynchronously()
+    {
+        var watcher = new FakeFileWatcher();
+        string? captured = null;
+        watcher.OnCreated += path => captured = path;
+        watcher.SimulateCreated("/svc/mappings/new.json");
+        captured.Should().Be("/svc/mappings/new.json",
+            "SimulateCreated must invoke OnCreated synchronously with the given path");
+    }
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher.SimulateChanged -- fires OnChanged synchronously")]
+    public void FakeFileWatcher_SimulateChanged_FiresOnChangedSynchronously()
+    {
+        var watcher = new FakeFileWatcher();
+        string? captured = null;
+        watcher.OnChanged += path => captured = path;
+        watcher.SimulateChanged("/svc/mappings/modified.json");
+        captured.Should().Be("/svc/mappings/modified.json",
+            "SimulateChanged must invoke OnChanged synchronously with the given path");
+    }
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher.SimulateDeleted -- fires OnDeleted synchronously")]
+    public void FakeFileWatcher_SimulateDeleted_FiresOnDeletedSynchronously()
+    {
+        var watcher = new FakeFileWatcher();
+        string? captured = null;
+        watcher.OnDeleted += path => captured = path;
+        watcher.SimulateDeleted("/svc/mappings/gone.json");
+        captured.Should().Be("/svc/mappings/gone.json",
+            "SimulateDeleted must invoke OnDeleted synchronously with the given path");
+    }
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher.SimulateRenamed -- fires OnRenamed synchronously with both paths")]
+    public void FakeFileWatcher_SimulateRenamed_FiresOnRenamedSynchronously()
+    {
+        var watcher = new FakeFileWatcher();
+        string? capturedOld = null; string? capturedNew = null;
+        watcher.OnRenamed += (oldPath, newPath) => { capturedOld = oldPath; capturedNew = newPath; };
+        watcher.SimulateRenamed("/svc/mappings/old.json", "/svc/mappings/new.json");
+        capturedOld.Should().Be("/svc/mappings/old.json", "SimulateRenamed must pass the old path");
+        capturedNew.Should().Be("/svc/mappings/new.json", "SimulateRenamed must pass the new path");
+    }
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher.SimulateError -- fires OnError synchronously")]
+    public void FakeFileWatcher_SimulateError_FiresOnErrorSynchronously()
+    {
+        var watcher = new FakeFileWatcher();
+        Exception? captured = null;
+        watcher.OnError += ex => captured = ex;
+        var expected = new InvalidOperationException("buffer overflow");
+        watcher.SimulateError(expected);
+        captured.Should().BeSameAs(expected,
+            "SimulateError must invoke OnError synchronously with the exact exception instance");
+    }
+
+    [Fact(DisplayName = "AC-10: FakeFileWatcher -- no callback fired when no subscriber")]
+    public void FakeFileWatcher_SimulateWithNoSubscriber_DoesNotThrow()
+    {
+        var watcher = new FakeFileWatcher();
+        Action act = () =>
+        {
+            watcher.SimulateCreated("/path");
+            watcher.SimulateChanged("/path");
+            watcher.SimulateDeleted("/path");
+            watcher.SimulateRenamed("/old", "/new");
+            watcher.SimulateError(new Exception("test"));
+        };
+        act.Should().NotThrow("Simulate methods must guard against null event delegates");
     }
 }

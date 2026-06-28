@@ -1,4 +1,4 @@
-using Fishtank.Api.Exceptions;
+﻿using Fishtank.Api.Exceptions;
 using Fishtank.Api.Models;
 using Fishtank.Api.Services;
 
@@ -39,7 +39,9 @@ public static class MappingsEndpoints
         }
         catch (ValidationException ex)
         {
-            return Results.BadRequest(ApiResponse.Fail(ex.ErrorCode, ex.Message));
+            return ex.ErrorCode == "MAPPING_FILE_EXISTS"
+                ? Results.Conflict(ApiResponse.Fail(ex.ErrorCode, ex.Message))
+                : Results.BadRequest(ApiResponse.Fail(ex.ErrorCode, ex.Message));
         }
     }
 

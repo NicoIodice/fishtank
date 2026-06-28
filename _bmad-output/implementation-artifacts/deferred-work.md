@@ -38,10 +38,10 @@
 
 ## Deferred from: test-review + NFR + trace of 4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine (2026-06-29)
 
-- [4-1-T1] **AC-12 concurrent guard test false-positive**: `if (conflictResponse != null)` conditional silently passes even if `SemaphoreSlim` guard is absent. Replace with unconditional `statusCodes.Should().Contain(HttpStatusCode.Conflict)`.
-- [4-1-T2] **AC-5 I/O failure → System Event** has zero test coverage. Add unit test forcing `IOException` in `MappingService` and asserting `_systemEvents.Received(1).AddAsync(...)`.
-- [4-1-T3] **NFR-2 performance test** uses 0-file fixture — timing assertion is meaningless. Seed 200 files; assert `elapsedMs < 5000`.
-- [4-1-T4] **AC-7 HTTP 409** and **AC-8 HTTP 404** covered only at service layer; no integration tests for these HTTP responses. Add two integration tests.
+- ~~[4-1-T1] **AC-12 concurrent guard test false-positive**~~ ✅ Fixed 2026-06-28
+- ~~[4-1-T2] **AC-5 I/O failure → System Event**~~ ✅ Fixed 2026-06-28
+- ~~[4-1-T3] **NFR-2 performance test** uses 0-file fixture~~ ✅ Fixed 2026-06-28 (200 seeded files, ≤5s)
+- ~~[4-1-T4] **AC-7 HTTP 409** and **AC-8 HTTP 404** missing integration tests~~ ✅ Fixed 2026-06-28
 - [4-1-T5] **AC-16** (`POST /api/services/import`) deferred to future story; integration test has `[Skip]` attribute.
-- [4-1-T6] **FakeFileWatcher `Simulate*` methods** not directly tested — add unit tests verifying synchronous callback invocation.
+- ~~[4-1-T6] **FakeFileWatcher `Simulate*` methods** not directly tested~~ ✅ Fixed 2026-06-28 (6 tests added to FileWatcherContractTests)
 - [4-1-T7] **AC-15 SignalR broadcast** only verified via HTTP response (not actual hub event). Full verification requires cookie-forwarded HubConnection or Playwright E2E test.
