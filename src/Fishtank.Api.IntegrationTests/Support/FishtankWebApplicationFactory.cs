@@ -23,6 +23,7 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
 {
     private SqliteConnection? _connection;
     private string? _testWebRoot;
+    private string? _testMocksRoot;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -36,6 +37,11 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
             Path.Combine(_testWebRoot, "index.html"),
             "<!DOCTYPE html><html><head><title>Fishtank</title></head><body><div id=\"root\"></div></body></html>");
         builder.UseWebRoot(_testWebRoot);
+
+        // Create a temp directory for FISHTANK_MOCKS_ROOT (Story 4.1)
+        _testMocksRoot = Path.Combine(Path.GetTempPath(), $"fishtank-mocks-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testMocksRoot);
+        builder.UseSetting("FISHTANK_MOCKS_ROOT", _testMocksRoot);
 
         builder.ConfigureServices(services =>
         {
