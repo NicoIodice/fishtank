@@ -282,7 +282,7 @@ describe("ActivitySettings", () => {
         mocksHostPath: "",
       },
       isLoading: false,
-    });
+    } as unknown as ReturnType<typeof useAppSettings>);
 
     mockApiFetch.mockResolvedValueOnce({ captureFullHeaders: false });
     const user = userEvent.setup();
