@@ -118,8 +118,11 @@ test("T13: AC-2 — selecting a service in the dropdown shows only that service'
   page,
   request,
 }) => {
-  // Create services and seed rows BEFORE navigating so they are present when
-  // the activity page mounts and fetches its initial rows.
+  // Start on the activity page
+  await page.goto("/activity");
+  await expect(page.locator("h1")).toContainText("Network Activity");
+
+  // Create services and seed rows via API
   const alphaName = uniqueName("alpha-svc");
   const betaName = uniqueName("beta-svc");
 
@@ -129,16 +132,17 @@ test("T13: AC-2 — selecting a service in the dropdown shows only that service'
   await seedActivityRow(request, alphaService.id, "/alpha/endpoint");
   await seedActivityRow(request, betaService.id, "/beta/endpoint");
 
-  // Navigate to /services first: this triggers useServices → populates the React
-  // Query ["services"] cache that ActivityPage reads via getQueryData (no own fetch).
-  await page.goto("/services");
+  // Use SPA navigation (click the sidebar link) to visit Services so that
+  // useServices fires and populates the React Query ["services"] cache.
+  // page.goto() would do a full browser reload and wipe the cache immediately.
+  await page.click('[data-testid="sidebar-nav-services"]');
   // Wait for our services to appear, confirming the ["services"] cache is populated.
   await expect(
     page.locator(`[data-testid="service-card-${alphaService.id}"]`),
   ).toBeVisible({ timeout: 5000 });
 
-  // Navigate to /activity — services are now in cache, rows are loaded fresh on mount.
-  await page.goto("/activity");
+  // SPA navigate back to Activity — cache persists, rows loaded fresh on mount.
+  await page.click('[data-testid="sidebar-nav-activity"]');
   await expect(page.locator("h1")).toContainText("Network Activity");
 
   // Wait for both rows to appear in the table
