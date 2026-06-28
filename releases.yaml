@@ -124,6 +124,8 @@ releases:
         status: "done"
       - id: "3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls"
         status: "done"
+      - id: "3-4-row-detail-all-three-display-styles"
+        status: "in-progress"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.4.0 — Mappings & Mock Capture (Epic 4)

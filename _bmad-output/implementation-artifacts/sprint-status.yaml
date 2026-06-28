@@ -56,7 +56,7 @@
 # - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
 
 generated: 2026-06-20
-last_updated: 2026-06-27
+last_updated: 2026-06-28
 project: Fishtank
 project_key: NOKEY
 tracking_system: file-system
@@ -106,7 +106,7 @@ development_status:
   3-1-activity-log-backend-request-capture-and-header-redaction: done
   3-2-network-activity-page-real-time-log-display: done
   3-3-activity-log-filtering-sorting-auto-refresh-and-log-controls: done
-  3-4-row-detail-all-three-display-styles: backlog
+  3-4-row-detail-all-three-display-styles: in-progress
   epic-3-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────
