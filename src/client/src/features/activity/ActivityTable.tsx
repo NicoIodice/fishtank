@@ -23,12 +23,18 @@ export type SortableColumn =
   | "timestamp";
 
 const ACTIVITY_ROW_HEIGHT_PX = 48;
+// Header height: 12px padding-top + ~14px text + 12px padding-bottom + 2px border = ~40px.
+// Add a couple of px buffer so the first row never slides under the sticky header.
+const ACTIVITY_HEADER_HEIGHT_PX = 44;
 
 interface ActivityTableProps {
   rows: ActivityRow[];
   hadRows: boolean;
   sort?: { column: SortableColumn | null; direction: "asc" | "desc" | null };
   onSort?: (column: SortableColumn) => void;
+  onRowClick?: (rowId: string) => void;
+  onRowEnter?: (rowId: string) => void;
+  selectedRowId?: string | null;
 }
 
 export function ActivityTable({
@@ -36,6 +42,9 @@ export function ActivityTable({
   hadRows,
   sort = { column: null, direction: null },
   onSort,
+  onRowClick,
+  onRowEnter,
+  selectedRowId,
 }: ActivityTableProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -49,7 +58,7 @@ export function ActivityTable({
     services.map((s) => [s.id, s.status === "live"]),
   );
 
-  // AC-13: keyboard navigation — ArrowUp/ArrowDown move row focus
+  // AC-13: keyboard navigation — ArrowUp/ArrowDown move row focus; Enter opens detail
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (rows.length === 0) return;
@@ -59,9 +68,15 @@ export function ActivityTable({
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setFocusedIndex((prev) => Math.max((prev ?? 1) - 1, 0));
+      } else if (e.key === "Enter" && focusedIndex !== null) {
+        e.preventDefault();
+        const focusedRow = rows[focusedIndex];
+        if (focusedRow && onRowEnter) {
+          onRowEnter(focusedRow.id);
+        }
       }
     },
-    [rows.length],
+    [rows, focusedIndex, onRowEnter],
   );
 
   const virtualizer = useVirtualizer({
@@ -69,6 +84,7 @@ export function ActivityTable({
     getScrollElement: () => parentRef.current,
     estimateSize: () => ACTIVITY_ROW_HEIGHT_PX,
     overscan: 5,
+    paddingStart: ACTIVITY_HEADER_HEIGHT_PX,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -321,6 +337,7 @@ export function ActivityTable({
                   role="row"
                   aria-rowindex={virtualItem.index + 1}
                   tabIndex={focusedIndex === virtualItem.index ? 0 : -1}
+                  onClick={onRowClick ? () => onRowClick(row.id) : undefined}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -330,7 +347,11 @@ export function ActivityTable({
                     transform: `translateY(${virtualItem.start}px)`,
                     display: "table",
                     tableLayout: "fixed",
-                    backgroundColor: rowBgColor,
+                    backgroundColor:
+                      selectedRowId === row.id
+                        ? "var(--selected-row-bg, rgba(59,130,246,.08))"
+                        : rowBgColor,
+                    cursor: onRowClick ? "pointer" : undefined,
                   }}
                 >
                   <td

@@ -5,6 +5,10 @@ import { ActivityTable, type SortableColumn } from "../ActivityTable";
 import { ProxyCounterPill } from "../ProxyCounterPill";
 import { fetchActivityRows, clearActivityLog } from "../api";
 import { useActivitySettings } from "@/features/settings/hooks/useActivitySettings";
+import { useRowDetailStyle } from "../hooks/useRowDetailStyle";
+import { RowDetailModal } from "../components/RowDetailModal";
+import { RowDetailDrawer } from "../components/RowDetailDrawer";
+import { RowDetailPanel } from "../components/RowDetailPanel";
 import type { ActivityRow } from "../types";
 
 // Minimal service shape from React Query cache
@@ -18,6 +22,10 @@ export function ActivityPage() {
   const queryClient = useQueryClient();
   const { settings } = useActivitySettings();
   const isIntervalDisabled = settings.autoRefreshInterval === "disabled";
+  const { effectiveStyle } = useRowDetailStyle();
+
+  // Row detail selection
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -520,7 +528,25 @@ export function ActivityPage() {
         hadRows={hadRows}
         sort={sort}
         onSort={handleSort}
+        onRowClick={(rowId) => setSelectedRowId(rowId)}
+        onRowEnter={(rowId) => setSelectedRowId(rowId)}
+        selectedRowId={selectedRowId}
       />
+
+      {/* Row detail overlays — conditional on preference + viewport */}
+      {(() => {
+        const selectedRow =
+          filteredRows.find((r) => r.id === selectedRowId) ?? null;
+        if (!selectedRow) return null;
+        const close = () => setSelectedRowId(null);
+        if (effectiveStyle === "drawer") {
+          return <RowDetailDrawer row={selectedRow} onClose={close} />;
+        }
+        if (effectiveStyle === "panel") {
+          return <RowDetailPanel row={selectedRow} onClose={close} />;
+        }
+        return <RowDetailModal row={selectedRow} onClose={close} />;
+      })()}
     </main>
   );
 }

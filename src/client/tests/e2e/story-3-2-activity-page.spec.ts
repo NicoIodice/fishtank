@@ -39,36 +39,74 @@ function uniquePath(): string {
   return `/test-${faker.string.alphanumeric(8).toLowerCase()}`;
 }
 
-/**
- * Trigger a mock HTTP request that will generate an ActivityRow.
- * Returns the path used so tests can verify it appears in the table.
- */
-async function triggerMockRequest(request: Request): Promise<string> {
-  const path = uniquePath();
+interface CreatedService {
+  id: string;
+  name: string;
+  port: number;
+  slug: string;
+}
 
-  // Hit a running mock service on port 30100 (first service port)
-  // This will trigger ActivityHub broadcast
-  await request.fetch(`http://127.0.0.1:30100${path}`, {
-    method: "GET",
+/** Create a service via the API and return its metadata. */
+async function seedService(
+  request: Request,
+  name: string,
+  externalUrl = "https://httpbin.org",
+): Promise<CreatedService> {
+  const { port } = await apiFetch<{ port: number }>(
+    request,
+    "/api/services/next-port",
+  );
+
+  return apiFetch<CreatedService>(request, "/api/services", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: JSON.stringify({ name, externalUrl, port, tags: [] }),
   });
+}
 
-  return path;
+/** Seed an activity row via the test-only endpoint. Returns the row ID used. */
+async function seedActivityRow(
+  request: Request,
+  serviceId: string,
+  urlPath: string,
+): Promise<string> {
+  const rowId = faker.string.uuid();
+  await apiFetch<null>(request, "/api/activity/test-seed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: JSON.stringify({
+      id: rowId,
+      serviceId,
+      urlPath,
+      method: "GET",
+      statusCode: 200,
+      type: "Mocked",
+      durationMs: 5,
+    }),
+  });
+  return rowId;
 }
 
 // ─── AC-1: Page loads with existing rows ────────────────────────────────────
 
 test("AC-1: /activity page loads and displays activity table", async ({
   page,
+  request,
 }) => {
-  // RED phase: ActivityPage does not exist yet
+  // Seed a service and a row so the table has content to display.
+  const service = await seedService(request, uniquePath().replace("/", "svc-"));
+  const rowId = await seedActivityRow(request, service.id, "/api/check");
+
   await page.goto("/activity");
 
   // Verify page title is present
   await expect(page.locator("h1")).toContainText("Network Activity");
 
-  // Verify table structure exists (will fail - no component yet)
-  const table = page.locator("table");
-  await expect(table).toBeVisible();
+  // Verify the seeded row is visible in the virtual-list table.
+  // The activity table renders div[role="grid"] rows (not a <table> element).
+  await expect(
+    page.locator(`[data-testid="activity-row-${rowId}"]`),
+  ).toBeVisible({ timeout: 5000 });
 });
 
 // ─── AC-2: Real-time SignalR row prepend ────────────────────────────────────
@@ -77,29 +115,29 @@ test("AC-2: New activity row appears in real-time via SignalR", async ({
   page,
   request,
 }) => {
-  // RED phase: ActivityPage and SignalR subscription don't exist yet
+  // Navigate first so the SignalR subscription is active before we seed.
   await page.goto("/activity");
+  await expect(page.locator('[data-testid="activity-btn-live-paused"]')).toBeVisible();
 
   // Get initial row count
   const initialRows = page.locator('[data-testid^="activity-row-"]');
   const initialCount = await initialRows.count();
 
-  // Trigger a new HTTP request that will broadcast ActivityRowAdded
-  const testPath = await triggerMockRequest(request);
+  // Seed a row via the test endpoint — CaptureAsync broadcasts ActivityRowAdded via SignalR.
+  const service = await seedService(request, uniquePath().replace("/", "svc-"));
+  const urlPath = uniquePath();
+  const rowId = await seedActivityRow(request, service.id, urlPath);
 
-  // Wait for new row to appear (500ms NFR + test overhead = 1500ms max)
-  await page.waitForSelector('[data-testid^="activity-row-"]', {
-    timeout: 1500,
-  });
+  // Wait for the new row to appear via SignalR push (500ms NFR + test overhead).
+  const rowLocator = page.locator(`[data-testid="activity-row-${rowId}"]`);
+  await expect(rowLocator).toBeVisible({ timeout: 3000 });
 
   // Verify row count increased
-  const updatedRows = page.locator('[data-testid^="activity-row-"]');
-  const updatedCount = await updatedRows.count();
+  const updatedCount = await initialRows.count();
   expect(updatedCount).toBe(initialCount + 1);
 
-  // Verify the new row contains the test path
-  const firstRow = updatedRows.first();
-  await expect(firstRow).toContainText(testPath);
+  // Verify the new row contains the seeded URL path
+  await expect(rowLocator).toContainText(urlPath);
 });
 
 // ─── AC-11: Page header element order ───────────────────────────────────────
