@@ -29,6 +29,10 @@ import { faker } from "@faker-js/faker";
  *   - At least two services created and able to receive proxied traffic
  */
 
+// Run tests serially — they share a singleton in-memory IActivityStore;
+// parallel execution accumulates rows across tests and makes count assertions flaky.
+test.describe.configure({ mode: "serial" });
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 type Request = Parameters<typeof apiFetch>[0];
@@ -89,6 +93,12 @@ async function seedActivityRow(
     }),
   });
 }
+
+// Reset services + activity store before each test so accumulated rows from
+// story-3-2 (triggerMockRequest) or previous retries cannot pollute count assertions.
+test.beforeEach(async ({ request }) => {
+  await apiFetch<null>(request, "/api/test/reset-services", { method: "POST" });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // T13: Filter by service (AC-2, P1)

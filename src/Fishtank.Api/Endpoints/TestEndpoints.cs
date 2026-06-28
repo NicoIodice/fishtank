@@ -38,9 +38,10 @@ public static class TestEndpoints
         // ServerConfigs is intentionally preserved — it is infrastructure state
         // seeded at startup (BootEpoch) and must not be deleted.
         // Also stops all in-memory WireMock servers so ports are freed between runs.
-        app.MapPost("/api/test/reset-db", async (FishtankDbContext db, IServicesRegistry registry) =>
+        app.MapPost("/api/test/reset-db", async (FishtankDbContext db, IServicesRegistry registry, IActivityStore activityStore) =>
         {
             StopAllWireMock(registry);
+            activityStore.Clear();
             await db.SystemEvents.ExecuteDeleteAsync();
             await db.Services.ExecuteDeleteAsync();
             await db.Users.ExecuteDeleteAsync();
@@ -52,9 +53,10 @@ public static class TestEndpoints
         // Also stops all in-memory WireMock servers so ports are freed.
         // Use before tests that require an empty services list (e.g. P0-1 empty state)
         // without invalidating the authenticated session.
-        app.MapPost("/api/test/reset-services", async (FishtankDbContext db, IServicesRegistry registry) =>
+        app.MapPost("/api/test/reset-services", async (FishtankDbContext db, IServicesRegistry registry, IActivityStore activityStore) =>
         {
             StopAllWireMock(registry);
+            activityStore.Clear();
             await db.SystemEvents.ExecuteDeleteAsync();
             await db.Services.ExecuteDeleteAsync();
             return Results.Json(new { success = true });
