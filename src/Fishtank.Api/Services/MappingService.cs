@@ -144,8 +144,9 @@ public class MappingService(
             throw new ValidationException("MAPPING_PATH_INVALID",
                 "Invalid path — path traversal sequences are not allowed.");
 
-        // Reject absolute paths
-        if (Path.IsPathRooted(normalized))
+        // Reject absolute paths — covers Unix (/…), UNC (//…), and Windows drive-letter
+        // paths (C:/…) even when running on Linux where Path.IsPathRooted misses the latter.
+        if (Path.IsPathRooted(normalized) || System.Text.RegularExpressions.Regex.IsMatch(normalized, @"^[a-zA-Z]:/"))
             throw new ValidationException("MAPPING_PATH_INVALID",
                 "Invalid path — absolute paths are not allowed.");
 
