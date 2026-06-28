@@ -19,21 +19,25 @@ function createWrapper() {
 }
 
 function fetchOk(data: unknown) {
-  return vi.fn().mockResolvedValue(
-    new Response(
-      JSON.stringify({ success: true, data }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    ),
-  );
+  return vi
+    .fn()
+    .mockResolvedValue(
+      new Response(JSON.stringify({ success: true, data }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
 }
 
 function fetchErr(code: string, message: string) {
-  return vi.fn().mockResolvedValue(
-    new Response(
-      JSON.stringify({ success: false, error: { code, message } }),
-      { status: 401, headers: { "Content-Type": "application/json" } },
-    ),
-  );
+  return vi
+    .fn()
+    .mockResolvedValue(
+      new Response(
+        JSON.stringify({ success: false, error: { code, message } }),
+        { status: 401, headers: { "Content-Type": "application/json" } },
+      ),
+    );
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -43,27 +47,41 @@ afterEach(() => vi.restoreAllMocks());
 describe("useLogin", () => {
   it("calls POST /api/auth/login with credentials", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(fetchOk({ token: "abc" }));
-    const { result } = renderHook(() => useLogin(), { wrapper: createWrapper() });
-
-    await act(async () => {
-      await result.current.mutateAsync({ username: "admin", password: "s3cr3t" });
+    const { result } = renderHook(() => useLogin(), {
+      wrapper: createWrapper(),
     });
 
-    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    await act(async () => {
+      await result.current.mutateAsync({
+        username: "admin",
+        password: "s3cr3t",
+      });
+    });
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [string, RequestInit];
     expect(url).toBe("/api/auth/login");
     expect((init as RequestInit).method).toBe("POST");
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ username: "admin", password: "s3cr3t" });
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      username: "admin",
+      password: "s3cr3t",
+    });
   });
 
   it("rejects on API error", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(
       fetchErr("AUTH_INVALID_CREDENTIALS", "Bad credentials"),
     );
-    const { result } = renderHook(() => useLogin(), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useLogin(), {
+      wrapper: createWrapper(),
+    });
 
     await expect(
       act(async () => {
-        await result.current.mutateAsync({ username: "admin", password: "wrong" });
+        await result.current.mutateAsync({
+          username: "admin",
+          password: "wrong",
+        });
       }),
     ).rejects.toThrow();
   });
@@ -74,7 +92,12 @@ describe("useLogin", () => {
 describe("useSetup", () => {
   it("calls POST /api/auth/setup and writes setup-status to cache on success", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(fetchOk({ token: "abc" }));
-    const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const qc = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
     const Wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={qc}>{children}</QueryClientProvider>
     );
@@ -82,10 +105,14 @@ describe("useSetup", () => {
     const { result } = renderHook(() => useSetup(), { wrapper: Wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync({ username: "admin", password: "newp@ssw0rd!!" });
+      await result.current.mutateAsync({
+        username: "admin",
+        password: "newp@ssw0rd!!",
+      });
     });
 
-    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [string, RequestInit];
     expect(url).toBe("/api/auth/setup");
     expect((init as RequestInit).method).toBe("POST");
 
@@ -99,13 +126,19 @@ describe("useSetup", () => {
 describe("useChangePassword", () => {
   it("calls PUT /api/auth/change-password with current and new passwords", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(fetchOk(null));
-    const { result } = renderHook(() => useChangePassword(), { wrapper: createWrapper() });
-
-    await act(async () => {
-      await result.current.mutateAsync({ currentPassword: "oldPass1!", newPassword: "newPass1!2345" });
+    const { result } = renderHook(() => useChangePassword(), {
+      wrapper: createWrapper(),
     });
 
-    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    await act(async () => {
+      await result.current.mutateAsync({
+        currentPassword: "oldPass1!",
+        newPassword: "newPass1!2345",
+      });
+    });
+
+    const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [string, RequestInit];
     expect(url).toBe("/api/auth/change-password");
     expect((init as RequestInit).method).toBe("PUT");
     expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
@@ -118,11 +151,16 @@ describe("useChangePassword", () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(
       fetchErr("AUTH_INVALID_CREDENTIALS", "Wrong current password"),
     );
-    const { result } = renderHook(() => useChangePassword(), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useChangePassword(), {
+      wrapper: createWrapper(),
+    });
 
     await expect(
       act(async () => {
-        await result.current.mutateAsync({ currentPassword: "bad", newPassword: "newPass1!2345" });
+        await result.current.mutateAsync({
+          currentPassword: "bad",
+          newPassword: "newPass1!2345",
+        });
       }),
     ).rejects.toThrow();
   });

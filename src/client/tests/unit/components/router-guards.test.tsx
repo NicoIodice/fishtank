@@ -69,7 +69,12 @@ describe("ProtectedRoute", () => {
 
   it("renders children when user is authenticated", () => {
     mockUseAuth.mockReturnValue({
-      user: { userId: "user-1", username: "admin", role: "Admin", forcePasswordChange: false },
+      user: {
+        userId: "user-1",
+        username: "admin",
+        role: "Admin",
+        forcePasswordChange: false,
+      },
       isLoading: false,
       isAuthenticated: true,
     });
@@ -114,7 +119,12 @@ describe("ProtectedRoute", () => {
 
   it("redirects to /setup/change-password when forcePasswordChange is set", () => {
     mockUseAuth.mockReturnValue({
-      user: { userId: "user-1", username: "admin", role: "Admin", forcePasswordChange: true },
+      user: {
+        userId: "user-1",
+        username: "admin",
+        role: "Admin",
+        forcePasswordChange: true,
+      },
       isLoading: false,
       isAuthenticated: true,
     });
