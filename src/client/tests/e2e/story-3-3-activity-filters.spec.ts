@@ -118,23 +118,28 @@ test("T13: AC-2 — selecting a service in the dropdown shows only that service'
   page,
   request,
 }) => {
-  // Navigate to the activity page
-  await page.goto("/activity");
-  await expect(page.locator("h1")).toContainText("Network Activity");
-
-  // Create two services via API
+  // Create services and seed rows BEFORE navigating so they are present when
+  // the activity page mounts and fetches its initial rows.
   const alphaName = uniqueName("alpha-svc");
   const betaName = uniqueName("beta-svc");
 
   const alphaService = await seedService(request, alphaName);
   const betaService = await seedService(request, betaName);
 
-  // Seed activity rows for each service
   await seedActivityRow(request, alphaService.id, "/alpha/endpoint");
   await seedActivityRow(request, betaService.id, "/beta/endpoint");
 
-  // Reload to see the seeded rows
-  await page.reload();
+  // Navigate to /services first: this triggers useServices → populates the React
+  // Query ["services"] cache that ActivityPage reads via getQueryData (no own fetch).
+  await page.goto("/services");
+  // Wait for our services to appear, confirming the ["services"] cache is populated.
+  await expect(
+    page.locator(`[data-testid="service-card-${alphaService.id}"]`),
+  ).toBeVisible({ timeout: 5000 });
+
+  // Navigate to /activity — services are now in cache, rows are loaded fresh on mount.
+  await page.goto("/activity");
+  await expect(page.locator("h1")).toContainText("Network Activity");
 
   // Wait for both rows to appear in the table
   await expect(page.locator(`[data-testid^="activity-row-"]`)).toHaveCount(2, {
