@@ -147,6 +147,15 @@ var dbPath = builder.Configuration["FISHTANK_DB_PATH"] ?? "/app/data/fishtank.db
 builder.Services.AddDbContext<FishtankDbContext>(opt =>
     opt.UseSqlite($"Data Source={dbPath}"));
 
+// ─── Mocks Root — where WireMock mapping/response files live.
+// Default to /mocks (the conventional volume mount documented in
+// docker-compose.example.yml) so the app works out-of-the-box; deployments, CI,
+// and tests override it with their own (writable) path. All consumers
+// (MappingService, ResyncService, ServiceManager, EngineStartup) read this key,
+// so defaulting once here keeps them consistent and avoids a hard crash when the
+// variable is not explicitly provided.
+builder.Configuration["FISHTANK_MOCKS_ROOT"] ??= "/mocks";
+
 // ─── 6. Application services ──────────────────────────────────────────────────
 builder.Services.AddSingleton<IServerConfigService, ServerConfigService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();

@@ -114,6 +114,8 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
             _connection?.Dispose(); // Then release the in-memory connection
             if (_testWebRoot is not null && Directory.Exists(_testWebRoot))
                 Directory.Delete(_testWebRoot, recursive: true);
+            if (_testMocksRoot is not null && Directory.Exists(_testMocksRoot))
+                Directory.Delete(_testMocksRoot, recursive: true);
         }
     }
 }

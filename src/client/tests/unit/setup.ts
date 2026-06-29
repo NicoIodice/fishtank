@@ -20,8 +20,11 @@ Object.defineProperty(window, "matchMedia", {
 
 // Stub window.location globally so jsdom never fires "Not implemented: navigation".
 // Tests can read/write window.location.href freely as a plain string.
+// We use "http://localhost/" (not "") as the initial href so that MSW's
+// FetchInterceptor can resolve relative API paths via new URL(path, location.href).
+// Tests that verify no redirect happened should compare against "http://localhost/".
 const locationStub = {
-  href: "",
+  href: "http://localhost/",
   assign: vi.fn(),
   replace: vi.fn(),
   reload: vi.fn(),
@@ -45,7 +48,7 @@ Object.defineProperty(window, "location", {
 afterEach(() => {
   cleanup();
   // Reset navigation stub between tests
-  locationStub.href = "";
+  locationStub.href = "http://localhost/";
   locationStub.assign.mockReset();
   locationStub.replace.mockReset();
   locationStub.reload.mockReset();

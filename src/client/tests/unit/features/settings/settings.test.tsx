@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterAll } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -12,10 +12,6 @@ import { SettingsPage } from "@/features/settings/pages/SettingsPage";
 const mockApiFetch = vi.hoisted(() => vi.fn());
 const mockUpdateMaxEntries = vi.hoisted(() => vi.fn());
 const mockUpdateInterval = vi.hoisted(() => vi.fn());
-
-vi.mock("@/lib/api", () => ({
-  apiFetch: mockApiFetch,
-}));
 
 vi.mock("@/lib/api", () => ({
   apiFetch: mockApiFetch,
@@ -65,7 +61,21 @@ const mockUseTheme = vi.mocked(useTheme);
 import { useBreakpoint } from "@/lib/useBreakpoint";
 const mockUseBreakpoint = vi.mocked(useBreakpoint);
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  // mockReset clears queued *Once implementations that vi.clearAllMocks() leaves intact,
+  // preventing stale resolved values from leaking into subsequent tests in this file.
+  mockApiFetch.mockReset();
+});
+
+// With isolate:false + maxWorkers:1, vi.mock() in this file persists into subsequent test
+// files in the same worker. After all tests in this file complete, restore mockApiFetch to
+// a pass-through so subsequent files that rely on real apiFetch + MSW work correctly.
+// We restore the real implementation dynamically (cannot vi.unmock after hoisting).
+afterAll(async () => {
+  const realApi = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+  mockApiFetch.mockImplementation(realApi.apiFetch);
+});
 
 // ─── AppearanceSettings ───────────────────────────────────────────────────────
 
@@ -204,23 +214,26 @@ describe("SettingsPage", () => {
     // CacheSettings has no mocked component but SettingsPage renders the branch
   });
 
-  it("clicking mocks-root nav shows fallback text", async () => {
+  it("clicking mocks-root nav shows MocksRootSettings section", async () => {
     mockUseBreakpoint.mockReturnValue({
       desktop: true,
       mid: false,
       midNarrow: false,
       mobile: false,
     });
+    // useMocksRoot calls apiFetch("/api/mappings") — queue the response so it is
+    // consumed within this test and does NOT leak into the next test.
+    mockApiFetch.mockResolvedValue({ mocksRoot: "/mocks", children: [] });
     const user = userEvent.setup();
     render(
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
         <SettingsPage />
       </QueryClientProvider>,
     );
     await user.click(screen.getByTestId("settings-nav-mocks-root"));
-    expect(
-      screen.getByText(/configured in a later story/i),
-    ).toBeInTheDocument();
+    // Wait for the section to appear AND for the queued apiFetch to be consumed
+    await screen.findByTestId("settings-mocks-root");
+    await screen.findByTestId("settings-input-mocks-root");
   });
 });
 

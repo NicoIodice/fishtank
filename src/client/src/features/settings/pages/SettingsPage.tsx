@@ -3,6 +3,7 @@ import { useBreakpoint } from "@/lib/useBreakpoint";
 import { AppearanceSettings } from "../components/AppearanceSettings";
 import { CacheSettings } from "../components/CacheSettings";
 import { ActivitySettings } from "../components/ActivitySettings";
+import { MocksRootSettings } from "../components/MocksRootSettings";
 
 type SettingsSection = "appearance" | "activity" | "cache" | "mocks-root";
 
@@ -100,7 +101,7 @@ export function SettingsPage() {
         ) : active === "cache" ? (
           <CacheSettings />
         ) : (
-          <p className="text-muted">Configured in a later story.</p>
+          <MocksRootSettings />
         )}
       </section>
     </main>

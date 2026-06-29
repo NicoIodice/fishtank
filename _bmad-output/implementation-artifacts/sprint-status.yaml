@@ -114,7 +114,7 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   epic-4: in-progress
   4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine: done
-  4-2-mappings-file-explorer-and-dual-mode-editor: backlog
+  4-2-mappings-file-explorer-and-dual-mode-editor: done
   4-3-resync-ui-with-toast-feedback-and-conflict-banners: backlog
   4-4-save-as-mock-mock-suggestion-modal: backlog
   4-5-record-mode-and-cross-screen-recording-indicator: backlog

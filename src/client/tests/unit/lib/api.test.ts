@@ -92,7 +92,8 @@ describe("apiFetch", () => {
       redirectOn401: false,
     }).catch(() => {});
 
-    expect(window.location.href).toBe("");
+    // href unchanged from initial stub ("http://localhost/") proves no redirect happened
+    expect(window.location.href).toBe("http://localhost/");
   });
 
   it("surfaces error code and message from 401 body", async () => {
