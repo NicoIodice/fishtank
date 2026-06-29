@@ -11,6 +11,7 @@ public static class MappingsEndpoints
         var group = app.MapGroup("/api/mappings").RequireAuthorization();
 
         group.MapGet("", GetFolderTreeAsync);
+        group.MapGet("{**path}", GetFileContentAsync);
         group.MapPost("", CreateMappingAsync);
         group.MapPut("{**path}", UpdateMappingAsync);
         group.MapDelete("{**path}", DeleteMappingAsync);
@@ -25,6 +26,26 @@ public static class MappingsEndpoints
     {
         var tree = await mappingService.GetFolderTreeAsync(ct);
         return Results.Ok(ApiResponse.Ok(tree));
+    }
+
+    private static async Task<IResult> GetFileContentAsync(
+        string path,
+        IMappingService mappingService,
+        CancellationToken ct)
+    {
+        try
+        {
+            var content = await mappingService.ReadFileAsync(path, ct);
+            return Results.Ok(ApiResponse.Ok(content));
+        }
+        catch (ValidationException ex)
+        {
+            return Results.BadRequest(ApiResponse.Fail(ex.ErrorCode, ex.Message));
+        }
+        catch (NotFoundException ex)
+        {
+            return Results.NotFound(ApiResponse.Fail(ex.ErrorCode, ex.Message));
+        }
     }
 
     private static async Task<IResult> CreateMappingAsync(

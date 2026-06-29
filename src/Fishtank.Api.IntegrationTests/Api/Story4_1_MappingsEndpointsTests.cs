@@ -1,18 +1,18 @@
-﻿using System.Net;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using FluentAssertions;
+using Fishtank.Api.IntegrationTests.Support;
+using Fishtank.Api.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http.Json;
-using System.Text.Json;
-using Fishtank.Api.Models;
-using FluentAssertions;
-using Fishtank.Api.IntegrationTests.Support;
 
 namespace Fishtank.Api.IntegrationTests.Api;
 
 /// <summary>
 /// RED-PHASE ATDD acceptance test scaffolds for Story 4.1:
-/// Mappings File Backend â€” CRUD, IFileWatcher &amp; Resync Engine.
+/// Mappings File Backend — CRUD, IFileWatcher &amp; Resync Engine.
 ///
 /// These tests define the expected end-state behaviour and are designed to
 /// FAIL against the current codebase (no MappingsEndpoints registered,
@@ -46,13 +46,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             Factory, "admin", "adminpassword123");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-1: GET /api/mappings returns folder tree structure
     // RED: /api/mappings returns 404 (endpoint not mapped)
     // GREEN: Returns 200 with nested folder/file structure in standard envelope
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-1: GET /api/mappings â€” returns folder tree structure")]
+    [Fact(DisplayName = "AC-1: GET /api/mappings — returns folder tree structure")]
     public async Task GetMappings_ReturnsSuccessEnvelope_WithFolderTreeStructure()
     {
         // Arrange
@@ -80,13 +80,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "folder tree must include mocksRoot path");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-2: POST /api/mappings creates file
     // RED: /api/mappings returns 404 (endpoint not mapped)
     // GREEN: Returns 201 with file metadata
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-2: POST /api/mappings â€” creates file on disk")]
+    [Fact(DisplayName = "AC-2: POST /api/mappings — creates file on disk")]
     public async Task CreateMapping_ValidRequest_CreatesFileAndReturns201()
     {
         // Arrange
@@ -125,13 +125,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "file metadata must include lastModified timestamp");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-3: PUT /api/mappings/{path} updates file
     // RED: /api/mappings/{path} returns 404 (endpoint not mapped)
     // GREEN: Returns 200 with updated file metadata
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-3: PUT /api/mappings/{path} â€” updates existing file")]
+    [Fact(DisplayName = "AC-3: PUT /api/mappings/{path} — updates existing file")]
     public async Task UpdateMapping_ExistingFile_UpdatesContentAndReturns200()
     {
         // Arrange
@@ -175,13 +175,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         data.GetProperty("path").GetString().Should().Be(filePath);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-4: DELETE /api/mappings/{path} removes file
     // RED: /api/mappings/{path} returns 404 (endpoint not mapped)
     // GREEN: Returns 200 with success envelope (data: null for void operations)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-4: DELETE /api/mappings/{path} â€” removes file from disk")]
+    [Fact(DisplayName = "AC-4: DELETE /api/mappings/{path} — removes file from disk")]
     public async Task DeleteMapping_ExistingFile_RemovesFileAndReturns200()
     {
         // Arrange
@@ -211,13 +211,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "void operations must return data: null in success envelope");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-5: File operation failure creates System Event
     // RED: No MappingService or SystemEventService wired
     // GREEN: System Event created with error details, error response returned
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-5: File write failure â€” creates System Event and returns error")]
+    [Fact(DisplayName = "AC-5: File write failure — creates System Event and returns error")]
     public async Task CreateMapping_WriteFailure_CreatesSystemEventAndReturnsError()
     {
         // Arrange
@@ -247,13 +247,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             .Should().Be("MAPPING_PATH_INVALID", "path traversal must be rejected with specific error code");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-6: POST /api/resync reloads all files
     // RED: /api/resync returns 404 (endpoint not mapped)
     // GREEN: Returns 200 with mappingsLoaded, responsesLoaded, elapsedMs, failures[]
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-6: POST /api/resync â€” reloads all files and returns counts")]
+    [Fact(DisplayName = "AC-6: POST /api/resync — reloads all files and returns counts")]
     public async Task Resync_ReloadsAllMappings_AndReturnsSuccessCounts()
     {
         // Arrange
@@ -284,17 +284,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "failures must be an array");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // AC-7: Resync performance â€” <1s for <200 files (NFR-2)
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-7: Resync performance — <1s for <200 files (NFR-2)
     // RED: /api/resync returns 404
-    // GREEN: Resync with 200-file fixture completes in â‰¤1000ms
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // AC-7: Resync performance -- <5s for 200 files (NFR-2)
-    // RED: /api/resync returns 404
-    // GREEN: Resync with 200-file fixture completes in <=5000ms
+    // GREEN: Resync with 200-file fixture completes in ≤5000ms
     // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-7: Resync performance -- completes in <5s for 200 seeded files (NFR-2)")]
+    [Fact(DisplayName = "AC-7: Resync performance — completes in <5s for 200 seeded files (NFR-2)")]
     public async Task Resync_TwoHundredFiles_CompletesInUnder5Seconds()
     {
         // Arrange: register a service so ResyncService will scan its directory
@@ -319,7 +315,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         {
             await File.WriteAllTextAsync(
                 Path.Combine(mappingsDir, $"mapping-{i:D3}.json"),
-                @$"{{""id"":{i}}}");
+                $"{{\"id\":{i},\"request\":{{\"url\":\"/nfr/{i}\"}},\"response\":{{\"status\":200}}}}");
         }
 
         // Act
@@ -340,12 +336,14 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         data.GetProperty("mappingsLoaded").GetInt32().Should().BeGreaterThanOrEqualTo(200,
             "all 200 seeded files must be loaded");
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-12: Concurrent Resync calls blocked
     // RED: /api/resync returns 404
     // GREEN: First call succeeds, second returns HTTP 409 RESYNC_IN_PROGRESS
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-12: Concurrent Resync â€” second call returns HTTP 409")]
+    [Fact(DisplayName = "AC-12: Concurrent Resync — second call returns HTTP 409")]
     public async Task Resync_ConcurrentCalls_SecondCallReturns409()
     {
         // Arrange
@@ -360,10 +358,11 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         // Assert: One succeeds, one returns 409
         var statusCodes = responses.Select(r => r.StatusCode).OrderBy(c => c).ToList();
 
+        // One should be OK (200), one should be Conflict (409)
         statusCodes.Should().Contain(HttpStatusCode.OK,
             "first Resync call must succeed");
         statusCodes.Should().Contain(HttpStatusCode.Conflict,
-            "concurrent Resync must be blocked with HTTP 409 -- SemaphoreSlim guard must reject the second call");
+            "concurrent Resync must be blocked with HTTP 409 — SemaphoreSlim guard must reject the second call");
 
         var conflictResponse = responses.First(r => r.StatusCode == HttpStatusCode.Conflict);
         var body = await conflictResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -377,7 +376,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
     // AC-7 (HTTP layer): Duplicate file creation returns HTTP 409
     // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-7: Duplicate POST /api/mappings -- returns HTTP 409 MAPPING_FILE_EXISTS")]
+    [Fact(DisplayName = "AC-7: Duplicate POST /api/mappings — returns HTTP 409 MAPPING_FILE_EXISTS")]
     public async Task CreateMapping_DuplicatePath_Returns409()
     {
         // Arrange
@@ -407,7 +406,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
     // AC-8 (HTTP layer): Update/delete non-existent file returns HTTP 404
     // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-8: PUT /api/mappings/{path} for non-existent file -- returns HTTP 404 MAPPING_FILE_NOT_FOUND")]
+    [Fact(DisplayName = "AC-8: PUT /api/mappings/{path} for non-existent file — returns HTTP 404 MAPPING_FILE_NOT_FOUND")]
     public async Task UpdateMapping_NonExistentPath_Returns404()
     {
         // Arrange
@@ -430,7 +429,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
                 "not-found error must carry MAPPING_FILE_NOT_FOUND error code");
     }
 
-    [Fact(DisplayName = "AC-8: DELETE /api/mappings/{path} for non-existent file -- returns HTTP 404 MAPPING_FILE_NOT_FOUND")]
+    [Fact(DisplayName = "AC-8: DELETE /api/mappings/{path} for non-existent file — returns HTTP 404 MAPPING_FILE_NOT_FOUND")]
     public async Task DeleteMapping_NonExistentPath_Returns404()
     {
         // Arrange
@@ -451,13 +450,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
                 "not-found error must carry MAPPING_FILE_NOT_FOUND error code");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-13: Path traversal blocked
     // RED: No path sanitization logic exists
     // GREEN: Returns HTTP 400 MAPPING_PATH_INVALID for ../ sequences
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-13: Path traversal â€” rejected with HTTP 400 MAPPING_PATH_INVALID")]
+    [Fact(DisplayName = "AC-13: Path traversal — rejected with HTTP 400 MAPPING_PATH_INVALID")]
     public async Task CreateMapping_PathTraversal_ReturnsHTTP400()
     {
         // Arrange
@@ -487,7 +486,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
                 "error message must explain path traversal is not allowed");
     }
 
-    [Fact(DisplayName = "AC-13: Absolute paths â€” rejected with HTTP 400 MAPPING_PATH_INVALID")]
+    [Fact(DisplayName = "AC-13: Absolute paths — rejected with HTTP 400 MAPPING_PATH_INVALID")]
     public async Task CreateMapping_AbsolutePath_ReturnsHTTP400()
     {
         // Arrange
@@ -513,13 +512,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
                 "absolute path errors must use MAPPING_PATH_INVALID error code");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-14: Unauthenticated requests rejected
     // RED: Auth middleware not applied to /api/mappings endpoints
     // GREEN: Returns HTTP 401 Unauthorized
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-14: Unauthenticated GET /api/mappings â€” returns HTTP 401")]
+    [Fact(DisplayName = "AC-14: Unauthenticated GET /api/mappings — returns HTTP 401")]
     public async Task GetMappings_Unauthenticated_ReturnsHTTP401()
     {
         // Arrange: Use unauthenticated client
@@ -531,7 +530,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "unauthenticated GET /api/mappings must return 401 (NFR-8)");
     }
 
-    [Fact(DisplayName = "AC-14: Unauthenticated PUT /api/mappings/{path} â€” returns HTTP 401")]
+    [Fact(DisplayName = "AC-14: Unauthenticated PUT /api/mappings/{path} — returns HTTP 401")]
     public async Task UpdateMapping_Unauthenticated_ReturnsHTTP401()
     {
         // Arrange: Use unauthenticated client
@@ -543,7 +542,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "unauthenticated PUT /api/mappings/{path} must return 401 (NFR-8)");
     }
 
-    [Fact(DisplayName = "AC-14: Unauthenticated POST /api/resync â€” returns HTTP 401")]
+    [Fact(DisplayName = "AC-14: Unauthenticated POST /api/resync — returns HTTP 401")]
     public async Task Resync_Unauthenticated_ReturnsHTTP401()
     {
         // Arrange: Use unauthenticated client
@@ -555,13 +554,13 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "unauthenticated POST /api/resync must return 401 (NFR-8)");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-11: Conflict detection via _lastKnownModified comparison
     // RED: No conflict detection logic in ResyncService
     // GREEN: Files modified externally flagged with conflicted: true
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-11: Resync conflict detection â€” externally modified file flagged")]
+    [Fact(DisplayName = "AC-11: Resync conflict detection — externally modified file flagged")]
     public async Task Resync_ExternallyModifiedFile_FlagsConflict()
     {
         // Arrange
@@ -616,20 +615,22 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
             "the modified file must appear in conflicts array");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
     // AC-15: ResyncCompleted SignalR event broadcast
     // RED: No SignalR broadcast on Resync completion
     // GREEN: ServicesHub broadcasts ResyncCompleted event
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-15: ResyncCompleted SignalR event â€” broadcast on success")]
+    [Fact(DisplayName = "AC-15: ResyncCompleted SignalR event — broadcast on success")]
     public async Task Resync_Success_BroadcastsResyncCompletedEvent()
     {
         // Arrange
         var client = await GetAuthenticatedClientAsync();
 
-        // Note: Full SignalR broadcast verification requires cookie-based auth forwarding to
-        // the HubConnection. Verified via Playwright E2E tests instead.
+        // Note: Full SignalR broadcast verification (hubConnection.On<ResyncResultDto>) requires
+        // cookie-based auth forwarding to the HubConnection which is complex to set up in
+        // integration tests. The real-time broadcast is verified via Playwright E2E tests.
+        // This test verifies the HTTP contract of the Resync endpoint.
 
         // Act
         var response = await client.PostAsync("/api/resync", null);
@@ -645,14 +646,14 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
                 "resync result must include mappingsLoaded count");
     }
 
-
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // AC-16: On-demand seed import (backend only â€” Admin Console UI in Epic 5)
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-16: On-demand seed import (backend only — Admin Console UI in Epic 5)
     // RED: /api/services/import endpoint does not exist
     // GREEN: Additive import behavior (new services created, existing skipped)
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─────────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "AC-16: POST /api/services/import \u2014 additive behavior", Skip = "Endpoint not implemented in story 4-1; deferred to future story")]
+    [Fact(DisplayName = "AC-16: POST /api/services/import — additive behavior",
+         Skip = "AC-16 /api/services/import endpoint is not implemented in story 4-1. Deferred to future story.")]
     public async Task ServicesImport_AdditiveImport_CreatesNewAndSkipsExisting()
     {
         // Arrange
@@ -710,7 +711,7 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         var servicesBody = await servicesResponse.Content.ReadFromJsonAsync<JsonElement>();
         var services = servicesBody.GetProperty("data").EnumerateArray().ToList();
 
-        services.Should().HaveCountGreaterThanOrEqualTo(2,
+        services.Count.Should().BeGreaterThanOrEqualTo(2,
             "both existing and new services must be present after import");
 
         services.Should().Contain(s =>

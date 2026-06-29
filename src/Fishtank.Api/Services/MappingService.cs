@@ -32,6 +32,24 @@ public class MappingService(
         return new FolderTreeDto(_mocksRoot, tree.Children ?? []);
     }
 
+    public async Task<FileContentDto> ReadFileAsync(string path, CancellationToken ct = default)
+    {
+        var fullPath = SanitizePath(path);
+
+        if (!File.Exists(fullPath))
+            throw new NotFoundException("MAPPING_FILE_NOT_FOUND", $"File not found: {path}");
+
+        var content = await File.ReadAllTextAsync(fullPath, ct);
+        var info = new FileInfo(fullPath);
+
+        return new FileContentDto(
+            content,
+            info.Name,
+            path,
+            info.LastWriteTimeUtc,
+            info.Length);
+    }
+
     public async Task<FileMetadataDto> CreateFileAsync(string path, string content, CancellationToken ct = default)
     {
         var fullPath = SanitizePath(path);

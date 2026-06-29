@@ -23,6 +23,12 @@ _Theme: Edit mock files in the browser and record real traffic into permanent st
 - **Conflict detection** — resync flags files that were externally modified (disk `LastWriteTimeUtc` newer than `_lastKnownModified` baseline set by the API) (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
 - **Concurrent resync guard** — `SemaphoreSlim(1,1)` static lock returns HTTP 409 `RESYNC_IN_PROGRESS` if a resync is already running (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
 - **ResyncCompleted SignalR broadcast** — on resync completion, `ServicesHub` broadcasts `ResyncCompleted` to all connected clients (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Mappings file explorer** — new `/mappings` screen with a collapsible folder tree (Mocks Root → service folders → `mappings/`·`responses/` → files), session-persisted expand/collapse, active-file highlight, and full keyboard navigation (arrow keys + Enter) (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Dual-mode mapping editor** — Form view for common WireMock fields plus a Raw JSON tab (CodeMirror, `lang-json` + one-dark theme); edits are preserved across tab switches and advanced fields are never dropped (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **In-browser file management** — create (New Mapping / New Response), edit & save, rename, duplicate, and delete mapping/response files directly from the UI; deletes require confirmation and every write waits for server confirmation with an error toast on failure (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **`GET /api/mappings/{path}`** — single-file content-read endpoint returning file content plus metadata, guarded by the same path-traversal sanitisation and authentication as the rest of the Mappings API (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Unsaved-changes navigation guard** — leaving `/mappings` with unsaved edits prompts a confirmation dialog so changes are never lost silently (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Settings → Mocks Root** — read-only display of the configured Mocks Root path with guidance that changing it requires a service restart and resync (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
 
 ---
 
