@@ -254,9 +254,10 @@ describe("Story 4.2 — MappingsPage: Folder Tree", () => {
     // Click the file — it becomes active
     await user.click(fileNode);
 
-    // Active node must have brand-color left border (via CSS class or style)
-    // The exact class/token name is implementation-defined; we test for the
-    // ARIA/data indicator or a data-active attribute the implementation exposes.
+    // data-active drives the brand-color left border in the same render branch.
+    // jsdom cannot observe a `var()`-based border shorthand (it rejects the
+    // longhands), so the literal brand color is asserted in the E2E suite
+    // (real browser resolves the CSS variable) — see story-4-2 P1-1.
     await waitFor(() => {
       expect(fileNode).toHaveAttribute("data-active", "true");
     });

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import type { FileContent } from "../types/mappings";
+import { encodePath } from "./useMappingMutations";
 
 /**
  * React Query hook to fetch a single file's content.
@@ -9,7 +10,7 @@ import type { FileContent } from "../types/mappings";
 export function useFileContent(path: string | null) {
   return useQuery({
     queryKey: ["mappings-file", path],
-    queryFn: () => apiFetch<FileContent>(`/api/mappings/${path}`),
+    queryFn: () => apiFetch<FileContent>(`/api/mappings/${encodePath(path!)}`),
     enabled: path !== null,
   });
 }

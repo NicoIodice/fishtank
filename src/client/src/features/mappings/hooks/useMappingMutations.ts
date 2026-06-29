@@ -3,6 +3,15 @@ import { apiFetch, ApiError } from "@/lib/api";
 import type { FileMetadata, FileContent } from "../types/mappings";
 import { MAPPINGS_QUERY_KEY } from "./useMappingsTree";
 
+/**
+ * Encode each path segment for safe use in a request URL while preserving the
+ * "/" separators. A filename containing `#`, `?`, or spaces would otherwise
+ * mis-route; the backend re-decodes and re-validates via SanitizePath.
+ */
+export function encodePath(path: string): string {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
 interface SaveExistingArgs {
   path: string;
   content: string;
@@ -38,7 +47,7 @@ export function useSaveExisting(options?: {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ path, content, lastKnownModified }: SaveExistingArgs) =>
-      apiFetch<FileMetadata>(`/api/mappings/${path}`, {
+      apiFetch<FileMetadata>(`/api/mappings/${encodePath(path)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, lastKnownModified }),
@@ -85,7 +94,7 @@ export function useDeleteFile(options?: {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ path }: DeleteArgs) =>
-      apiFetch<null>(`/api/mappings/${path}`, { method: "DELETE" }),
+      apiFetch<null>(`/api/mappings/${encodePath(path)}`, { method: "DELETE" }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: MAPPINGS_QUERY_KEY });
       options?.onSuccess?.();
@@ -114,7 +123,7 @@ export function useRenameFile(options?: {
         body: JSON.stringify({ path: newPath, content }),
       });
       // DELETE old path only after POST succeeds
-      await apiFetch<null>(`/api/mappings/${oldPath}`, { method: "DELETE" });
+      await apiFetch<null>(`/api/mappings/${encodePath(oldPath)}`, { method: "DELETE" });
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: MAPPINGS_QUERY_KEY });
@@ -179,7 +188,7 @@ export function useDuplicateFile(options?: {
  * Helper to read file content for rename/duplicate operations.
  */
 export async function fetchFileContent(path: string): Promise<FileContent> {
-  return apiFetch<FileContent>(`/api/mappings/${path}`);
+  return apiFetch<FileContent>(`/api/mappings/${encodePath(path)}`);
 }
 
 /**

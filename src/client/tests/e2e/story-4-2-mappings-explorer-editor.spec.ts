@@ -164,6 +164,20 @@ test.describe("Story 4.2 — P1: File click loads editor", () => {
     // Form and Raw JSON tabs must be present
     await expect(page.getByTestId("mappings-tab-form")).toBeVisible();
     await expect(page.getByTestId("mappings-tab-raw")).toBeVisible();
+
+    // AC-3 / UX-DR11: the now-active file node shows the brand-color 3px left
+    // border. A real browser resolves the `var(--brand)` token (jsdom cannot),
+    // so this is the layer that pins the actual brand-color border.
+    await expect(fileNode).toHaveAttribute("data-active", "true");
+    const [borderWidth, borderColor] = await fileNode.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return [cs.borderLeftWidth, cs.borderLeftColor] as [string, string];
+    });
+    expect(borderWidth).toBe("3px");
+    // Active border must be a real (non-transparent) brand colour, not the
+    // transparent border carried by inactive nodes.
+    expect(borderColor).not.toBe("transparent");
+    expect(borderColor).not.toBe("rgba(0, 0, 0, 0)");
   });
 });
 
@@ -272,14 +286,15 @@ test.describe("Story 4.2 — P1: Delete mapping file", () => {
       page.getByTestId(`mappings-tree-node-${svc.slug}-${filename}`),
     ).not.toBeVisible({ timeout: 5_000 });
 
-    // Verify file is gone from disk via API
+    // Verify file is gone from disk: GET on the deleted path must fail with
+    // MAPPING_FILE_NOT_FOUND (404) — proves disk removal, not just a truthy value.
     const res = await apiFetch<unknown>(
       request,
       `/api/mappings/${svc.slug}/mappings/${filename}`,
       { method: "GET" },
     ).catch((e: unknown) => e);
-    // Should be a 404 error
-    expect(res).toBeTruthy(); // error object returned
+    expect(res).toBeInstanceOf(Error);
+    expect((res as Error).message).toContain("MAPPING_FILE_NOT_FOUND");
   });
 });
 
