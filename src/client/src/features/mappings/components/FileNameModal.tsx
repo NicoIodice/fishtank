@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 interface FileNameModalProps {
   isOpen: boolean;
@@ -20,12 +20,17 @@ export function FileNameModal({
   onCancel,
 }: FileNameModalProps) {
   const [value, setValue] = useState(initialValue);
-
-  useEffect(() => {
-    if (isOpen) {
-      setValue(initialValue);
-    }
-  }, [isOpen, initialValue]);
+  // Reset the field each time the modal transitions to open (and when the
+  // initial value changes while open) using React's "adjust state during
+  // render" pattern instead of a setState-in-effect.
+  const [syncKey, setSyncKey] = useState<string | null>(null);
+  const openKey = isOpen ? initialValue : null;
+  if (isOpen && openKey !== syncKey) {
+    setSyncKey(openKey);
+    setValue(initialValue);
+  } else if (!isOpen && syncKey !== null) {
+    setSyncKey(null);
+  }
 
   if (!isOpen) return null;
 

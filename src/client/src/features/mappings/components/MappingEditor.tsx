@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import type { TreeNode, MappingJson } from "../types/mappings";
 import { FormTab } from "./FormTab";
 import { RawJsonTab } from "./RawJsonTab";
@@ -110,10 +110,13 @@ export function MappingEditor({
   const [showRenameModal, setShowRenameModal] = useState(false);
   const { toasts, showToast, dismissToast } = useToast();
 
-  // Reset tab when file changes
-  useEffect(() => {
+  // Reset tab to "form" when the open file changes — React's "adjust state
+  // during render" pattern (avoids a setState-in-effect cascade).
+  const [tabFilePath, setTabFilePath] = useState(activeFile?.path);
+  if (activeFile?.path !== tabFilePath) {
+    setTabFilePath(activeFile?.path);
     setActiveTab("form");
-  }, [activeFile?.path]);
+  }
 
   // Get raw JSON text from buffer
   const rawJsonText = editBuffer ? JSON.stringify(editBuffer, null, 2) : "";

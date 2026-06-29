@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useMappingsTree } from "../hooks/useMappingsTree";
 import { useFileContent } from "../hooks/useFileContent";
 import { useCreateFile } from "../hooks/useMappingMutations";
@@ -106,20 +106,22 @@ export function MappingsPage() {
   // Fetch file content when a file is selected
   const { data: fileContentData } = useFileContent(activeFilePath);
 
-  // Update edit buffer when file content loads
-  useEffect(() => {
-    if (fileContentData) {
-      try {
-        const parsed = JSON.parse(fileContentData.content) as MappingJson;
-        setEditBuffer(parsed);
-      } catch {
-        setEditBuffer({});
-      }
-      setLastKnownModified(fileContentData.lastModified);
-      setSavedContent(fileContentData.content);
-      setIsDirty(false);
+  // Load fetched file content into local editor state — React's "adjust state
+  // during render" pattern (avoids a setState-in-effect cascade). Runs when the
+  // React Query result reference changes.
+  const [loadedContent, setLoadedContent] = useState<typeof fileContentData>(undefined);
+  if (fileContentData && fileContentData !== loadedContent) {
+    setLoadedContent(fileContentData);
+    try {
+      const parsed = JSON.parse(fileContentData.content) as MappingJson;
+      setEditBuffer(parsed);
+    } catch {
+      setEditBuffer({});
     }
-  }, [fileContentData]);
+    setLastKnownModified(fileContentData.lastModified);
+    setSavedContent(fileContentData.content);
+    setIsDirty(false);
+  }
 
   const handleFileClick = useCallback((node: TreeNode) => {
     setActiveFilePath(node.path);
@@ -133,7 +135,7 @@ export function MappingsPage() {
   }, []);
 
   const handleDirtyChange = useCallback(
-    (dirty: boolean, _content?: string) => {
+    (dirty: boolean) => {
       setIsDirty(dirty);
       if (activeFilePath) {
         setDirtyFilePaths((prev) => {

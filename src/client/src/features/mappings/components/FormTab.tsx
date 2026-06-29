@@ -59,7 +59,8 @@ export function FormTab({ editBuffer, onChange }: FormTabProps) {
       const r = { ...(next.response as Record<string, unknown>) };
       const existingHeaders = (r.headers as Record<string, unknown>) ?? {};
       if (value === "") {
-        const { "Content-Type": _ct, ...rest } = existingHeaders;
+        const rest = { ...existingHeaders };
+        delete rest["Content-Type"];
         r.headers = Object.keys(rest).length > 0 ? rest : undefined;
       } else {
         r.headers = { ...existingHeaders, "Content-Type": value };

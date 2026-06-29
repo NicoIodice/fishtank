@@ -230,7 +230,7 @@ describe("useCreateFile", () => {
 describe("useDuplicateFile — 409 retry", () => {
   it("retries with _copy_2 suffix on first 409, succeeds on second attempt", async () => {
     const onSuccess = vi.fn();
-    let postAttempts: string[] = [];
+    const postAttempts: string[] = [];
 
     server.use(
       http.post("/api/mappings", async ({ request }) => {
