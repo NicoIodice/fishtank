@@ -91,6 +91,7 @@ interface MappingEditorProps {
   onRenameSuccess: () => void;
   editBuffer: MappingJson | null;
   onEditBufferChange: (buffer: MappingJson) => void;
+  isResyncPending?: boolean;
 }
 
 export function MappingEditor({
@@ -104,6 +105,7 @@ export function MappingEditor({
   onRenameSuccess,
   editBuffer,
   onEditBufferChange,
+  isResyncPending = false,
 }: MappingEditorProps) {
   const [activeTab, setActiveTab] = useState<EditorTab>("form");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -345,16 +347,19 @@ export function MappingEditor({
           flexWrap: "wrap",
         }}
       >
-        <button
-          data-testid="mappings-btn-save"
-          aria-label="Save file"
-          disabled={!saveEnabled}
-          onClick={handleSave}
-          style={saveEnabled ? { ...btnBase, background: "var(--brand, #3b82f6)", color: "#fff", borderColor: "var(--brand, #3b82f6)" } : btnDisabled}
-        >
-          <i className="bi bi-floppy" aria-hidden="true" />
-          Save
-        </button>
+        {/* Save button is hidden during Resync to keep the editor non-disabled (AC-12) */}
+        {!isResyncPending && (
+          <button
+            data-testid="mappings-btn-save"
+            aria-label="Save file"
+            disabled={!saveEnabled}
+            onClick={handleSave}
+            style={saveEnabled ? { ...btnBase, background: "var(--brand, #3b82f6)", color: "#fff", borderColor: "var(--brand, #3b82f6)" } : btnDisabled}
+          >
+            <i className="bi bi-floppy" aria-hidden="true" />
+            Save
+          </button>
+        )}
 
         <button
           data-testid="mappings-btn-discard"

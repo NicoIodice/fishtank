@@ -29,6 +29,10 @@ _Theme: Edit mock files in the browser and record real traffic into permanent st
 - **`GET /api/mappings/{path}`** — single-file content-read endpoint returning file content plus metadata, guarded by the same path-traversal sanitisation and authentication as the rest of the Mappings API (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
 - **Unsaved-changes navigation guard** — leaving `/mappings` with unsaved edits prompts a confirmation dialog so changes are never lost silently (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
 - **Settings → Mocks Root** — read-only display of the configured Mocks Root path with guidance that changing it requires a service restart and resync (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Resync button with toast feedback** — toolbar button in the Mappings page triggers `POST /api/resync`; shows an in-progress spinner, a success toast (with formatted duration), a partial-success toast listing failed files, or a persistent error toast on network/API failure; 409 "already in progress" is handled gracefully (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Conflict banner** — when Resync reports a file as externally modified and the editor has unsaved changes, an inline warning banner appears with "Keep my edits" and a guarded "View disk version" action (requires a confirmation step to prevent accidental discard) (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Deleted-file banner** — when Resync reports the active file was deleted on disk, an inline banner prompts the user to close the now-orphaned editor tab (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Silent reload for clean files** — when a conflicted file has no unsaved changes, Resync automatically reloads the latest content from disk without any user interaction (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
 
 ---
 

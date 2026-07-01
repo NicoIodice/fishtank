@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useMappingsTree } from "../hooks/useMappingsTree";
 import { useFileContent } from "../hooks/useFileContent";
 import { useCreateFile } from "../hooks/useMappingMutations";
@@ -7,8 +7,11 @@ import { MappingEditor } from "../components/MappingEditor";
 import { FileNameModal } from "../components/FileNameModal";
 import { ServiceSelectModal } from "../components/ServiceSelectModal";
 import { NavigationGuard } from "../components/NavigationGuard";
+import { ResyncButton } from "../components/ResyncButton";
+import { ConflictBanner } from "../components/ConflictBanner";
+import { DeletedFileBanner } from "../components/DeletedFileBanner";
 import { useToast } from "@/lib/useToast";
-import type { TreeNode, MappingJson, FileMetadata } from "../types/mappings";
+import type { TreeNode, MappingJson, FileMetadata, ConflictDto, ResyncResultDto } from "../types/mappings";
 import { ApiError } from "@/lib/api";
 
 type NewFileType = "mapping" | "response";
@@ -103,8 +106,21 @@ export function MappingsPage() {
 
   const { toasts, showToast, dismissToast } = useToast();
 
+  // Resync: conflict state + editBuffer ref for stale-closure-safe access
+  const [activeFileConflict, setActiveFileConflict] = useState<ConflictDto | null>(null);
+  const [isResyncPending, setIsResyncPending] = useState(false);
+  const editBufferRef = useRef<MappingJson | null>(null);
+  const isDirtyRef = useRef(false);
+
+  // Sync state values to refs after each render so async callbacks
+  // (e.g. handleResyncComplete) always read the latest values.
+  useEffect(() => {
+    editBufferRef.current = editBuffer;
+    isDirtyRef.current = isDirty;
+  });
+
   // Fetch file content when a file is selected
-  const { data: fileContentData } = useFileContent(activeFilePath);
+  const { data: fileContentData, refetch: refetchFileContent } = useFileContent(activeFilePath);
 
   // Load fetched file content into local editor state — React's "adjust state
   // during render" pattern (avoids a setState-in-effect cascade). Runs when the
@@ -125,6 +141,7 @@ export function MappingsPage() {
 
   const handleFileClick = useCallback((node: TreeNode) => {
     setActiveFilePath(node.path);
+    setActiveFileConflict(null);
     // Determine service from first path segment
     const serviceSlug = node.path.split("/")[0];
     setSelectedServicePath(serviceSlug);
@@ -200,6 +217,59 @@ export function MappingsPage() {
     }
     return findNode(tree.children);
   }, [activeFilePath, tree]);
+
+  // AC-9: detect when the open file has been removed from the tree by a Resync
+  const isActiveFileDeleted = React.useMemo(() => {
+    if (!activeFilePath || !tree) return false;
+    function findInTree(nodes: TreeNode[]): boolean {
+      for (const node of nodes) {
+        if (node.path === activeFilePath) return true;
+        if (node.children && findInTree(node.children)) return true;
+      }
+      return false;
+    }
+    return !findInTree(tree.children);
+  }, [activeFilePath, tree]);
+
+  // AC-8/AC-11: conflict banner callback — only shown when editBuffer was loaded
+  const handleResyncComplete = useCallback(
+    (result: ResyncResultDto) => {
+      if (activeFilePath) {
+        const conflict = result.conflicts.find((c) => c.path === activeFilePath);
+        if (conflict) {
+          if (isDirtyRef.current) {
+            // AC-8/AC-11: file has unsaved changes — show conflict banner
+            setActiveFileConflict(conflict);
+          } else {
+            // AC-10: file is clean — silent reload from disk
+            void refetchFileContent();
+          }
+        }
+      }
+    },
+    [activeFilePath, refetchFileContent],
+  );
+
+  // AC-11: "Keep my edits" — dismiss banner, keep editBuffer as-is
+  const handleKeepEdits = useCallback(() => {
+    setActiveFileConflict(null);
+  }, []);
+
+  // AC-12: "View disk version" — dismiss banner, reload file from server
+  const handleViewDisk = useCallback(() => {
+    setActiveFileConflict(null);
+    setIsDirty(false);
+    void refetchFileContent();
+  }, [refetchFileContent]);
+
+  // AC-9: "Close" — deselect the deleted file
+  const handleCloseDeleted = useCallback(() => {
+    setActiveFilePath(null);
+    setActiveFileConflict(null);
+    setEditBuffer(null);
+    setIsDirty(false);
+    setSavedContent(null);
+  }, []);
 
   // Create file mutation
   const createFileMutation = useCreateFile({
@@ -342,6 +412,7 @@ export function MappingsPage() {
               <i className="bi bi-plus-lg" aria-hidden="true" />
               Response
             </button>
+            <ResyncButton onResyncComplete={handleResyncComplete} onPendingChange={setIsResyncPending} />
           </div>
         )}
 
@@ -387,7 +458,10 @@ export function MappingsPage() {
 
       {/* ── Right pane: editor ────────────────────────────────── */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        {!activeFileNode ? (
+        {/* AC-9: deleted file banner takes over the whole right pane */}
+        {isActiveFileDeleted && activeFilePath !== null ? (
+          <DeletedFileBanner onClose={handleCloseDeleted} />
+        ) : !activeFileNode ? (
           // Empty state (AC-19)
           <div
             style={{
@@ -458,7 +532,15 @@ export function MappingsPage() {
             )}
           </div>
         ) : (
-          <MappingEditor
+          <>
+            {/* AC-8/AC-11: conflict banner above editor when file was modified externally */}
+            {activeFileConflict !== null && (
+              <ConflictBanner
+                onViewDisk={handleViewDisk}
+                onKeepEdits={handleKeepEdits}
+              />
+            )}
+            <MappingEditor
             activeFile={activeFileNode}
             fileContent={savedContent}
             lastKnownModified={lastKnownModified}
@@ -469,7 +551,9 @@ export function MappingsPage() {
             onRenameSuccess={handleRenameSuccess}
             editBuffer={editBuffer}
             onEditBufferChange={handleEditBufferChange}
+            isResyncPending={isResyncPending}
           />
+          </>
         )}
       </div>
 

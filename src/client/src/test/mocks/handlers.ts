@@ -73,4 +73,20 @@ export const handlers = [
   http.delete("/api/mappings/:path", () => {
     return HttpResponse.json({ success: true, data: null });
   }),
+
+  // ─── Story 4.3: Resync endpoint ────────────────────────────────────────────
+  // POST /api/resync — default handler returns empty success; individual tests
+  // override via server.use() with richer fixtures.
+  http.post("/api/resync", () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        mappingsLoaded: 0,
+        responsesLoaded: 0,
+        elapsedMs: 42,
+        conflicts: [],
+        failures: [],
+      },
+    });
+  }),
 ];
