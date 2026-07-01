@@ -312,7 +312,14 @@ export function MappingEditor({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
       {/* Breadcrumb */}
       <div
         data-testid="mappings-breadcrumb-editor"
@@ -354,7 +361,16 @@ export function MappingEditor({
             aria-label="Save file"
             disabled={!saveEnabled}
             onClick={handleSave}
-            style={saveEnabled ? { ...btnBase, background: "var(--brand, #3b82f6)", color: "#fff", borderColor: "var(--brand, #3b82f6)" } : btnDisabled}
+            style={
+              saveEnabled
+                ? {
+                    ...btnBase,
+                    background: "var(--brand, #3b82f6)",
+                    color: "#fff",
+                    borderColor: "var(--brand, #3b82f6)",
+                  }
+                : btnDisabled
+            }
           >
             <i className="bi bi-floppy" aria-hidden="true" />
             Save
@@ -372,7 +388,14 @@ export function MappingEditor({
           Discard
         </button>
 
-        <div style={{ width: "1px", height: "20px", background: "var(--input-border, #e5e7eb)", margin: "0 4px" }} />
+        <div
+          style={{
+            width: "1px",
+            height: "20px",
+            background: "var(--input-border, #e5e7eb)",
+            margin: "0 4px",
+          }}
+        />
 
         <button
           data-testid="mappings-btn-rename"
@@ -398,7 +421,11 @@ export function MappingEditor({
           data-testid="mappings-btn-delete"
           aria-label="Delete file"
           onClick={() => setShowDeleteConfirm(true)}
-          style={{ ...btnBase, color: "var(--danger, #ef4444)", borderColor: "var(--danger, #ef4444)" }}
+          style={{
+            ...btnBase,
+            color: "var(--danger, #ef4444)",
+            borderColor: "var(--danger, #ef4444)",
+          }}
         >
           <i className="bi bi-trash" aria-hidden="true" />
           Delete
@@ -422,12 +449,18 @@ export function MappingEditor({
           style={{
             padding: "8px 20px",
             border: "none",
-            borderBottom: activeTab === "form" ? "2px solid var(--brand, #3b82f6)" : "2px solid transparent",
+            borderBottom:
+              activeTab === "form"
+                ? "2px solid var(--brand, #3b82f6)"
+                : "2px solid transparent",
             background: "transparent",
             cursor: "pointer",
             fontSize: "0.875rem",
             fontWeight: activeTab === "form" ? 600 : 400,
-            color: activeTab === "form" ? "var(--brand, #3b82f6)" : "var(--content-muted, #6b7280)",
+            color:
+              activeTab === "form"
+                ? "var(--brand, #3b82f6)"
+                : "var(--content-muted, #6b7280)",
           }}
         >
           Form
@@ -440,12 +473,18 @@ export function MappingEditor({
           style={{
             padding: "8px 20px",
             border: "none",
-            borderBottom: activeTab === "raw" ? "2px solid var(--brand, #3b82f6)" : "2px solid transparent",
+            borderBottom:
+              activeTab === "raw"
+                ? "2px solid var(--brand, #3b82f6)"
+                : "2px solid transparent",
             background: "transparent",
             cursor: "pointer",
             fontSize: "0.875rem",
             fontWeight: activeTab === "raw" ? 600 : 400,
-            color: activeTab === "raw" ? "var(--brand, #3b82f6)" : "var(--content-muted, #6b7280)",
+            color:
+              activeTab === "raw"
+                ? "var(--brand, #3b82f6)"
+                : "var(--content-muted, #6b7280)",
           }}
         >
           Raw JSON
