@@ -10,4 +10,5 @@ public interface IServiceManager
     Task<ServiceDto> StopAsync(Guid id, CancellationToken ct = default);
     Task<ServiceDto> StartAsync(Guid id, CancellationToken ct = default);
     Task<int> GetNextPortAsync(CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

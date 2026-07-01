@@ -2,11 +2,15 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Fishtank.Api.Exceptions;
 using Fishtank.Api.IntegrationTests.Support;
 using Fishtank.Api.Models;
+using Fishtank.Api.Services;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Fishtank.Api.IntegrationTests.Api;
 
@@ -346,26 +350,51 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
     [Fact(DisplayName = "AC-12: Concurrent Resync — second call returns HTTP 409")]
     public async Task Resync_ConcurrentCalls_SecondCallReturns409()
     {
-        // Arrange
-        var client = await GetAuthenticatedClientAsync();
+        // Arrange: inject a controllable IResyncService so the first call holds
+        // the semaphore long enough for the second concurrent request to arrive.
+        // Without this, an empty-DB resync completes in < 1 ms, releasing the
+        // lock before the second HTTP request even reaches the server.
+        var firstCallStarted = new SemaphoreSlim(0, 1);
+        var releaseFirstCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        // Act: Launch two Resync calls in parallel
+        await using var controlledHost = Factory.WithWebHostBuilder(b =>
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IResyncService>();
+                services.AddSingleton<IResyncService>(
+                    new BlockingResyncService(firstCallStarted, releaseFirstCall.Task));
+            }));
+
+        var client = controlledHost.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+        await client.PostAsJsonAsync("/api/auth/setup",
+            new { username = "admin", password = "adminpassword123" });
+        var loginResp = await client.PostAsJsonAsync("/api/auth/login",
+            new { username = "admin", password = "adminpassword123" });
+        loginResp.EnsureSuccessStatusCode();
+
+        // Act: fire request 1 — it acquires the lock and blocks
         var task1 = client.PostAsync("/api/resync", null);
-        var task2 = client.PostAsync("/api/resync", null);
 
-        var responses = await Task.WhenAll(task1, task2);
+        // Wait until the service signals it has the lock
+        var acquired = await firstCallStarted.WaitAsync(TimeSpan.FromSeconds(5));
+        acquired.Should().BeTrue("BlockingResyncService must signal within 5 s");
 
-        // Assert: One succeeds, one returns 409
-        var statusCodes = responses.Select(r => r.StatusCode).OrderBy(c => c).ToList();
+        // Now fire request 2 — the lock is held, so it must return 409
+        var response2 = await client.PostAsync("/api/resync", null);
 
-        // One should be OK (200), one should be Conflict (409)
-        statusCodes.Should().Contain(HttpStatusCode.OK,
+        // Release the first call and await its result
+        releaseFirstCall.SetResult();
+        var response1 = await task1;
+
+        // Assert
+        response1.StatusCode.Should().Be(HttpStatusCode.OK,
             "first Resync call must succeed");
-        statusCodes.Should().Contain(HttpStatusCode.Conflict,
+        response2.StatusCode.Should().Be(HttpStatusCode.Conflict,
             "concurrent Resync must be blocked with HTTP 409 — SemaphoreSlim guard must reject the second call");
 
-        var conflictResponse = responses.First(r => r.StatusCode == HttpStatusCode.Conflict);
-        var body = await conflictResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var body = await response2.Content.ReadFromJsonAsync<JsonElement>();
         body.GetProperty("success").GetBoolean().Should().BeFalse();
         body.GetProperty("error").GetProperty("code").GetString()
             .Should().Be("RESYNC_IN_PROGRESS",
@@ -721,5 +750,36 @@ public class Story4_1_MappingsEndpointsTests : IntegrationTestBase
         services.Should().Contain(s =>
             s.GetProperty("slug").GetString() == "new-imported",
             "new service must be created from import");
+    }
+}
+
+/// <summary>
+/// Test helper: an <see cref="IResyncService"/> that blocks after acquiring the
+/// internal semaphore, allowing tests to deterministically verify that a second
+/// concurrent call is rejected with RESYNC_IN_PROGRESS rather than relying on
+/// wall-clock timing.
+/// </summary>
+file sealed class BlockingResyncService(
+    SemaphoreSlim startedSignal,
+    Task releaseSignal) : IResyncService
+{
+    private static readonly SemaphoreSlim _resyncLock = new(1, 1);
+
+    public async Task<ResyncResultDto> ResyncAsync(CancellationToken ct = default)
+    {
+        if (!await _resyncLock.WaitAsync(0, ct))
+            throw new ValidationException("RESYNC_IN_PROGRESS",
+                "A resync operation is already in progress. Please wait.");
+
+        try
+        {
+            startedSignal.Release(); // tell the test we hold the lock
+            await releaseSignal;     // hold the lock until the test releases us
+            return new ResyncResultDto(0, 0, 0, [], []);
+        }
+        finally
+        {
+            _resyncLock.Release();
+        }
     }
 }

@@ -4,12 +4,12 @@ import type { FileMetadata, FileContent } from "../types/mappings";
 import { MAPPINGS_QUERY_KEY } from "./useMappingsTree";
 
 /**
- * Encode each path segment for safe use in a request URL while preserving the
- * "/" separators. A filename containing `#`, `?`, or spaces would otherwise
- * mis-route; the backend re-decodes and re-validates via SanitizePath.
+ * Encode a full file path for safe use as a single URL segment. The entire
+ * path (including "/" separators) is percent-encoded so it occupies one route
+ * parameter. The backend decodes and validates via SanitizePath.
  */
 export function encodePath(path: string): string {
-  return path.split("/").map(encodeURIComponent).join("/");
+  return encodeURIComponent(path);
 }
 
 interface SaveExistingArgs {

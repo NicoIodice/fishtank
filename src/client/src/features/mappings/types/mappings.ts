@@ -32,3 +32,23 @@ export interface FileMetadata {
 
 /** Parsed JSON object representing the mapping file content in the edit buffer. */
 export type MappingJson = Record<string, unknown>;
+
+// ─── Story 4.3: Resync DTOs ──────────────────────────────────────────────────
+
+export interface ConflictDto {
+  path: string;
+  reason: string;
+}
+
+export interface ResyncFailureDto {
+  path: string;
+  reason: string;
+}
+
+export interface ResyncResultDto {
+  mappingsLoaded: number;
+  responsesLoaded: number;
+  elapsedMs: number;
+  conflicts: ConflictDto[];
+  failures: ResyncFailureDto[];
+}
