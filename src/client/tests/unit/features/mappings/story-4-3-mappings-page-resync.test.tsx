@@ -136,9 +136,7 @@ describe("MappingsPage — AC-1: Resync button in toolbar", () => {
 
     // RED: this element does not exist in the current MappingsPage implementation
     await waitFor(() => {
-      expect(
-        screen.getByTestId("mappings-btn-resync"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-btn-resync")).toBeInTheDocument();
     });
   });
 
@@ -248,7 +246,9 @@ describe("MappingsPage — AC-9: deleted-file banner", () => {
         treeCallCount++;
         // First call: tree with file; subsequent calls: file is gone (simulates deletion)
         return HttpResponse.json(
-          treeCallCount === 1 ? TREE_WITH_ACTIVE_FILE : TREE_WITHOUT_ACTIVE_FILE,
+          treeCallCount === 1
+            ? TREE_WITH_ACTIVE_FILE
+            : TREE_WITHOUT_ACTIVE_FILE,
         );
       }),
       http.get("/api/mappings/:path", () =>
@@ -283,7 +283,9 @@ describe("MappingsPage — AC-9: deleted-file banner", () => {
     // Open the file
     await waitFor(() => {
       expect(
-        screen.queryByTestId(`mappings-tree-node-payments-api-get_account.json`),
+        screen.queryByTestId(
+          `mappings-tree-node-payments-api-get_account.json`,
+        ),
       ).toBeInTheDocument();
     });
     await user.click(
@@ -295,9 +297,7 @@ describe("MappingsPage — AC-9: deleted-file banner", () => {
 
     // Deleted-file banner must appear (RED: doesn't exist yet)
     await waitFor(() => {
-      expect(
-        screen.getByTestId("mappings-banner-deleted"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-banner-deleted")).toBeInTheDocument();
     });
 
     expect(
@@ -349,7 +349,9 @@ describe("MappingsPage — AC-10: silent reload when file modified externally, n
     // Open the file (no edits — not dirty)
     await waitFor(() => {
       expect(
-        screen.queryByTestId(`mappings-tree-node-payments-api-get_account.json`),
+        screen.queryByTestId(
+          `mappings-tree-node-payments-api-get_account.json`,
+        ),
       ).toBeInTheDocument();
     });
     await user.click(
@@ -396,7 +398,9 @@ describe("MappingsPage — AC-11: unsaved changes never silently discarded", () 
             mappingsLoaded: 1,
             responsesLoaded: 0,
             elapsedMs: 200,
-            conflicts: [{ path: ACTIVE_FILE_PATH, reason: "Modified externally" }],
+            conflicts: [
+              { path: ACTIVE_FILE_PATH, reason: "Modified externally" },
+            ],
             failures: [],
           },
         }),
@@ -408,7 +412,9 @@ describe("MappingsPage — AC-11: unsaved changes never silently discarded", () 
 
     await waitFor(() => {
       expect(
-        screen.queryByTestId(`mappings-tree-node-payments-api-get_account.json`),
+        screen.queryByTestId(
+          `mappings-tree-node-payments-api-get_account.json`,
+        ),
       ).toBeInTheDocument();
     });
     await user.click(
@@ -477,7 +483,9 @@ describe("MappingsPage — AC-12: editor remains interactive during Resync", () 
     // Open a file
     await waitFor(() => {
       expect(
-        screen.queryByTestId(`mappings-tree-node-payments-api-get_account.json`),
+        screen.queryByTestId(
+          `mappings-tree-node-payments-api-get_account.json`,
+        ),
       ).toBeInTheDocument();
     });
     await user.click(
@@ -486,7 +494,9 @@ describe("MappingsPage — AC-12: editor remains interactive during Resync", () 
 
     // Wait for editor to be ready
     await waitFor(() =>
-      expect(screen.getByTestId("mappings-breadcrumb-editor")).toBeInTheDocument(),
+      expect(
+        screen.getByTestId("mappings-breadcrumb-editor"),
+      ).toBeInTheDocument(),
     );
 
     // Click Resync (non-blocking for editor)
@@ -505,6 +515,8 @@ describe("MappingsPage — AC-12: editor remains interactive during Resync", () 
     }
 
     // The editor pane container must not have an overlay or aria-disabled attribute
-    expect(screen.queryByTestId("mappings-editor-overlay")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("mappings-editor-overlay"),
+    ).not.toBeInTheDocument();
   });
 });

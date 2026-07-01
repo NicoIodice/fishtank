@@ -29,9 +29,7 @@ describe("DeletedFileBanner — AC-9: rendering", () => {
   it('renders with data-testid="mappings-banner-deleted"', () => {
     render(<DeletedFileBanner onClose={vi.fn()} />);
 
-    expect(
-      screen.getByTestId("mappings-banner-deleted"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("mappings-banner-deleted")).toBeInTheDocument();
   });
 
   it("displays the deleted file message", () => {

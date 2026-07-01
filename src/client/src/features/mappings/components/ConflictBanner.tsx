@@ -9,7 +9,10 @@ interface ConflictBannerProps {
  * Inline banner displayed when the currently open file has local unsaved changes
  * and Resync reported that the file was modified externally (AC-8).
  */
-export function ConflictBanner({ onViewDisk, onKeepEdits }: ConflictBannerProps) {
+export function ConflictBanner({
+  onViewDisk,
+  onKeepEdits,
+}: ConflictBannerProps) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const bannerStyle: React.CSSProperties = {
@@ -34,9 +37,14 @@ export function ConflictBanner({ onViewDisk, onKeepEdits }: ConflictBannerProps)
         aria-label="Confirm discard local edits"
         style={bannerStyle}
       >
-        <i className="bi bi-exclamation-triangle-fill" aria-hidden="true" style={{ color: "var(--warning, #f59e0b)" }} />
+        <i
+          className="bi bi-exclamation-triangle-fill"
+          aria-hidden="true"
+          style={{ color: "var(--warning, #f59e0b)" }}
+        />
         <span style={{ flex: 1 }}>
-          Viewing the disk version will discard your local edits. This cannot be undone.
+          Viewing the disk version will discard your local edits. This cannot be
+          undone.
         </span>
         <div style={{ display: "flex", gap: "8px" }}>
           <button
@@ -81,7 +89,11 @@ export function ConflictBanner({ onViewDisk, onKeepEdits }: ConflictBannerProps)
       role="alert"
       style={bannerStyle}
     >
-      <i className="bi bi-exclamation-triangle-fill" aria-hidden="true" style={{ color: "var(--warning, #f59e0b)" }} />
+      <i
+        className="bi bi-exclamation-triangle-fill"
+        aria-hidden="true"
+        style={{ color: "var(--warning, #f59e0b)" }}
+      />
       <span style={{ flex: 1 }}>
         This file was modified on disk since you started editing.
       </span>

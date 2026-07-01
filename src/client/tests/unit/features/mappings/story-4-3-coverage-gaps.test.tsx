@@ -155,9 +155,7 @@ describe("ConflictBanner — Cancel button (coverage gap: line 59)", () => {
     const onViewDisk = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />,
-    );
+    render(<ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />);
 
     // Step 1: click "View disk version" to enter the confirm state
     await user.click(screen.getByTestId("mappings-btn-view-disk"));
@@ -171,7 +169,9 @@ describe("ConflictBanner — Cancel button (coverage gap: line 59)", () => {
 
     // The confirmation warning text should be visible
     expect(
-      screen.getByText(/Viewing the disk version will discard your local edits/i),
+      screen.getByText(
+        /Viewing the disk version will discard your local edits/i,
+      ),
     ).toBeInTheDocument();
 
     // Step 2: click Cancel → should revert to initial state
@@ -180,7 +180,9 @@ describe("ConflictBanner — Cancel button (coverage gap: line 59)", () => {
     // Initial state restored: original message back, Cancel gone, onViewDisk NOT called
     await waitFor(() => {
       expect(
-        screen.getByText("This file was modified on disk since you started editing."),
+        screen.getByText(
+          "This file was modified on disk since you started editing.",
+        ),
       ).toBeInTheDocument();
     });
     expect(
@@ -194,13 +196,13 @@ describe("ConflictBanner — Cancel button (coverage gap: line 59)", () => {
     const onViewDisk = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />,
-    );
+    render(<ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />);
 
     await user.click(screen.getByTestId("mappings-btn-view-disk"));
     await waitFor(() =>
-      expect(screen.getByTestId("mappings-btn-view-disk-cancel")).toBeInTheDocument(),
+      expect(
+        screen.getByTestId("mappings-btn-view-disk-cancel"),
+      ).toBeInTheDocument(),
     );
 
     await user.click(screen.getByTestId("mappings-btn-view-disk-cancel"));
@@ -211,9 +213,7 @@ describe("ConflictBanner — Cancel button (coverage gap: line 59)", () => {
   it("confirm dialog changes role to alertdialog when showConfirm=true", async () => {
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
     // Initial state: role="alert"
     expect(screen.getByTestId("mappings-banner-conflict")).toHaveAttribute(
@@ -285,9 +285,7 @@ describe("MappingsPage — AC-9 Close button (coverage gap: lines 267-271)", () 
 
     // Deleted-file banner must appear
     await waitFor(() => {
-      expect(
-        screen.getByTestId("mappings-banner-deleted"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-banner-deleted")).toBeInTheDocument();
     });
 
     // Click the Close button on the banner
@@ -373,7 +371,9 @@ describe("MappingsPage — handleNewResponseClick without service (coverage gap:
 
     // Wait for the toolbar to appear (tree loaded)
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-new-response")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-btn-new-response"),
+      ).toBeInTheDocument();
     });
 
     // Click New Response with no service selected
@@ -402,7 +402,9 @@ describe("MappingsPage — handleNewResponseClick without service (coverage gap:
 
     // Wait for tree to load and click the file (sets selectedServicePath = "svc")
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-tree-node-svc-file.json")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-tree-node-svc-file.json"),
+      ).toBeInTheDocument();
     });
     await user.click(screen.getByTestId("mappings-tree-node-svc-file.json"));
 
@@ -454,7 +456,9 @@ describe("ResyncButton — useSpinnerStyles deduplication (coverage gap: branch 
 
     // Button still renders correctly despite early-return in useSpinnerStyles
     expect(screen.getByTestId("mappings-btn-resync")).toBeInTheDocument();
-    expect(screen.getByTestId("mappings-btn-resync")).toHaveTextContent("Resync");
+    expect(screen.getByTestId("mappings-btn-resync")).toHaveTextContent(
+      "Resync",
+    );
 
     // Only ONE style element with this id should exist
     const styleElements = document.querySelectorAll("#resync-spinner-styles");

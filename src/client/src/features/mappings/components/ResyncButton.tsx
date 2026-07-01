@@ -43,7 +43,13 @@ function ToastList({
                 ? "toast-resync-success"
                 : "toast-resync-progress"
           }
-          role={t.variant === "error" ? "alert" : t.variant === "success" ? "status" : undefined}
+          role={
+            t.variant === "error"
+              ? "alert"
+              : t.variant === "success"
+                ? "status"
+                : undefined
+          }
           aria-live={t.variant === "error" ? "assertive" : "polite"}
           style={{
             padding: "12px 16px",
@@ -121,7 +127,10 @@ interface ResyncButtonProps {
  *
  * ACs: 1, 2, 3, 4, 5, 6, 7, 15, 16
  */
-export function ResyncButton({ onResyncComplete, onPendingChange }: ResyncButtonProps) {
+export function ResyncButton({
+  onResyncComplete,
+  onPendingChange,
+}: ResyncButtonProps) {
   useSpinnerStyles();
 
   const { toasts, showToast, dismissToast } = useToast();
@@ -151,7 +160,11 @@ export function ResyncButton({ onResyncComplete, onPendingChange }: ResyncButton
         const duration = formatDuration(elapsedMs);
 
         // AC-4: zero-files toast
-        if (mappingsLoaded === 0 && responsesLoaded === 0 && failures.length === 0) {
+        if (
+          mappingsLoaded === 0 &&
+          responsesLoaded === 0 &&
+          failures.length === 0
+        ) {
           showToast(
             `0 files loaded in ${duration} — check your Mocks Root path and volume configuration.`,
             "success",
@@ -207,7 +220,9 @@ export function ResyncButton({ onResyncComplete, onPendingChange }: ResyncButton
     border: "1px solid var(--input-border, #e5e7eb)",
     borderRadius: "4px",
     background: "var(--surface, #fff)",
-    color: isPending ? "var(--content-muted, #6b7280)" : "var(--content-fg, #374151)",
+    color: isPending
+      ? "var(--content-muted, #6b7280)"
+      : "var(--content-fg, #374151)",
     fontSize: "0.8125rem",
     cursor: isPending ? "not-allowed" : "pointer",
     opacity: isPending ? 0.7 : 1,

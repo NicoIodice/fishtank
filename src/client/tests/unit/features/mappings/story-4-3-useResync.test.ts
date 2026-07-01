@@ -96,7 +96,10 @@ describe("useResync hook (AC-3, AC-6, AC-15)", () => {
     it("resolves with zero-files result when backend returns 0 loaded (AC-4)", async () => {
       server.use(
         http.post("/api/resync", () =>
-          HttpResponse.json({ success: true, data: RESYNC_ZERO_FILES_RESPONSE }),
+          HttpResponse.json({
+            success: true,
+            data: RESYNC_ZERO_FILES_RESPONSE,
+          }),
         ),
       );
 
@@ -165,9 +168,7 @@ describe("useResync hook (AC-3, AC-6, AC-15)", () => {
 
   describe("network error (AC-6)", () => {
     it("throws when network is unavailable", async () => {
-      server.use(
-        http.post("/api/resync", () => HttpResponse.error()),
-      );
+      server.use(http.post("/api/resync", () => HttpResponse.error()));
 
       const { result } = renderHook(() => useResync(), {
         wrapper: makeWrapper(),

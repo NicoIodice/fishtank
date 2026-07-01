@@ -57,13 +57,15 @@ function renderWithProviders(ui: React.ReactElement) {
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
-function makeResyncResponse(overrides: Partial<{
-  mappingsLoaded: number;
-  responsesLoaded: number;
-  elapsedMs: number;
-  conflicts: { path: string; reason: string }[];
-  failures: { path: string; reason: string }[];
-}> = {}) {
+function makeResyncResponse(
+  overrides: Partial<{
+    mappingsLoaded: number;
+    responsesLoaded: number;
+    elapsedMs: number;
+    conflicts: { path: string; reason: string }[];
+    failures: { path: string; reason: string }[];
+  }> = {},
+) {
   return {
     success: true,
     data: {
@@ -82,9 +84,7 @@ function makeResyncResponse(overrides: Partial<{
 describe("ResyncButton — AC-1: button rendering", () => {
   it('renders with data-testid="mappings-btn-resync"', () => {
     renderWithProviders(<ResyncButton />);
-    expect(
-      screen.getByTestId("mappings-btn-resync"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("mappings-btn-resync")).toBeInTheDocument();
   });
 
   it('renders with visible label "Resync"', () => {
@@ -94,7 +94,7 @@ describe("ResyncButton — AC-1: button rendering", () => {
     );
   });
 
-  it('includes the bi-arrow-clockwise icon class', () => {
+  it("includes the bi-arrow-clockwise icon class", () => {
     renderWithProviders(<ResyncButton />);
     const btn = screen.getByTestId("mappings-btn-resync");
     // The bootstrap icon element should be present inside the button
@@ -172,7 +172,11 @@ describe("ResyncButton — AC-3: success toast format", () => {
     server.use(
       http.post("/api/resync", () =>
         HttpResponse.json(
-          makeResyncResponse({ mappingsLoaded: 5, responsesLoaded: 3, elapsedMs: 850 }),
+          makeResyncResponse({
+            mappingsLoaded: 5,
+            responsesLoaded: 3,
+            elapsedMs: 850,
+          }),
         ),
       ),
     );
@@ -222,7 +226,11 @@ describe("ResyncButton — AC-4: zero-files success toast", () => {
     server.use(
       http.post("/api/resync", () =>
         HttpResponse.json(
-          makeResyncResponse({ mappingsLoaded: 0, responsesLoaded: 0, elapsedMs: 45 }),
+          makeResyncResponse({
+            mappingsLoaded: 0,
+            responsesLoaded: 0,
+            elapsedMs: 45,
+          }),
         ),
       ),
     );
@@ -324,12 +332,17 @@ describe("ResyncButton — AC-6: failure toast (network error)", () => {
   });
 
   it("error toast persists (does not auto-dismiss) — AC-16", async () => {
-    server.use(http.post("/api/resync", () =>
-      HttpResponse.json(
-        { success: false, error: { code: "NETWORK_ERROR", message: "Network error" } },
-        { status: 500 },
+    server.use(
+      http.post("/api/resync", () =>
+        HttpResponse.json(
+          {
+            success: false,
+            error: { code: "NETWORK_ERROR", message: "Network error" },
+          },
+          { status: 500 },
+        ),
       ),
-    ));
+    );
 
     // Use real timers for the click and waitFor to avoid the RTL asyncWrapper
     // deadlock that occurs when vi.useFakeTimers() is active (RTL's asyncWrapper
@@ -404,7 +417,10 @@ describe("ResyncButton — AC-7: partial success toasts", () => {
             responsesLoaded: 2,
             elapsedMs: 1200,
             failures: [
-              { path: "svc/mappings/bad-file.json", reason: "Permission denied" },
+              {
+                path: "svc/mappings/bad-file.json",
+                reason: "Permission denied",
+              },
             ],
           }),
         ),

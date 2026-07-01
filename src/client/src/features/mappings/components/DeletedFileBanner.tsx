@@ -23,7 +23,11 @@ export function DeletedFileBanner({ onClose }: DeletedFileBannerProps) {
         flexShrink: 0,
       }}
     >
-      <i className="bi bi-trash-fill" aria-hidden="true" style={{ color: "var(--danger, #ef4444)" }} />
+      <i
+        className="bi bi-trash-fill"
+        aria-hidden="true"
+        style={{ color: "var(--danger, #ef4444)" }}
+      />
       <span style={{ flex: 1 }}>File no longer exists on disk.</span>
       <button
         data-testid="mappings-btn-close-deleted"

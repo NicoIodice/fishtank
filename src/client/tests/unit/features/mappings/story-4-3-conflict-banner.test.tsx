@@ -30,25 +30,13 @@ import { ConflictBanner } from "@/features/mappings/components/ConflictBanner";
 
 describe("ConflictBanner — AC-8: rendering", () => {
   it('renders with data-testid="mappings-banner-conflict"', () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
-    expect(
-      screen.getByTestId("mappings-banner-conflict"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("mappings-banner-conflict")).toBeInTheDocument();
   });
 
   it("displays the conflict message text", () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
     expect(
       screen.getByText(
@@ -58,32 +46,18 @@ describe("ConflictBanner — AC-8: rendering", () => {
   });
 
   it('renders "View disk version" button with correct data-testid', () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
-    expect(
-      screen.getByTestId("mappings-btn-view-disk"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("mappings-btn-view-disk")).toBeInTheDocument();
     expect(screen.getByTestId("mappings-btn-view-disk")).toHaveTextContent(
       /View disk version/i,
     );
   });
 
   it('renders "Keep my edits" button with correct data-testid', () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
-    expect(
-      screen.getByTestId("mappings-btn-keep-edits"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("mappings-btn-keep-edits")).toBeInTheDocument();
     expect(screen.getByTestId("mappings-btn-keep-edits")).toHaveTextContent(
       /Keep my edits/i,
     );
@@ -97,12 +71,7 @@ describe("ConflictBanner — AC-8: action callbacks", () => {
     const onKeepEdits = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={onKeepEdits}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={onKeepEdits} />);
 
     await user.click(screen.getByTestId("mappings-btn-keep-edits"));
 
@@ -113,12 +82,7 @@ describe("ConflictBanner — AC-8: action callbacks", () => {
     const onViewDisk = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner
-        onViewDisk={onViewDisk}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />);
 
     await user.click(screen.getByTestId("mappings-btn-keep-edits"));
 
@@ -129,18 +93,15 @@ describe("ConflictBanner — AC-8: action callbacks", () => {
     const onViewDisk = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <ConflictBanner
-        onViewDisk={onViewDisk}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={onViewDisk} onKeepEdits={vi.fn()} />);
 
     await user.click(screen.getByTestId("mappings-btn-view-disk"));
 
     // A confirmation dialog appears — click "Discard & view disk version" to confirm
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-view-disk-confirm")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-btn-view-disk-confirm"),
+      ).toBeInTheDocument();
     });
     await user.click(screen.getByTestId("mappings-btn-view-disk-confirm"));
 
@@ -151,25 +112,15 @@ describe("ConflictBanner — AC-8: action callbacks", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("ConflictBanner — AC-11: unsaved changes never silently discarded", () => {
-  it('banner is visible (not hidden by default) — proof that dirty + conflict = banner shown', () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+  it("banner is visible (not hidden by default) — proof that dirty + conflict = banner shown", () => {
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
     const banner = screen.getByTestId("mappings-banner-conflict");
     expect(banner).toBeVisible();
   });
 
   it('banner has role="alert" or aria-live attribute for accessibility', () => {
-    render(
-      <ConflictBanner
-        onViewDisk={vi.fn()}
-        onKeepEdits={vi.fn()}
-      />,
-    );
+    render(<ConflictBanner onViewDisk={vi.fn()} onKeepEdits={vi.fn()} />);
 
     // Either role="alert" OR role="status" must be present for screen-reader visibility
     const banner = screen.getByTestId("mappings-banner-conflict");

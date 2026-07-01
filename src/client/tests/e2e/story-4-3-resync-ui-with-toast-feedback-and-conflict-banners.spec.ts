@@ -342,9 +342,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       await fileNode.click();
 
       // Wait for the editor to load
-      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible(
-        { timeout: 5_000 },
-      );
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
       // Make a local edit to set isDirty=true
       // (Click the Raw JSON tab and type something in the editor)
@@ -393,7 +393,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       });
 
       await expect(
-        page.getByText("This file was modified on disk since you started editing."),
+        page.getByText(
+          "This file was modified on disk since you started editing.",
+        ),
       ).toBeVisible();
 
       await expect(page.getByTestId("mappings-btn-view-disk")).toBeVisible();
@@ -422,9 +424,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       await expect(fileNode).toBeVisible({ timeout: 10_000 });
       await fileNode.click();
 
-      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible(
-        { timeout: 5_000 },
-      );
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
       // Edit the file to mark as dirty
       await page.getByTestId("mappings-tab-raw").click();
@@ -496,9 +498,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       await expect(fileNode).toBeVisible({ timeout: 10_000 });
       await fileNode.click();
 
-      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible(
-        { timeout: 5_000 },
-      );
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
       // Make a local change (dirty)
       await page.getByTestId("mappings-tab-raw").click();
@@ -536,7 +538,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       await page.getByTestId("mappings-btn-view-disk").click();
 
       // Confirmation dialog may appear — accept it
-      const confirmBtn = page.getByRole("button", { name: /discard|confirm|load/i });
+      const confirmBtn = page.getByRole("button", {
+        name: /discard|confirm|load/i,
+      });
       if (await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
         await confirmBtn.click();
       }
@@ -547,9 +551,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       ).not.toBeVisible({ timeout: 3_000 });
 
       // File is now clean (not dirty)
-      await expect(
-        page.getByTestId("mappings-btn-save"),
-      ).not.toBeVisible({ timeout: 3_000 });
+      await expect(page.getByTestId("mappings-btn-save")).not.toBeVisible({
+        timeout: 3_000,
+      });
     } finally {
       await deleteService(request, svc.id);
     }
@@ -578,14 +582,18 @@ test.describe("Story 4.3 — P1: AC-9 Deleted-file banner", () => {
       await expect(fileNode).toBeVisible({ timeout: 10_000 });
       await fileNode.click();
 
-      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible(
-        { timeout: 5_000 },
-      );
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
       // Delete the file on disk via API (simulating external deletion)
-      await apiFetch(request, `/api/mappings/${svc.slug}/mappings/${filename}`, {
-        method: "DELETE",
-      });
+      await apiFetch(
+        request,
+        `/api/mappings/${svc.slug}/mappings/${filename}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       // Trigger Resync — after which tree re-fetches and file is gone
       await page.getByTestId("mappings-btn-resync").click();
@@ -631,9 +639,9 @@ test.describe("Story 4.3 — P1: AC-10 Silent reload when clean + conflict", () 
       await fileNode.click();
 
       // Wait for editor to load — DO NOT make any edits (file stays clean)
-      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible(
-        { timeout: 5_000 },
-      );
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
       // Verify clean state: save button should NOT be visible (not dirty)
       await expect(page.getByTestId("mappings-btn-save")).not.toBeVisible({
