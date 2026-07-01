@@ -14,6 +14,7 @@ public static class ServicesEndpoints
         group.MapPost("", CreateServiceAsync);
         group.MapGet("next-port", GetNextPortAsync);
         group.MapPut("{id:guid}", UpdateServiceAsync);
+        group.MapDelete("{id:guid}", DeleteServiceAsync);
         group.MapPost("{id:guid}/stop", StopServiceAsync);
         group.MapPost("{id:guid}/start", StartServiceAsync);
     }
@@ -87,6 +88,22 @@ public static class ServicesEndpoints
         {
             var service = await manager.StartAsync(id, ct);
             return Results.Ok(ApiResponse.Ok(service));
+        }
+        catch (NotFoundException ex)
+        {
+            return Results.NotFound(ApiResponse.Fail(ex.ErrorCode, ex.Message));
+        }
+    }
+
+    private static async Task<IResult> DeleteServiceAsync(
+        Guid id,
+        IServiceManager manager,
+        CancellationToken ct)
+    {
+        try
+        {
+            await manager.DeleteAsync(id, ct);
+            return Results.Ok(ApiResponse.Ok<object?>(null));
         }
         catch (NotFoundException ex)
         {
