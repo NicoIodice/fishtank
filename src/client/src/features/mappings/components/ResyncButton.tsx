@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useEffect } from "react";
-import { flushSync } from "react-dom";
 import { useResync } from "../hooks/useResync";
 import { useToast } from "@/lib/useToast";
 import { formatDuration } from "../utils/formatDuration";
@@ -144,14 +143,8 @@ export function ResyncButton({
   }, [mutation.isPending, onPendingChange]);
 
   const handleClick = useCallback(() => {
-    // flushSync forces React to render the progress toast synchronously before
-    // the mutation starts. This guarantees it is in the DOM for Playwright (P0-2)
-    // and allows us to dismiss it cleanly in onSuccess/onError (P0-3).
-    let progressId: string;
-    flushSync(() => {
-      progressId = showToast("Resyncing\u2026", "info");
-    });
-    progressToastIdRef.current = progressId!;
+    const progressId = showToast("Resyncing\u2026", "info");
+    progressToastIdRef.current = progressId;
 
     mutation.mutate(undefined, {
       onSuccess: (result) => {

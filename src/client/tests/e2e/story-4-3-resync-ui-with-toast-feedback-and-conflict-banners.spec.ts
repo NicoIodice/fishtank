@@ -168,6 +168,14 @@ test.describe("Story 4.3 — P0: AC-3 Resync success toast", () => {
         timeout: 5_000,
       });
 
+      // Intercept resync with a 500 ms delay so the in-progress toast is
+      // visible long enough for Playwright to detect it before the API responds.
+      // The real API still runs; the delay does not change the response.
+      await page.route("/api/resync", async (route) => {
+        await page.waitForTimeout(500);
+        await route.continue();
+      });
+
       // Click Resync
       await page.getByTestId("mappings-btn-resync").click();
 
@@ -206,6 +214,25 @@ test.describe("Story 4.3 — P0: AC-3 Resync success toast", () => {
         timeout: 5_000,
       });
 
+      // Intercept resync to return a controlled zero-files response, isolating
+      // this test from any other services active on parallel workers.
+      await page.route("/api/resync", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: true,
+            data: {
+              mappingsLoaded: 0,
+              responsesLoaded: 0,
+              elapsedMs: 10,
+              conflicts: [],
+              failures: [],
+            },
+          }),
+        });
+      });
+
       await page.getByTestId("mappings-btn-resync").click();
 
       await expect(
@@ -220,108 +247,106 @@ test.describe("Story 4.3 — P0: AC-3 Resync success toast", () => {
 // ─── P1: AC-15 — 409 Concurrent Resync ───────────────────────────────────────
 
 test.describe("Story 4.3 — P1: AC-15 Concurrent Resync 409 handling", () => {
-  test("P1-1 (AC-15): second concurrent Resync triggers 409 error toast 'already in progress'",
+  test(
+    "P1-1 (AC-15): second concurrent Resync triggers 409 error toast 'already in progress'",
     // The 409 response is intentional fault-injection; skip the network-error
     // monitor for this test only so the harness does not fail on the expected 4xx.
     { annotation: [{ type: "skipNetworkMonitoring" }] },
-    async ({
-    page,
-    request,
-  }) => {
-    // RED: no Resync button, no error toast
+    async ({ page, request }) => {
+      // RED: no Resync button, no error toast
 
-    const svcName = uniqueSlug();
-    const svc = await seedService(request, svcName);
+      const svcName = uniqueSlug();
+      const svc = await seedService(request, svcName);
 
-    try {
-      await page.goto("/mappings");
-      await expect(page.getByTestId("mappings-btn-resync")).toBeVisible({
-        timeout: 5_000,
-      });
-
-      // Intercept the second POST /api/resync to return 409
-      await page.route("/api/resync", async (route) => {
-        await route.fulfill({
-          status: 409,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: false,
-            error: {
-              code: "RESYNC_IN_PROGRESS",
-              message: "A resync operation is already in progress.",
-            },
-          }),
+      try {
+        await page.goto("/mappings");
+        await expect(page.getByTestId("mappings-btn-resync")).toBeVisible({
+          timeout: 5_000,
         });
-      });
 
-      await page.getByTestId("mappings-btn-resync").click();
+        // Intercept the second POST /api/resync to return 409
+        await page.route("/api/resync", async (route) => {
+          await route.fulfill({
+            status: 409,
+            contentType: "application/json",
+            body: JSON.stringify({
+              success: false,
+              error: {
+                code: "RESYNC_IN_PROGRESS",
+                message: "A resync operation is already in progress.",
+              },
+            }),
+          });
+        });
 
-      // Error toast must appear with the "already in progress" message
-      await expect(
-        page.getByText(/Resync failed.*already in progress/i),
-      ).toBeVisible({ timeout: 10_000 });
+        await page.getByTestId("mappings-btn-resync").click();
 
-      // Button must re-enable after error
-      await expect(page.getByTestId("mappings-btn-resync")).toBeEnabled({
-        timeout: 5_000,
-      });
-    } finally {
-      await deleteService(request, svc.id);
-    }
-  });
+        // Error toast must appear with the "already in progress" message
+        await expect(
+          page.getByText(/Resync failed.*already in progress/i),
+        ).toBeVisible({ timeout: 10_000 });
+
+        // Button must re-enable after error
+        await expect(page.getByTestId("mappings-btn-resync")).toBeEnabled({
+          timeout: 5_000,
+        });
+      } finally {
+        await deleteService(request, svc.id);
+      }
+    },
+  );
 });
 
 // ─── P1: AC-16 — Error toast persistence ─────────────────────────────────────
 
 test.describe("Story 4.3 — P1: AC-16 Error toast persistence", () => {
-  test("P1-2 (AC-16): error toast does not auto-dismiss after 4+ seconds",
+  test(
+    "P1-2 (AC-16): error toast does not auto-dismiss after 4+ seconds",
     // The 500 response is intentional fault-injection; skip the network-error
     // monitor for this test only so the harness does not fail on the expected 5xx.
     { annotation: [{ type: "skipNetworkMonitoring" }] },
-    async ({
-    page,
-    request,
-  }) => {
-    // RED: no Resync button, no persistent error toast
+    async ({ page, request }) => {
+      // RED: no Resync button, no persistent error toast
 
-    const svcName = uniqueSlug();
-    const svc = await seedService(request, svcName);
+      const svcName = uniqueSlug();
+      const svc = await seedService(request, svcName);
 
-    try {
-      await page.goto("/mappings");
-      await expect(page.getByTestId("mappings-btn-resync")).toBeVisible({
-        timeout: 5_000,
-      });
-
-      // Force a 500 error to trigger an error toast
-      await page.route("/api/resync", async (route) => {
-        await route.fulfill({
-          status: 500,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: false,
-            error: {
-              code: "INTERNAL_ERROR",
-              message: "Simulated server error for persistence test",
-            },
-          }),
+      try {
+        await page.goto("/mappings");
+        await expect(page.getByTestId("mappings-btn-resync")).toBeVisible({
+          timeout: 5_000,
         });
-      });
 
-      await page.getByTestId("mappings-btn-resync").click();
+        // Force a 500 error to trigger an error toast
+        await page.route("/api/resync", async (route) => {
+          await route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({
+              success: false,
+              error: {
+                code: "INTERNAL_ERROR",
+                message: "Simulated server error for persistence test",
+              },
+            }),
+          });
+        });
 
-      const errorToast = page.getByText(/Resync failed/i);
-      await expect(errorToast).toBeVisible({ timeout: 5_000 });
+        await page.getByTestId("mappings-btn-resync").click();
 
-      // Wait well beyond the 4 s auto-dismiss window
-      await page.waitForTimeout(5_000);
+        const errorToast = page.getByText(/Resync failed/i);
+        await expect(errorToast).toBeVisible({ timeout: 5_000 });
 
-      // Error toast must STILL be visible — it must not auto-dismiss
-      await expect(errorToast).toBeVisible();
-    } finally {
-      await deleteService(request, svc.id);
-    }
-  });
+        // Wait well beyond the 4 s auto-dismiss window
+        await page.waitForTimeout(5_000);
+
+        // Error toast must STILL be visible — it must not auto-dismiss
+        await expect(errorToast).toBeVisible();
+      } finally {
+        await deleteService(request, svc.id);
+      }
+    },
+  );
 });
 
 // ─── P1: AC-8 — Conflict banner ──────────────────────────────────────────────
