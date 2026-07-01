@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { useResync } from "../hooks/useResync";
 import { useToast } from "@/lib/useToast";
 import { formatDuration } from "../utils/formatDuration";
@@ -143,16 +144,22 @@ export function ResyncButton({
   }, [mutation.isPending, onPendingChange]);
 
   const handleClick = useCallback(() => {
-    // Show in-progress toast (info, auto-dismiss off via default info behaviour,
-    // but we'll dismiss it programmatically in onSuccess/onError)
-    const progressId = showToast("Resyncing…", "info");
-    progressToastIdRef.current = progressId;
+    // flushSync forces React to render the progress toast synchronously before
+    // the mutation starts. This guarantees it is in the DOM for Playwright (P0-2)
+    // and allows us to dismiss it cleanly in onSuccess/onError (P0-3).
+    let progressId: string;
+    flushSync(() => {
+      progressId = showToast("Resyncing\u2026", "info");
+    });
+    progressToastIdRef.current = progressId!;
 
     mutation.mutate(undefined, {
       onSuccess: (result) => {
-        // Progress toast auto-dismisses after 4 s (info variant); no explicit
-        // dismiss here so Playwright / users always see it briefly.
-        progressToastIdRef.current = null;
+        // Dismiss in-progress toast
+        if (progressToastIdRef.current) {
+          dismissToast(progressToastIdRef.current);
+          progressToastIdRef.current = null;
+        }
 
         const { mappingsLoaded, responsesLoaded, elapsedMs, failures } = result;
         const duration = formatDuration(elapsedMs);
@@ -185,8 +192,11 @@ export function ResyncButton({
         onResyncComplete?.(result);
       },
       onError: (err) => {
-        // Progress toast auto-dismisses; no explicit dismiss needed.
-        progressToastIdRef.current = null;
+        // Dismiss in-progress toast
+        if (progressToastIdRef.current) {
+          dismissToast(progressToastIdRef.current);
+          progressToastIdRef.current = null;
+        }
 
         // AC-6, AC-15: persistent error toast
         if (err instanceof ApiError) {
