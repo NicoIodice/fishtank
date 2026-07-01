@@ -347,8 +347,8 @@ export function MappingEditor({
           flexWrap: "wrap",
         }}
       >
-        {/* Save button is hidden during Resync to keep the editor non-disabled (AC-12) */}
-        {!isResyncPending && (
+        {/* Save button is hidden during Resync (AC-12) and when file is clean */}
+        {!isResyncPending && isDirty && (
           <button
             data-testid="mappings-btn-save"
             aria-label="Save file"

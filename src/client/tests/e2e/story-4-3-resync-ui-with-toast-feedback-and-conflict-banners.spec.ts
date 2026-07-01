@@ -220,7 +220,11 @@ test.describe("Story 4.3 — P0: AC-3 Resync success toast", () => {
 // ─── P1: AC-15 — 409 Concurrent Resync ───────────────────────────────────────
 
 test.describe("Story 4.3 — P1: AC-15 Concurrent Resync 409 handling", () => {
-  test("P1-1 (AC-15): second concurrent Resync triggers 409 error toast 'already in progress'", async ({
+  test("P1-1 (AC-15): second concurrent Resync triggers 409 error toast 'already in progress'",
+    // The 409 response is intentional fault-injection; skip the network-error
+    // monitor for this test only so the harness does not fail on the expected 4xx.
+    { annotation: [{ type: "skipNetworkMonitoring" }] },
+    async ({
     page,
     request,
   }) => {
@@ -270,7 +274,11 @@ test.describe("Story 4.3 — P1: AC-15 Concurrent Resync 409 handling", () => {
 // ─── P1: AC-16 — Error toast persistence ─────────────────────────────────────
 
 test.describe("Story 4.3 — P1: AC-16 Error toast persistence", () => {
-  test("P1-2 (AC-16): error toast does not auto-dismiss after 4+ seconds", async ({
+  test("P1-2 (AC-16): error toast does not auto-dismiss after 4+ seconds",
+    // The 500 response is intentional fault-injection; skip the network-error
+    // monitor for this test only so the harness does not fail on the expected 5xx.
+    { annotation: [{ type: "skipNetworkMonitoring" }] },
+    async ({
     page,
     request,
   }) => {
@@ -537,10 +545,9 @@ test.describe("Story 4.3 — P1: AC-8 Conflict banner (dirty + external modifica
       // Click "View disk version"
       await page.getByTestId("mappings-btn-view-disk").click();
 
-      // Confirmation dialog may appear — accept it
-      const confirmBtn = page.getByRole("button", {
-        name: /discard|confirm|load/i,
-      });
+      // Confirmation dialog may appear — accept it using the exact data-testid
+      // (getByRole with /discard/i would also match the editor's Discard button)
+      const confirmBtn = page.getByTestId("mappings-btn-view-disk-confirm");
       if (await confirmBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {
         await confirmBtn.click();
       }

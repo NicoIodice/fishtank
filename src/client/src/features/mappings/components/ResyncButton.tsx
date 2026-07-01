@@ -150,11 +150,9 @@ export function ResyncButton({
 
     mutation.mutate(undefined, {
       onSuccess: (result) => {
-        // Dismiss in-progress toast
-        if (progressToastIdRef.current) {
-          dismissToast(progressToastIdRef.current);
-          progressToastIdRef.current = null;
-        }
+        // Progress toast auto-dismisses after 4 s (info variant); no explicit
+        // dismiss here so Playwright / users always see it briefly.
+        progressToastIdRef.current = null;
 
         const { mappingsLoaded, responsesLoaded, elapsedMs, failures } = result;
         const duration = formatDuration(elapsedMs);
@@ -187,11 +185,8 @@ export function ResyncButton({
         onResyncComplete?.(result);
       },
       onError: (err) => {
-        // Dismiss in-progress toast
-        if (progressToastIdRef.current) {
-          dismissToast(progressToastIdRef.current);
-          progressToastIdRef.current = null;
-        }
+        // Progress toast auto-dismisses; no explicit dismiss needed.
+        progressToastIdRef.current = null;
 
         // AC-6, AC-15: persistent error toast
         if (err instanceof ApiError) {
