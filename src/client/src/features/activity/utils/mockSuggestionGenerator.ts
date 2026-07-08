@@ -8,10 +8,10 @@ import type { ActivityRow } from "../types";
 export function slugifyPath(urlPath: string): string {
   return urlPath
     .toLowerCase()
-    .replace(/^\//, "")       // remove leading slash
-    .replace(/\//g, "_")      // replace slashes with underscores
+    .replace(/^\//, "") // remove leading slash
+    .replace(/\//g, "_") // replace slashes with underscores
     .replace(/[^a-z0-9_]/g, "") // remove non-alphanumeric except underscore
-    .substring(0, 64);        // truncate to 64 chars
+    .substring(0, 64); // truncate to 64 chars
 }
 
 /**
@@ -70,7 +70,11 @@ export function generateMappingJson(
  * - mappingFilename: the mapping filename
  */
 export function generateMockSuggestion(row: ActivityRow) {
-  const baseFilename = generateFilename(row.method, row.urlPath, row.statusCode);
+  const baseFilename = generateFilename(
+    row.method,
+    row.urlPath,
+    row.statusCode,
+  );
   const mappingFilename = `${baseFilename}.json`;
   const responseFilename = `${baseFilename}_body.json`;
 

@@ -39,7 +39,9 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
 
     it("removes non-alphanumeric characters except underscores", () => {
-      expect(slugifyPath("/api/users?id=123&sort=desc")).toBe("api_usersid123sortdesc");
+      expect(slugifyPath("/api/users?id=123&sort=desc")).toBe(
+        "api_usersid123sortdesc",
+      );
     });
 
     it("converts to lowercase", () => {
@@ -193,7 +195,9 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "get_api_users_200_body.json",
       ) as any;
 
-      expect(result.Response.BodyAsFile).toBe("../responses/get_api_users_200_body.json");
+      expect(result.Response.BodyAsFile).toBe(
+        "../responses/get_api_users_200_body.json",
+      );
     });
 
     it("sets UseTransformer to true by default", () => {
@@ -245,7 +249,8 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       ) as any;
 
       // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       expect(result.Guid).toMatch(uuidRegex);
     });
 
@@ -337,7 +342,9 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       const result = generateMockSuggestion(sampleRow);
       const mapping = result.mappingJson as any;
 
-      expect(mapping.Response.BodyAsFile).toBe("../responses/post_api_users_123_201_body.json");
+      expect(mapping.Response.BodyAsFile).toBe(
+        "../responses/post_api_users_123_201_body.json",
+      );
     });
 
     it("sets UseTransformer to true by default", () => {
@@ -348,7 +355,11 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
 
     it("handles GET requests", () => {
-      const getRow: ActivityRow = { ...sampleRow, method: "GET", statusCode: 200 };
+      const getRow: ActivityRow = {
+        ...sampleRow,
+        method: "GET",
+        statusCode: 200,
+      };
       const result = generateMockSuggestion(getRow);
 
       expect(result.mappingFilename).toBe("get_api_users_123_200.json");
@@ -356,7 +367,11 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
 
     it("handles DELETE requests", () => {
-      const deleteRow: ActivityRow = { ...sampleRow, method: "DELETE", statusCode: 204 };
+      const deleteRow: ActivityRow = {
+        ...sampleRow,
+        method: "DELETE",
+        statusCode: 204,
+      };
       const result = generateMockSuggestion(deleteRow);
 
       expect(result.mappingFilename).toBe("delete_api_users_123_204.json");
@@ -372,7 +387,11 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
 
     it("handles 404 not found responses", () => {
-      const notFoundRow: ActivityRow = { ...sampleRow, method: "GET", statusCode: 404 };
+      const notFoundRow: ActivityRow = {
+        ...sampleRow,
+        method: "GET",
+        statusCode: 404,
+      };
       const result = generateMockSuggestion(notFoundRow);
 
       expect(result.mappingFilename).toBe("get_api_users_123_404.json");
@@ -394,7 +413,9 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       };
       const result = generateMockSuggestion(queryRow);
 
-      expect(result.mappingFilename).toBe("post_api_userspage1limit10_201.json");
+      expect(result.mappingFilename).toBe(
+        "post_api_userspage1limit10_201.json",
+      );
     });
   });
 

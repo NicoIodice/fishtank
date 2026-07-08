@@ -3,7 +3,15 @@
  * Tests for the modal UI component behavior and user interactions.
  */
 
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeAll,
+  beforeEach,
+  afterEach,
+} from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,15 +20,16 @@ import * as mockGen from "@/features/activity/utils/mockSuggestionGenerator";
 
 // Stable hoisted mocks — created before any module is evaluated
 const mockApiFetch = vi.hoisted(() => vi.fn());
-const MockApiError = vi.hoisted(() =>
-  class ApiError extends Error {
-    code: string;
-    constructor(code: string, message: string) {
-      super(message);
-      this.code = code;
-      this.name = "ApiError";
-    }
-  },
+const MockApiError = vi.hoisted(
+  () =>
+    class ApiError extends Error {
+      code: string;
+      constructor(code: string, message: string) {
+        super(message);
+        this.code = code;
+        this.name = "ApiError";
+      }
+    },
 );
 
 vi.mock("@/lib/api", () => ({
@@ -34,7 +43,8 @@ vi.mock("@/lib/useToast", () => ({
 }));
 
 // Dynamic import after vi.resetModules
-type MockSuggestionModalType = typeof import("@/features/activity/components/MockSuggestionModal").MockSuggestionModal;
+type MockSuggestionModalType =
+  typeof import("@/features/activity/components/MockSuggestionModal").MockSuggestionModal;
 let MockSuggestionModal: MockSuggestionModalType;
 
 // Local alias for ApiError so test code can use `new api.ApiError(...)`
@@ -45,7 +55,8 @@ describe("Story 4.4: MockSuggestionModal Component", () => {
 
   beforeAll(async () => {
     vi.resetModules();
-    ({ MockSuggestionModal } = await import("@/features/activity/components/MockSuggestionModal"));
+    ({ MockSuggestionModal } =
+      await import("@/features/activity/components/MockSuggestionModal"));
   });
 
   const mockRow: ActivityRow = {
@@ -130,8 +141,12 @@ describe("Story 4.4: MockSuggestionModal Component", () => {
 
     it("renders Save and Close buttons", () => {
       renderModal();
-      expect(screen.getByTestId("mock-suggestion-btn-save")).toBeInTheDocument();
-      expect(screen.getByTestId("mock-suggestion-btn-close")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mock-suggestion-btn-save"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mock-suggestion-btn-close"),
+      ).toBeInTheDocument();
     });
   });
 
@@ -141,7 +156,7 @@ describe("Story 4.4: MockSuggestionModal Component", () => {
 
       const textarea = screen.getByTestId("mock-suggestion-mapping-json");
       const newValue = '{"custom": "json"}';
-      
+
       // Use fireEvent for simplicity
       fireEvent.change(textarea, { target: { value: newValue } });
 
@@ -249,21 +264,30 @@ describe("Story 4.4: MockSuggestionModal Component", () => {
     it("shows warning when user edits status code in mapping", async () => {
       renderModal();
 
-      const textarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+      const textarea = screen.getByTestId(
+        "mock-suggestion-mapping-json",
+      ) as HTMLTextAreaElement;
       const currentValue = textarea.value;
 
       // Change status code from 200 to 201
-      const newValue = currentValue.replace('"StatusCode": 200', '"StatusCode": 201');
-      
+      const newValue = currentValue.replace(
+        '"StatusCode": 200',
+        '"StatusCode": 201',
+      );
+
       // Use fireEvent.change with the new value
       fireEvent.change(textarea, { target: { value: newValue } });
 
       await waitFor(() => {
-        expect(screen.getByTestId("mock-suggestion-status-warning")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("mock-suggestion-status-warning"),
+        ).toBeInTheDocument();
       });
 
       expect(
-        screen.getByText(/Filename reflects the original proxied status \(200\)/),
+        screen.getByText(
+          /Filename reflects the original proxied status \(200\)/,
+        ),
       ).toBeInTheDocument();
     });
 
@@ -298,14 +322,25 @@ describe("Story 4.4: MockSuggestionModal Component", () => {
       });
 
       // Verify both API calls (mapping + response)
-      expect(mockApiFetch).toHaveBeenNthCalledWith(1, "/api/mappings", expect.any(Object));
-      expect(mockApiFetch).toHaveBeenNthCalledWith(2, "/api/mappings", expect.any(Object));
+      expect(mockApiFetch).toHaveBeenNthCalledWith(
+        1,
+        "/api/mappings",
+        expect.any(Object),
+      );
+      expect(mockApiFetch).toHaveBeenNthCalledWith(
+        2,
+        "/api/mappings",
+        expect.any(Object),
+      );
     });
 
     it("disables Save button while saving", async () => {
       const user = userEvent.setup();
       mockApiFetch.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ path: "", content: "" }), 100)),
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ path: "", content: "" }), 100),
+          ),
       );
       renderModal();
 

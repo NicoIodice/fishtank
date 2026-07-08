@@ -24,15 +24,15 @@ interface SaveAsMockResult {
 
 /**
  * useSaveAsMock: React Query mutation hook to save a proxied request as a WireMock mapping.
- * 
+ *
  * Performs two POST calls to /api/mappings:
  * 1. Create mapping file: {serviceSlug}/mappings/{mappingFilename}
  * 2. Create response file: {serviceSlug}/responses/{responseFilename}
- * 
+ *
  * On success:
  * - Invalidates ["mappings"] query to refresh the folder tree
  * - Returns both file metadata objects
- * 
+ *
  * On failure:
  * - Throws ApiError with code and message
  * - Backend creates System Event entry (handled by Story 4.1)
@@ -77,7 +77,9 @@ export function useSaveAsMock(options?: {
     onError: (err: Error) => {
       // Cast to ApiError if it is one, otherwise wrap in generic error
       const apiError =
-        err instanceof ApiError ? err : new ApiError("UNKNOWN_ERROR", err.message);
+        err instanceof ApiError
+          ? err
+          : new ApiError("UNKNOWN_ERROR", err.message);
       options?.onError?.(apiError);
     },
   });

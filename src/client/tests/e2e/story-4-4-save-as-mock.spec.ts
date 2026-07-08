@@ -133,7 +133,10 @@ test.describe("Story 4.4: Save As Mock — Full Flow", () => {
 
     // Make a proxied request (triggers WireMock proxy)
     const proxyUrl = `http://localhost:${service.port}/api/test`;
-    await fetch(proxyUrl, { method: "POST", body: JSON.stringify({ test: true }) });
+    await fetch(proxyUrl, {
+      method: "POST",
+      body: JSON.stringify({ test: true }),
+    });
 
     // Wait for proxied request to appear in activity log
     const proxiedRow = await waitForProxiedRequest(
@@ -166,7 +169,9 @@ test.describe("Story 4.4: Save As Mock — Full Flow", () => {
     const mappingContent = JSON.stringify({
       Guid: faker.string.uuid(),
       Request: {
-        Path: { Matchers: [{ Name: "WildcardMatcher", Pattern: "/api/mocked" }] },
+        Path: {
+          Matchers: [{ Name: "WildcardMatcher", Pattern: "/api/mocked" }],
+        },
         Methods: ["GET"],
       },
       Response: {
@@ -229,7 +234,10 @@ test.describe("Story 4.4: Save As Mock — Full Flow", () => {
 
     // Make a proxied request
     const proxyUrl = `http://localhost:${service.port}/api/detail-test`;
-    await fetch(proxyUrl, { method: "PUT", body: JSON.stringify({ data: "test" }) });
+    await fetch(proxyUrl, {
+      method: "PUT",
+      body: JSON.stringify({ data: "test" }),
+    });
 
     const proxiedRow = await waitForProxiedRequest(
       request,
@@ -244,7 +252,9 @@ test.describe("Story 4.4: Save As Mock — Full Flow", () => {
     await viewDetailBtn.click();
 
     // Wait for row detail to open (could be Modal, Drawer, or Panel)
-    const rowDetail = page.getByTestId(/activity-row-detail-(modal|drawer|panel)/);
+    const rowDetail = page.getByTestId(
+      /activity-row-detail-(modal|drawer|panel)/,
+    );
     await expect(rowDetail).toBeVisible();
 
     // Click "Save as Mock" button in row detail
@@ -294,7 +304,9 @@ test.describe("Story 4.4: Save As Mock — Full Flow", () => {
     const mappingContent = await mappingTextarea.inputValue();
     const mappingJson = JSON.parse(mappingContent);
 
-    expect(mappingJson.Request.Path.Matchers[0].Pattern).toBe("/api/v1/users/123");
+    expect(mappingJson.Request.Path.Matchers[0].Pattern).toBe(
+      "/api/v1/users/123",
+    );
     expect(mappingJson.Request.Methods).toEqual(["POST"]);
     expect(mappingJson.Response.BodyAsFile).toBe(
       "../responses/post_api_v1_users_123_200_body.json",

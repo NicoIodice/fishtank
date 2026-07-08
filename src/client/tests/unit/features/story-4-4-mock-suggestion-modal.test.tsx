@@ -104,7 +104,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-4 (P1): Mapping JSON block has correct WireMock structure", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
     expect(mappingTextarea).toBeInTheDocument();
 
     // Parse the auto-generated JSON
@@ -112,7 +114,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
 
     // Verify structure per AC-4
     expect(mappingJson).toHaveProperty("Guid");
-    expect(mappingJson.Guid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(mappingJson.Guid).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
 
     expect(mappingJson.Request).toEqual({
       Path: {
@@ -136,7 +140,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-4 (P1): Mapping JSON textarea is editable", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
     expect(mappingTextarea).not.toHaveAttribute("readonly");
     expect(mappingTextarea).not.toBeDisabled();
 
@@ -145,7 +151,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
       target: { value: '{"Guid":"test-123","Request":{},"Response":{}}' },
     });
 
-    expect(mappingTextarea.value).toBe('{"Guid":"test-123","Request":{},"Response":{}}');
+    expect(mappingTextarea.value).toBe(
+      '{"Guid":"test-123","Request":{},"Response":{}}',
+    );
   });
 
   // ─── AC-5: Response body pre-populated ────────────────────────────────────
@@ -153,7 +161,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-5 (P1): Response Body block pre-populated from proxied response", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const responseTextarea = screen.getByTestId("mock-suggestion-response-body") as HTMLTextAreaElement;
+    const responseTextarea = screen.getByTestId(
+      "mock-suggestion-response-body",
+    ) as HTMLTextAreaElement;
     expect(responseTextarea).toBeInTheDocument();
 
     // Verify content is the proxied response body (pretty-printed JSON)
@@ -168,7 +178,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-5 (P1): Response Body textarea is editable", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const responseTextarea = screen.getByTestId("mock-suggestion-response-body") as HTMLTextAreaElement;
+    const responseTextarea = screen.getByTestId(
+      "mock-suggestion-response-body",
+    ) as HTMLTextAreaElement;
     expect(responseTextarea).not.toHaveAttribute("readonly");
     expect(responseTextarea).not.toBeDisabled();
 
@@ -186,7 +198,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
     renderModal(MOCK_PROXIED_ROW);
 
     // Expect label: "Response Body — post_api_v1_users_123_500_body.json"
-    const label = screen.getByText(/Response Body — post_api_v1_users_123_500_body\.json/i);
+    const label = screen.getByText(
+      /Response Body — post_api_v1_users_123_500_body\.json/i,
+    );
     expect(label).toBeInTheDocument();
   });
 
@@ -202,7 +216,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
 
     // Expect: get_api_v2_orders_456filteractive_200_body.json
     // (special chars removed, max 64 chars)
-    const label = screen.getByText(/Response Body — get_api_v2_orders_456filteractive_200_body\.json/i);
+    const label = screen.getByText(
+      /Response Body — get_api_v2_orders_456filteractive_200_body\.json/i,
+    );
     expect(label).toBeInTheDocument();
   });
 
@@ -211,20 +227,28 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-8 (P2): UseTransformer checkbox is checked by default", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const checkbox = screen.getByTestId("mock-suggestion-use-transformer") as HTMLInputElement;
+    const checkbox = screen.getByTestId(
+      "mock-suggestion-use-transformer",
+    ) as HTMLInputElement;
     expect(checkbox).toBeInTheDocument();
     expect(checkbox).toHaveAttribute("type", "checkbox");
     expect(checkbox).toBeChecked();
 
     // Verify label
-    expect(screen.getByText("Enable WireMock response templating")).toBeInTheDocument();
+    expect(
+      screen.getByText("Enable WireMock response templating"),
+    ).toBeInTheDocument();
   });
 
   it("AC-8 (P2): Unchecking UseTransformer updates Mapping JSON", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const checkbox = screen.getByTestId("mock-suggestion-use-transformer") as HTMLInputElement;
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+    const checkbox = screen.getByTestId(
+      "mock-suggestion-use-transformer",
+    ) as HTMLInputElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
 
     // Initial state: UseTransformer: true
     let mappingJson = JSON.parse(mappingTextarea.value);
@@ -242,8 +266,12 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-8 (P2): Re-checking UseTransformer updates Mapping JSON back to true", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const checkbox = screen.getByTestId("mock-suggestion-use-transformer") as HTMLInputElement;
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+    const checkbox = screen.getByTestId(
+      "mock-suggestion-use-transformer",
+    ) as HTMLInputElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
 
     // Uncheck then re-check
     fireEvent.click(checkbox);
@@ -285,8 +313,12 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
   it("AC-14 (P1): Both Mapping and Response blocks support editing simultaneously", () => {
     renderModal(MOCK_PROXIED_ROW);
 
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
-    const responseTextarea = screen.getByTestId("mock-suggestion-response-body") as HTMLTextAreaElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
+    const responseTextarea = screen.getByTestId(
+      "mock-suggestion-response-body",
+    ) as HTMLTextAreaElement;
 
     // Edit both blocks
     fireEvent.change(mappingTextarea, {
@@ -336,7 +368,9 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
 
     renderModal(rowWithoutBody);
 
-    const mappingTextarea = screen.getByTestId("mock-suggestion-mapping-json") as HTMLTextAreaElement;
+    const mappingTextarea = screen.getByTestId(
+      "mock-suggestion-mapping-json",
+    ) as HTMLTextAreaElement;
     const mappingJson = JSON.parse(mappingTextarea.value);
 
     // Should still generate valid mapping
@@ -351,10 +385,11 @@ describe("Story 4.4: Mock Suggestion Modal", () => {
 
     renderModal(rowWithTextResponse);
 
-    const responseTextarea = screen.getByTestId("mock-suggestion-response-body") as HTMLTextAreaElement;
+    const responseTextarea = screen.getByTestId(
+      "mock-suggestion-response-body",
+    ) as HTMLTextAreaElement;
 
     // Should display as-is (not pretty-printed)
     expect(responseTextarea.value).toBe("Plain text response");
   });
 });
-

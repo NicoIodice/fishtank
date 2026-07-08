@@ -14,7 +14,7 @@ interface MockSuggestionModalProps {
 
 /**
  * MockSuggestionModal: Modal for saving a proxied request as a WireMock mapping.
- * 
+ *
  * Features:
  * - Two editable textareas: Mapping JSON and Response Body
  * - UseTransformer checkbox (default: true)
@@ -24,9 +24,13 @@ interface MockSuggestionModalProps {
  * - Success: closes modal + originating row detail, shows toast, refreshes folder tree
  * - Failure: stays open, shows error message
  */
-export function MockSuggestionModal({ row, onClose }: MockSuggestionModalProps) {
+export function MockSuggestionModal({
+  row,
+  onClose,
+}: MockSuggestionModalProps) {
   // Generate initial mock suggestion
-  const { mappingJson, responseFilename, mappingFilename } = generateMockSuggestion(row);
+  const { mappingJson, responseFilename, mappingFilename } =
+    generateMockSuggestion(row);
 
   // State
   const [mappingContent, setMappingContent] = useState(
@@ -71,7 +75,9 @@ export function MockSuggestionModal({ row, onClose }: MockSuggestionModalProps) 
       onClose(); // Close modal + originating row detail
     },
     onError: (err) => {
-      setErrorMessage(`Failed to save mock — ${err.message}. Check System Events for details.`);
+      setErrorMessage(
+        `Failed to save mock — ${err.message}. Check System Events for details.`,
+      );
     },
   });
 

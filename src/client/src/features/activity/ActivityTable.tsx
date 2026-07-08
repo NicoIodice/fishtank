@@ -474,10 +474,7 @@ export function ActivityTable({
 
       {/* MockSuggestionModal */}
       {modalRow && (
-        <MockSuggestionModal
-          row={modalRow}
-          onClose={() => setModalRow(null)}
-        />
+        <MockSuggestionModal row={modalRow} onClose={() => setModalRow(null)} />
       )}
     </div>
   );

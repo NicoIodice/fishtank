@@ -57,9 +57,7 @@ vi.mock("@tanstack/react-virtual", () => ({
 }));
 
 // ─── React Query wrapper ─────────────────────────────────────────────────────
-const MOCK_SERVICES = [
-  { id: "service-1", status: "live" },
-];
+const MOCK_SERVICES = [{ id: "service-1", status: "live" }];
 
 function makeQc() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -109,7 +107,9 @@ describe("Story 4.4: Save As Mock Icon Visibility", () => {
     renderTable([proxiedRow]);
 
     // Expect: bi-lightning-charge icon with data-testid="activity-btn-save-as-mock-proxied-row-1"
-    const saveAsMockBtn = screen.getByTestId("activity-btn-save-as-mock-proxied-row-1");
+    const saveAsMockBtn = screen.getByTestId(
+      "activity-btn-save-as-mock-proxied-row-1",
+    );
     expect(saveAsMockBtn).toBeInTheDocument();
     expect(saveAsMockBtn).toHaveAttribute("aria-label", "Save as Mock");
 
@@ -139,11 +139,15 @@ describe("Story 4.4: Save As Mock Icon Visibility", () => {
     renderTable([mockedRow]);
 
     // Expect: bi-lightning-charge icon should NOT exist
-    const saveAsMockBtn = screen.queryByTestId("activity-btn-save-as-mock-mocked-row-1");
+    const saveAsMockBtn = screen.queryByTestId(
+      "activity-btn-save-as-mock-mocked-row-1",
+    );
     expect(saveAsMockBtn).not.toBeInTheDocument();
 
     // Verify bi-eye (view detail) icon still exists
-    const viewDetailBtn = screen.getByTestId("activity-btn-view-detail-mocked-row-1");
+    const viewDetailBtn = screen.getByTestId(
+      "activity-btn-view-detail-mocked-row-1",
+    );
     expect(viewDetailBtn).toBeInTheDocument();
   });
 
@@ -186,8 +190,12 @@ describe("Story 4.4: Save As Mock Icon Visibility", () => {
     renderTable(proxiedRows);
 
     // Expect: both rows have Save as Mock icon
-    expect(screen.getByTestId("activity-btn-save-as-mock-proxied-1")).toBeInTheDocument();
-    expect(screen.getByTestId("activity-btn-save-as-mock-proxied-2")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("activity-btn-save-as-mock-proxied-1"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("activity-btn-save-as-mock-proxied-2"),
+    ).toBeInTheDocument();
   });
 
   // ─── AC-2: Icon click opens modal ─────────────────────────────────────────
@@ -212,7 +220,9 @@ describe("Story 4.4: Save As Mock Icon Visibility", () => {
 
     renderTable([proxiedRow]);
 
-    const saveAsMockBtn = screen.getByTestId("activity-btn-save-as-mock-proxied-row-2");
+    const saveAsMockBtn = screen.getByTestId(
+      "activity-btn-save-as-mock-proxied-row-2",
+    );
     fireEvent.click(saveAsMockBtn);
 
     // Expect: Mock Suggestion modal opens

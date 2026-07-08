@@ -12,15 +12,16 @@ import type { ReactNode } from "react";
 
 // Stable hoisted mocks — created before any module is evaluated
 const mockApiFetch = vi.hoisted(() => vi.fn());
-const MockApiError = vi.hoisted(() =>
-  class ApiError extends Error {
-    code: string;
-    constructor(code: string, message: string) {
-      super(message);
-      this.code = code;
-      this.name = "ApiError";
-    }
-  },
+const MockApiError = vi.hoisted(
+  () =>
+    class ApiError extends Error {
+      code: string;
+      constructor(code: string, message: string) {
+        super(message);
+        this.code = code;
+        this.name = "ApiError";
+      }
+    },
 );
 
 vi.mock("@/lib/api", () => ({
@@ -29,7 +30,8 @@ vi.mock("@/lib/api", () => ({
 }));
 
 // Hook type references — populated via dynamic import after vi.resetModules
-type UseSaveAsMock = typeof import("@/features/activity/hooks/useSaveAsMock").useSaveAsMock;
+type UseSaveAsMock =
+  typeof import("@/features/activity/hooks/useSaveAsMock").useSaveAsMock;
 type ApiError = InstanceType<typeof MockApiError>;
 
 let useSaveAsMock: UseSaveAsMock;
@@ -47,17 +49,18 @@ function makeQc() {
 
 function makeWrapper(qc: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   };
 }
 
 describe("Story 4.4: useSaveAsMock Hook", () => {
   beforeAll(async () => {
     vi.resetModules();
-    ({ useSaveAsMock } = await import("@/features/activity/hooks/useSaveAsMock"));
-    ({ ApiError } = await import("@/lib/api") as { ApiError: typeof MockApiError });
+    ({ useSaveAsMock } =
+      await import("@/features/activity/hooks/useSaveAsMock"));
+    ({ ApiError } = (await import("@/lib/api")) as {
+      ApiError: typeof MockApiError;
+    });
   });
 
   beforeEach(() => {
@@ -194,7 +197,10 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
     const qc = makeQc();
     const wrapper = makeWrapper(qc);
 
-    const error = new ApiError("MAPPING_WRITE_FAILED", "Failed to write mapping file");
+    const error = new ApiError(
+      "MAPPING_WRITE_FAILED",
+      "Failed to write mapping file",
+    );
     mockApiFetch.mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useSaveAsMock(), { wrapper });
@@ -211,7 +217,9 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
 
     expect(mockApiFetch).toHaveBeenCalledTimes(1); // Only mapping call, response call skipped
     expect(result.current.error).toBeInstanceOf(ApiError);
-    expect((result.current.error as ApiError).code).toBe("MAPPING_WRITE_FAILED");
+    expect((result.current.error as ApiError).code).toBe(
+      "MAPPING_WRITE_FAILED",
+    );
   });
 
   it("handles response file creation failure after mapping succeeds", async () => {
@@ -219,7 +227,10 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
     const wrapper = makeWrapper(qc);
 
     const mappingFileResult = { name: "mapping.json" };
-    const error = new ApiError("MAPPING_WRITE_FAILED", "Failed to write response file");
+    const error = new ApiError(
+      "MAPPING_WRITE_FAILED",
+      "Failed to write response file",
+    );
 
     mockApiFetch
       .mockResolvedValueOnce(mappingFileResult)
@@ -239,7 +250,9 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
 
     expect(mockApiFetch).toHaveBeenCalledTimes(2);
     expect(result.current.error).toBeInstanceOf(ApiError);
-    expect((result.current.error as ApiError).message).toContain("response file");
+    expect((result.current.error as ApiError).message).toContain(
+      "response file",
+    );
   });
 
   it("calls onError callback with ApiError", async () => {
@@ -251,9 +264,12 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
 
     mockApiFetch.mockRejectedValueOnce(error);
 
-    const { result } = renderHook(() => useSaveAsMock({ onError: onErrorMock }), {
-      wrapper,
-    });
+    const { result } = renderHook(
+      () => useSaveAsMock({ onError: onErrorMock }),
+      {
+        wrapper,
+      },
+    );
 
     result.current.mutate({
       serviceSlug: "test-service",
@@ -278,9 +294,12 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
     const genericError = new Error("Network failure");
     mockApiFetch.mockRejectedValueOnce(genericError);
 
-    const { result } = renderHook(() => useSaveAsMock({ onError: onErrorMock }), {
-      wrapper,
-    });
+    const { result } = renderHook(
+      () => useSaveAsMock({ onError: onErrorMock }),
+      {
+        wrapper,
+      },
+    );
 
     result.current.mutate({
       serviceSlug: "test-service",
@@ -377,7 +396,9 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
     const responseCall = mockApiFetch.mock.calls[1];
     const responseBody = JSON.parse(responseCall[1].body as string);
 
-    expect(responseBody.path).toBe("payments-api/responses/get_account_200_body.json");
+    expect(responseBody.path).toBe(
+      "payments-api/responses/get_account_200_body.json",
+    );
   });
 
   // ─── Sequential Execution ──────────────────────────────────────────────────
