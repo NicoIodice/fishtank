@@ -410,7 +410,7 @@ describe("Story 4.4: useSaveAsMock Hook", () => {
     let mappingResolved = false;
 
     mockApiFetch.mockImplementation((url, options) => {
-      const body = JSON.parse((options as any).body);
+      const body = JSON.parse((options as { body: string }).body);
 
       if (body.path.includes("/mappings/")) {
         return new Promise((resolve) => {

@@ -1,5 +1,23 @@
 import type { ActivityRow } from "../types";
 
+export interface WireMockMatcher {
+  Name: string;
+  Pattern: string;
+}
+
+export interface WireMockMapping {
+  Guid: string;
+  Request: {
+    Path: { Matchers: WireMockMatcher[] };
+    Methods: string[];
+  };
+  Response: {
+    StatusCode: number;
+    BodyAsFile: string;
+    UseTransformer: boolean;
+  };
+}
+
 /**
  * Slugify a URL path for use in filenames.
  * Removes leading slash, replaces slashes with underscores, removes non-alphanumeric
@@ -40,7 +58,7 @@ export function generateMappingJson(
   statusCode: number,
   responseFilename: string,
   useTransformer = true,
-): object {
+): WireMockMapping {
   return {
     Guid: crypto.randomUUID(),
     Request: {

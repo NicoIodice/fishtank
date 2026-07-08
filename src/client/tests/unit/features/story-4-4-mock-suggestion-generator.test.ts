@@ -9,7 +9,7 @@ import {
 import type { ActivityRow } from "@/features/activity/types";
 
 /**
- * Unit tests — Story 4.4: Mock Suggestion Generator Utilities
+ * Unit tests â€” Story 4.4: Mock Suggestion Generator Utilities
  * Layer: Vitest (pure function testing)
  *
  * Coverage targets:
@@ -27,7 +27,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     vi.clearAllMocks();
   });
 
-  // ─── slugifyPath ─────────────────────────────────────────────────────────
+  // â”€â”€â”€ slugifyPath â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe("slugifyPath", () => {
     it("removes leading slash", () => {
@@ -75,7 +75,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
   });
 
-  // ─── generateFilename ───────────────────────────────────────────────────
+  // â”€â”€â”€ generateFilename â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe("generateFilename", () => {
     it("generates filename with lowercase method", () => {
@@ -124,7 +124,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
   });
 
-  // ─── generateMappingJson ─────────────────────────────────────────────────
+  // â”€â”€â”€ generateMappingJson â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe("generateMappingJson", () => {
     it("generates valid WireMock mapping structure", () => {
@@ -147,7 +147,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result.Request.Path.Matchers).toHaveLength(1);
       expect(result.Request.Path.Matchers[0].Name).toBe("WildcardMatcher");
@@ -160,7 +160,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result.Request.Methods).toEqual(["GET"]);
     });
@@ -171,7 +171,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         201,
         "post_api_users_201_body.json",
-      ) as any;
+      );
 
       expect(result.Request.Methods).toEqual(["POST"]);
     });
@@ -182,7 +182,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result.Response.StatusCode).toBe(200);
     });
@@ -193,7 +193,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result.Response.BodyAsFile).toBe(
         "../responses/get_api_users_200_body.json",
@@ -206,7 +206,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result.Response.UseTransformer).toBe(true);
     });
@@ -218,7 +218,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         200,
         "get_api_users_200_body.json",
         false,
-      ) as any;
+      );
 
       expect(result.Response.UseTransformer).toBe(false);
     });
@@ -229,13 +229,13 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
       const result2 = generateMappingJson(
         "GET",
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       expect(result1.Guid).not.toBe(result2.Guid);
     });
@@ -246,7 +246,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         200,
         "get_api_users_200_body.json",
-      ) as any;
+      );
 
       // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
       const uuidRegex =
@@ -260,7 +260,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users/999",
         404,
         "get_api_users_999_404_body.json",
-      ) as any;
+      );
 
       expect(result.Response.StatusCode).toBe(404);
     });
@@ -271,13 +271,13 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
         "/api/users",
         500,
         "post_api_users_500_body.json",
-      ) as any;
+      );
 
       expect(result.Response.StatusCode).toBe(500);
     });
   });
 
-  // ─── generateMockSuggestion ─────────────────────────────────────────────
+  // â”€â”€â”€ generateMockSuggestion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe("generateMockSuggestion", () => {
     const sampleRow: ActivityRow = {
@@ -319,28 +319,28 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
 
     it("mapping JSON includes correct method", () => {
       const result = generateMockSuggestion(sampleRow);
-      const mapping = result.mappingJson as any;
+      const mapping = result.mappingJson;
 
       expect(mapping.Request.Methods).toEqual(["POST"]);
     });
 
     it("mapping JSON includes correct path pattern", () => {
       const result = generateMockSuggestion(sampleRow);
-      const mapping = result.mappingJson as any;
+      const mapping = result.mappingJson;
 
       expect(mapping.Request.Path.Matchers[0].Pattern).toBe("/api/users/123");
     });
 
     it("mapping JSON includes correct status code", () => {
       const result = generateMockSuggestion(sampleRow);
-      const mapping = result.mappingJson as any;
+      const mapping = result.mappingJson;
 
       expect(mapping.Response.StatusCode).toBe(201);
     });
 
     it("mapping JSON references correct response file", () => {
       const result = generateMockSuggestion(sampleRow);
-      const mapping = result.mappingJson as any;
+      const mapping = result.mappingJson;
 
       expect(mapping.Response.BodyAsFile).toBe(
         "../responses/post_api_users_123_201_body.json",
@@ -349,7 +349,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
 
     it("sets UseTransformer to true by default", () => {
       const result = generateMockSuggestion(sampleRow);
-      const mapping = result.mappingJson as any;
+      const mapping = result.mappingJson;
 
       expect(mapping.Response.UseTransformer).toBe(true);
     });
@@ -363,7 +363,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       const result = generateMockSuggestion(getRow);
 
       expect(result.mappingFilename).toBe("get_api_users_123_200.json");
-      expect((result.mappingJson as any).Request.Methods).toEqual(["GET"]);
+      expect((result.mappingJson).Request.Methods).toEqual(["GET"]);
     });
 
     it("handles DELETE requests", () => {
@@ -375,7 +375,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       const result = generateMockSuggestion(deleteRow);
 
       expect(result.mappingFilename).toBe("delete_api_users_123_204.json");
-      expect((result.mappingJson as any).Request.Methods).toEqual(["DELETE"]);
+      expect((result.mappingJson).Request.Methods).toEqual(["DELETE"]);
     });
 
     it("handles error responses", () => {
@@ -383,7 +383,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       const result = generateMockSuggestion(errorRow);
 
       expect(result.mappingFilename).toBe("post_api_users_123_500.json");
-      expect((result.mappingJson as any).Response.StatusCode).toBe(500);
+      expect((result.mappingJson).Response.StatusCode).toBe(500);
     });
 
     it("handles 404 not found responses", () => {
@@ -395,7 +395,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
       const result = generateMockSuggestion(notFoundRow);
 
       expect(result.mappingFilename).toBe("get_api_users_123_404.json");
-      expect((result.mappingJson as any).Response.StatusCode).toBe(404);
+      expect((result.mappingJson).Response.StatusCode).toBe(404);
     });
 
     it("handles root path", () => {
@@ -419,7 +419,7 @@ describe("Story 4.4: Mock Suggestion Generator Utilities", () => {
     });
   });
 
-  // ─── prettyPrintJson ────────────────────────────────────────────────────
+  // â”€â”€â”€ prettyPrintJson â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe("prettyPrintJson", () => {
     it("pretty-prints valid JSON string", () => {
