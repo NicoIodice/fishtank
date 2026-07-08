@@ -89,4 +89,29 @@ export const handlers = [
       },
     });
   }),
+
+  // ─── Story 4.5: Recording mode endpoints ───────────────────────────────────
+  // GET /api/recording/status — default: not recording
+  http.get("/api/recording/status", () => {
+    return HttpResponse.json({
+      success: true,
+      data: { isRecording: false, startedAt: null },
+    });
+  }),
+
+  // POST /api/recording/start — default success
+  http.post("/api/recording/start", () => {
+    return HttpResponse.json({
+      success: true,
+      data: { isRecording: true, startedAt: new Date().toISOString() },
+    });
+  }),
+
+  // POST /api/recording/stop — default success
+  http.post("/api/recording/stop", () => {
+    return HttpResponse.json({
+      success: true,
+      data: { isRecording: false, startedAt: null },
+    });
+  }),
 ];
