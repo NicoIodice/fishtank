@@ -9,6 +9,7 @@ export interface ActivityRow {
   type: ActivityType;
   serviceId: string;    // GUID
   serviceName: string;
+  serviceSlug?: string; // Optional: slugified service name
   servicePort: number;
   durationMs: number;
   requestHeaders: Record<string, string>;
