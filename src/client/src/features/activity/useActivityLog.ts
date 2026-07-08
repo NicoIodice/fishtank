@@ -10,6 +10,8 @@ export function useActivityLog() {
   const [rows, setRows] = useState<ActivityRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hadRows, setHadRows] = useState(false);
+  // SignalR connection state — used by Recording badge (Story 4.5)
+  const [isConnected, setIsConnected] = useState<boolean | null>(null); // null = initial, true = connected, false = lost
   // Track rows that arrived via SignalR while the initial fetch was in-flight,
   // so the fetch result doesn't overwrite them (M-2 race condition fix).
   const pendingSignalRRows = useRef<ActivityRow[]>([]);
@@ -34,10 +36,32 @@ export function useActivityLog() {
       setHadRows(true);
     });
 
+    connection.onclose(() => {
+      if (mountedRef.current) {
+        setIsConnected(false);
+        console.warn("[ActivityHub] Connection lost");
+      }
+    });
+
+    connection.onreconnected(() => {
+      if (mountedRef.current) {
+        setIsConnected(true);
+        console.log("[ActivityHub] Reconnected");
+      }
+    });
+
     connection
       .start()
-      .then(() => console.log("[ActivityHub] Connected"))
-      .catch((err) => console.error("[ActivityHub] Connection failed:", err));
+      .then(() => {
+        if (mountedRef.current) {
+          setIsConnected(true);
+          console.log("[ActivityHub] Connected");
+        }
+      })
+      .catch((err) => {
+        console.error("[ActivityHub] Connection failed:", err);
+        if (mountedRef.current) setIsConnected(false);
+      });
 
     // Initial load via direct apiFetch (not useQuery) — after subscription is set up.
     fetchActivityRows({ take: 200 })
@@ -81,5 +105,5 @@ export function useActivityLog() {
     }
   }
 
-  return { rows, clearRows, refreshRows, isLoading, hadRows };
+  return { rows, clearRows, refreshRows, isLoading, hadRows, isConnected };
 }
