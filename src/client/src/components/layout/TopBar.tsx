@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUnreadCount } from "@/features/events/hooks/useSystemEvents";
 import { NotificationBadge } from "@/features/events/components/NotificationBadge";
 import { NotificationPanel } from "@/features/events/components/NotificationPanel";
+import { useRecordingState } from "@/features/activity/hooks/useRecordingState";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -30,6 +31,12 @@ export function TopBar({
   const [panelOpenPath, setPanelOpenPath] = useState<string | null>(null);
   const panelOpen = panelOpenPath === location.pathname;
   const { data: unread = 0 } = useUnreadCount();
+  const { isRecording } = useRecordingState();
+
+  // Determine if we should show the cross-screen recording indicator (FR-16)
+  const isOnActivity = location.pathname === "/activity";
+  const isAuthScreen = location.pathname === "/login" || location.pathname === "/register";
+  const showCrossScreenIndicator = isRecording && !isAuthScreen && !isOnActivity;
 
   // Close the notification panel on Esc — AC-9
   useEffect(() => {
@@ -84,6 +91,25 @@ export function TopBar({
             <span className={styles.wordmark}>Fishtank</span>
           </div>
         </div>
+
+        {/* Cross-screen recording indicator - FR-16 */}
+        {showCrossScreenIndicator && (
+          <button
+            className={styles.recordingIndicator}
+            onClick={() => navigate("/activity")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate("/activity");
+              }
+            }}
+            role="button"
+            aria-label="Recording active, navigate to Network Activity page"
+            data-testid="topbar-recording-indicator"
+          >
+            <i className="bi bi-record-circle-fill" aria-hidden="true" /> Recording…
+          </button>
+        )}
 
         <div className={styles.right}>
           <button
