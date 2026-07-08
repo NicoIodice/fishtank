@@ -349,7 +349,7 @@ export function ActivityPage() {
               fontWeight: "var(--font-semibold)",
             }}
           >
-            {isConnected ? (
+            {isConnected !== false ? (
               "● Recording"
             ) : (
               <>

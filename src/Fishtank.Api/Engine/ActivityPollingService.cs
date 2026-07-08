@@ -21,7 +21,7 @@ public class ActivityPollingService(
     private Timer? _timer;
     private int _isPolling; // 0=idle, 1=running — prevents re-entrant polling
     private readonly ConcurrentDictionary<Guid, int> _logOffsets = new();
-    private readonly ConcurrentDictionary<Guid, (string Name, int Port)> _serviceInfo = new();
+    private readonly ConcurrentDictionary<Guid, (string Name, int Port, string Slug)> _serviceInfo = new();
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -128,9 +128,9 @@ public class ActivityPollingService(
                 {
                     try
                     {
-                        await recordingService.CaptureAsync(
+                    await recordingService.CaptureAsync(
                             serviceId,
-                            info.Name.ToLowerInvariant().Replace(" ", "-"),  // serviceSlug
+                            info.Slug,  // use actual DB slug, not name-derived slug
                             row.Method,
                             row.UrlPath,
                             row.StatusCode,
@@ -150,14 +150,14 @@ public class ActivityPollingService(
         }
     }
 
-    private async Task<(string Name, int Port)> FetchServiceInfoAsync(Guid serviceId)
+    private async Task<(string Name, int Port, string Slug)> FetchServiceInfoAsync(Guid serviceId)
     {
         try
         {
             using var scope = scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<FishtankDbContext>();
             var svc = await db.Services.FindAsync(serviceId);
-            return svc is null ? default : (svc.Name, svc.Port);
+            return svc is null ? default : (svc.Name, svc.Port, svc.Slug);
         }
         catch (Exception ex)
         {
