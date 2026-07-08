@@ -1,0 +1,277 @@
+/**
+ * ATDD E2E acceptance tests — Story 4.5: Record Mode & Cross-Screen Recording Indicator
+ * Layer: Playwright E2E (live stack — no backend mocking)
+ *
+ * RED PHASE — these tests are RED-by-construction:
+ *   - Record button stub is disabled in ActivityPage
+ *   - Recording badge stub has display: none
+ *   - Cross-screen indicator doesn't exist in TopBar
+ *   - POST /api/recording/start endpoint doesn't exist (404)
+ *   - POST /api/recording/stop endpoint doesn't exist (404)
+ *   - RecordingService auto-capture not implemented
+ *
+ * ACs covered:
+ *   AC-4:  Auto-capture writes files — files appear on disk after recording
+ *   AC-5:  Cross-screen indicator visible in top bar after navigation
+ *   AC-6:  Cross-screen indicator NOT on /login
+ *   BONUS: Click indicator → navigate to /activity
+ *
+ * E2E Policy (from project-context.md):
+ *   - Runs against the LIVE stack (Vite on :5173 + API on :5000)
+ *   - No page.route() mocking for CRUD — live stack only
+ *   - Authentication via storageState (fishtankAuthProvider)
+ *
+ * data-testid contract:
+ *   activity-btn-record
+ *   activity-badge-recording
+ *   topbar-badge-recording-active
+ *   mappings-tree-node-{service-slug}-{filename}
+ */
+
+import { test, expect } from "../support/fixtures";
+import { apiFetch } from "../support/helpers/api-client";
+import { faker } from "@faker-js/faker";
+
+// ─── Types & Helpers ────────────────────────────────────────────────────────
+
+type Request = Parameters<typeof apiFetch>[0];
+
+function uniqueSlug(): string {
+  return `e2e-${faker.string.alphanumeric(6).toLowerCase()}`;
+}
+
+interface CreatedService {
+  id: string;
+  name: string;
+  port: number;
+  slug: string;
+}
+
+/** Create a service via the API for testing */
+async function seedService(
+  request: Request,
+  name: string,
+): Promise<CreatedService> {
+  const { port } = await apiFetch<{ port: number }>(
+    request,
+    "/api/services/next-port",
+  );
+
+  return apiFetch<CreatedService>(request, "/api/services", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: JSON.stringify({
+      name,
+      externalUrl: "https://httpbin.org",
+      port,
+      tags: [],
+    }),
+  });
+}
+
+// ─── Test Suite ─────────────────────────────────────────────────────────────
+
+test.describe("Story 4-5: Record Mode & Cross-Screen Recording Indicator", () => {
+  test.beforeEach(async ({ page }) => {
+    // Navigate to activity page
+    await page.goto("/activity");
+    await expect(page.locator("[data-testid='activity-table']")).toBeVisible();
+  });
+
+  // ─── AC-4: Auto-capture writes files ───────────────────────────────────
+
+  test("AC-4: activating Record mode auto-captures proxied requests as files", async ({
+    page,
+    request,
+  }) => {
+    // Given a test service exists
+    const serviceName = `test-record-${uniqueSlug()}`;
+    const service = await seedService(request, serviceName);
+
+    // Navigate to Mappings to verify files later
+    await page.goto("/mappings");
+    await expect(
+      page.locator(`[data-testid='mappings-tree-service-${service.slug}']`),
+    ).toBeVisible();
+
+    // Navigate back to activity
+    await page.goto("/activity");
+
+    // When Record mode is activated
+    // RED phase: button is disabled stub
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await expect(recordButton).toBeVisible();
+    await recordButton.click();
+
+    // Verify recording badge appears
+    // RED phase: badge has display: none
+    const recordingBadge = page.locator(
+      "[data-testid='activity-badge-recording']",
+    );
+    await expect(recordingBadge).toBeVisible();
+    await expect(recordingBadge).toContainText("● Recording");
+
+    // Make a proxied request through the service
+    const testPath = `/test-${Date.now()}`;
+    const proxyUrl = `http://127.0.0.1:${service.port}${testPath}`;
+
+    // Trigger proxied request (will hit httpbin.org through WireMock proxy)
+    await fetch(proxyUrl, { method: "GET" }).catch(() => {
+      // Ignore fetch errors — we only care about the capture
+    });
+
+    // Wait for activity log to update
+    await page.waitForTimeout(1000);
+
+    // Navigate to Mappings page
+    await page.goto("/mappings");
+
+    // Then — verify Mapping and Response files appear in the tree
+    // RED phase: auto-capture not implemented, files won't exist
+    const pathSlug = testPath.replace(/^\//, "").replace(/\//g, "_");
+    const mappingFilename = `get_${pathSlug}_200.json`;
+    const responseFilename = `get_${pathSlug}_200_body.json`;
+
+    const mappingNode = page.locator(
+      `[data-testid='mappings-tree-node-${service.slug}-mappings-${mappingFilename}']`,
+    );
+    const responseNode = page.locator(
+      `[data-testid='mappings-tree-node-${service.slug}-responses-${responseFilename}']`,
+    );
+
+    await expect(mappingNode).toBeVisible({ timeout: 5000 });
+    await expect(responseNode).toBeVisible({ timeout: 5000 });
+
+    // Stop recording
+    await page.goto("/activity");
+    const stopButton = page.locator("[data-testid='activity-btn-record']");
+    await stopButton.click();
+
+    // Verify badge is hidden
+    await expect(recordingBadge).not.toBeVisible();
+  });
+
+  // ─── AC-5: Cross-screen indicator visible after navigation ─────────────
+
+  test("AC-5: cross-screen indicator appears in top bar when navigated away from /activity", async ({
+    page,
+  }) => {
+    // Given Record mode is active
+    // RED phase: button is disabled stub
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await recordButton.click();
+
+    // Verify recording badge appears on activity page
+    const recordingBadge = page.locator(
+      "[data-testid='activity-badge-recording']",
+    );
+    await expect(recordingBadge).toBeVisible();
+
+    // When navigating away from /activity
+    await page.goto("/mappings");
+
+    // Then — cross-screen indicator appears in top bar
+    // RED phase: indicator doesn't exist in TopBar
+    const topBarIndicator = page.locator(
+      "[data-testid='topbar-badge-recording-active']",
+    );
+    await expect(topBarIndicator).toBeVisible();
+    await expect(topBarIndicator).toContainText("● Recording");
+
+    // Verify indicator has amber styling (warning-subtle background)
+    await expect(topBarIndicator).toHaveCSS(
+      "background-color",
+      /var\(--warning-subtle\)/,
+    );
+    await expect(topBarIndicator).toHaveCSS("color", /var\(--warning\)/);
+
+    // Verify indicator is keyboard-accessible
+    await expect(topBarIndicator).toHaveAttribute("role", "button");
+    await expect(topBarIndicator).toHaveAttribute("tabindex", "0");
+    await expect(topBarIndicator).toHaveAttribute(
+      "aria-label",
+      /Recording active/,
+    );
+  });
+
+  test("AC-5: indicator is hidden when on /activity page", async ({ page }) => {
+    // Given Record mode is active
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await recordButton.click();
+
+    // When on /activity
+    await page.goto("/activity");
+
+    // Then — cross-screen indicator is NOT visible (user is on the page)
+    // RED phase: indicator doesn't exist yet
+    const topBarIndicator = page.locator(
+      "[data-testid='topbar-badge-recording-active']",
+    );
+    await expect(topBarIndicator).not.toBeVisible();
+  });
+
+  test("AC-5: clicking cross-screen indicator navigates to /activity", async ({
+    page,
+  }) => {
+    // Given Record mode is active and user is on another page
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await recordButton.click();
+
+    await page.goto("/services");
+
+    // When clicking the cross-screen indicator
+    // RED phase: indicator doesn't exist in TopBar
+    const topBarIndicator = page.locator(
+      "[data-testid='topbar-badge-recording-active']",
+    );
+    await topBarIndicator.click();
+
+    // Then — navigates to /activity
+    await expect(page).toHaveURL("/activity");
+
+    // Verify indicator is now hidden (on the activity page)
+    await expect(topBarIndicator).not.toBeVisible();
+  });
+
+  // ─── AC-6: Indicator absent on auth screens ────────────────────────────
+
+  test("AC-6: cross-screen indicator NOT rendered on /login", async ({
+    page,
+    context,
+  }) => {
+    // Given Record mode is active
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await recordButton.click();
+
+    // When navigating to /login (requires clearing auth state first)
+    await context.clearCookies();
+    await page.goto("/login");
+
+    // Then — cross-screen indicator is NOT visible
+    // RED phase: indicator guard not implemented
+    const topBarIndicator = page.locator(
+      "[data-testid='topbar-badge-recording-active']",
+    );
+    await expect(topBarIndicator).not.toBeVisible();
+  });
+
+  test("AC-6: cross-screen indicator NOT rendered on /setup", async ({
+    page,
+    context,
+  }) => {
+    // Given Record mode is active
+    const recordButton = page.locator("[data-testid='activity-btn-record']");
+    await recordButton.click();
+
+    // When navigating to /setup (requires clearing auth state first)
+    await context.clearCookies();
+    await page.goto("/setup");
+
+    // Then — cross-screen indicator is NOT visible
+    // RED phase: indicator guard not implemented
+    const topBarIndicator = page.locator(
+      "[data-testid='topbar-badge-recording-active']",
+    );
+    await expect(topBarIndicator).not.toBeVisible();
+  });
+});

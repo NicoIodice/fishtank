@@ -11,10 +11,12 @@ namespace Fishtank.Api.Engine;
 /// <summary>
 /// Background hosted service that polls WireMock <see cref="ILogEntry"/> queues
 /// at 250ms intervals and feeds new entries into <see cref="IActivityService"/>.
+/// Also auto-captures proxied requests when Record mode is active (FR-16).
 /// </summary>
 public class ActivityPollingService(
     IServicesRegistry registry,
-    IServiceScopeFactory scopeFactory) : IHostedService
+    IServiceScopeFactory scopeFactory,
+    IRecordingService recordingService) : IHostedService
 {
     private Timer? _timer;
     private int _isPolling; // 0=idle, 1=running — prevents re-entrant polling
@@ -118,6 +120,29 @@ public class ActivityPollingService(
             };
 
             await activityService.CaptureAsync(row);
+
+            // FR-16: Auto-capture proxied requests when Record mode is active
+            if (type == ActivityType.Proxied && await recordingService.IsRecordingAsync())
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await recordingService.CaptureAsync(
+                            serviceId,
+                            info.Name.ToLowerInvariant().Replace(" ", "-"),  // serviceSlug
+                            row.Method,
+                            row.UrlPath,
+                            row.StatusCode,
+                            row.ResponseBody ?? string.Empty);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Recording failed to capture proxied request: {Method} {Path}",
+                            row.Method, row.UrlPath);
+                    }
+                });
+            }
         }
         catch (Exception ex)
         {
