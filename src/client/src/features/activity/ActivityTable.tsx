@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { ActivityRow } from "./types";
 import { MethodChip } from "./MethodChip";
 import { TypeIcon } from "./TypeIcon";
+import { MockSuggestionModal } from "./components/MockSuggestionModal";
 
 // Virtual scrolling: using @tanstack/react-virtual for NFR-4 (10k rows @ 60fps).
 // Consistent with TanStack React Query already in project.
@@ -49,6 +50,7 @@ export function ActivityTable({
   const parentRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [modalRow, setModalRow] = useState<ActivityRow | null>(null);
 
   // Read service statuses from React Query cache (no refetch).
   // Uses minimal local ServiceStatus type to avoid cross-feature imports.
@@ -431,7 +433,7 @@ export function ActivityTable({
                     }}
                   >
                     <button
-                      data-testid={`activity-btn-view-${row.id}`}
+                      data-testid={`activity-btn-view-detail-${row.id}`}
                       aria-label="View detail"
                       style={{
                         background: "none",
@@ -445,8 +447,12 @@ export function ActivityTable({
                     </button>
                     {row.type === "Proxied" && (
                       <button
-                        data-testid="activity-btn-save-as-mock"
+                        data-testid={`activity-btn-save-as-mock-${row.id}`}
                         aria-label="Save as Mock"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalRow(row);
+                        }}
                         style={{
                           background: "none",
                           border: "none",
@@ -465,6 +471,14 @@ export function ActivityTable({
           </tbody>
         </table>
       </div>
+
+      {/* MockSuggestionModal */}
+      {modalRow && (
+        <MockSuggestionModal
+          row={modalRow}
+          onClose={() => setModalRow(null)}
+        />
+      )}
     </div>
   );
 }

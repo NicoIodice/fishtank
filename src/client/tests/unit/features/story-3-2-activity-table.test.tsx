@@ -337,7 +337,7 @@ describe("ActivityTable — Story 3.2", () => {
     renderTable(rows);
     const saveBtn = screen.queryByLabelText("Save as Mock");
     expect(saveBtn).toBeInTheDocument();
-    expect(saveBtn).toHaveAttribute("data-testid", "activity-btn-save-as-mock");
+    expect(saveBtn).toHaveAttribute("data-testid", "activity-btn-save-as-mock-proxied-row");
   });
 
   // ─── AC-13: Keyboard navigation ───────────────────────────────────────────
