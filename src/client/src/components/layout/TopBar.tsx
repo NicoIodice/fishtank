@@ -35,8 +35,10 @@ export function TopBar({
 
   // Determine if we should show the cross-screen recording indicator (FR-16)
   const isOnActivity = location.pathname === "/activity";
-  const isAuthScreen = location.pathname === "/login" || location.pathname === "/register";
-  const showCrossScreenIndicator = isRecording && !isAuthScreen && !isOnActivity;
+  const isAuthScreen =
+    location.pathname === "/login" || location.pathname === "/register";
+  const showCrossScreenIndicator =
+    isRecording && !isAuthScreen && !isOnActivity;
 
   // Close the notification panel on Esc — AC-9
   useEffect(() => {
@@ -107,7 +109,8 @@ export function TopBar({
             aria-label="Recording active, navigate to Network Activity page"
             data-testid="topbar-recording-indicator"
           >
-            <i className="bi bi-record-circle-fill" aria-hidden="true" /> Recording…
+            <i className="bi bi-record-circle-fill" aria-hidden="true" />{" "}
+            Recording…
           </button>
         )}
 

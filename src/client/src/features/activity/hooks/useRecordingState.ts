@@ -20,12 +20,14 @@ export function useRecordingState() {
 
   const startMutation = useMutation({
     mutationFn: startRecording,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["recording", "status"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["recording", "status"] }),
   });
 
   const stopMutation = useMutation({
     mutationFn: stopRecording,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["recording", "status"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["recording", "status"] }),
   });
 
   return {

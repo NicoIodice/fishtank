@@ -37,23 +37,29 @@ export const handlers = [
   // GET /api/mappings/{**path} — returns single file content (Story 4.2, Task 2)
   // Individual tests override this handler via server.use() with richer fixtures.
   http.get("/api/mappings/:path", () => {
-    return HttpResponse.json({
-      success: false,
-      error: { code: "MAPPING_FILE_NOT_FOUND", message: "File not found" },
-    }, { status: 404 });
+    return HttpResponse.json(
+      {
+        success: false,
+        error: { code: "MAPPING_FILE_NOT_FOUND", message: "File not found" },
+      },
+      { status: 404 },
+    );
   }),
 
   // POST /api/mappings — create mapping file
   http.post("/api/mappings", () => {
-    return HttpResponse.json({
-      success: true,
-      data: {
-        name: "new-file.json",
-        path: "service/mappings/new-file.json",
-        lastModified: new Date().toISOString(),
-        sizeBytes: 42,
+    return HttpResponse.json(
+      {
+        success: true,
+        data: {
+          name: "new-file.json",
+          path: "service/mappings/new-file.json",
+          lastModified: new Date().toISOString(),
+          sizeBytes: 42,
+        },
       },
-    }, { status: 201 });
+      { status: 201 },
+    );
   }),
 
   // PUT /api/mappings/{**path} — update mapping file

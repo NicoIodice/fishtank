@@ -237,7 +237,7 @@ public class RecordingTests : IntegrationTestBase, IClassFixture<FishtankWebAppl
         events!.Data.Should().NotBeNull();
 
         var reconnectEvent = events.Data!.FirstOrDefault(e =>
-            e.Message.Contains("Requests received during") && 
+            e.Message.Contains("Requests received during") &&
             e.Message.Contains("gap may not have been captured"));
 
         reconnectEvent.Should().NotBeNull();

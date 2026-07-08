@@ -9,10 +9,9 @@ namespace Fishtank.Api.Services;
 /// Record mode implementation — global auto-capture of proxied requests.
 /// Thread-safe via lock on _lock object.
 /// Delegates file writes to MappingService (same logic as Story 4.4 single-click save).
+/// Uses IServiceScopeFactory to access scoped services from singleton context.
 /// </summary>
-public class RecordingService(
-    IMappingService mappingService,
-    ISystemEventService systemEvents) : IRecordingService
+public class RecordingService(IServiceScopeFactory scopeFactory) : IRecordingService
 {
     private readonly object _lock = new();
     private bool _isRecording;
@@ -102,10 +101,15 @@ public class RecordingService(
             WriteIndented = true
         });
 
+        // Create scope to access scoped services from singleton context
+        using var scope = scopeFactory.CreateScope();
+        var mappingService = scope.ServiceProvider.GetRequiredService<IMappingService>();
+        var systemEvents = scope.ServiceProvider.GetRequiredService<ISystemEventService>();
+
         // Write Mapping file (with numeric suffix if exists)
         try
         {
-            var finalMappingPath = await GetUniquePathAsync(mappingPath, ct);
+            var finalMappingPath = await GetUniquePathAsync(mappingService, mappingPath, ct);
             await mappingService.CreateFileAsync(finalMappingPath, mappingContent, ct);
         }
         catch (Exception ex) when (ex is not ValidationException)
@@ -121,7 +125,7 @@ public class RecordingService(
         // Write Response file (with numeric suffix if exists)
         try
         {
-            var finalResponsePath = await GetUniquePathAsync(responsePath, ct);
+            var finalResponsePath = await GetUniquePathAsync(mappingService, responsePath, ct);
             await mappingService.CreateFileAsync(finalResponsePath, responseBody, ct);
         }
         catch (Exception ex) when (ex is not ValidationException)
@@ -159,7 +163,7 @@ public class RecordingService(
     /// <summary>
     /// Generate unique file path by appending numeric suffix (_2, _3, ...) if file exists.
     /// </summary>
-    private async Task<string> GetUniquePathAsync(string basePath, CancellationToken ct)
+    private static async Task<string> GetUniquePathAsync(IMappingService mappingService, string basePath, CancellationToken ct)
     {
         // Check if base path is available
         try
