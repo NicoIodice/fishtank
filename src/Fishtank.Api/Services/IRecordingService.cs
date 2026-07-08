@@ -1,4 +1,4 @@
-﻿namespace Fishtank.Api.Services;
+namespace Fishtank.Api.Services;
 
 /// <summary>
 /// Record mode management — global toggle for auto-capture.

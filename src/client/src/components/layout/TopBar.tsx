@@ -36,7 +36,7 @@ export function TopBar({
   // Determine if we should show the cross-screen recording indicator (FR-16)
   const isOnActivity = location.pathname === "/activity";
   const isAuthScreen =
-    location.pathname === "/login" || location.pathname === "/register";
+    location.pathname === "/login" || location.pathname === "/setup";
   const showCrossScreenIndicator =
     isRecording && !isAuthScreen && !isOnActivity;
 
@@ -97,7 +97,6 @@ export function TopBar({
         {/* Cross-screen recording indicator - FR-16 */}
         {showCrossScreenIndicator && (
           <button
-            className={styles.recordingIndicator}
             onClick={() => navigate("/activity")}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -106,11 +105,28 @@ export function TopBar({
               }
             }}
             role="button"
-            aria-label="Recording active, navigate to Network Activity page"
-            data-testid="topbar-recording-indicator"
+            aria-label="Recording active — return to Network Activity"
+            tabIndex={0}
+            data-testid="topbar-badge-recording-active"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "2px 10px",
+              borderRadius: "9999px",
+              backgroundColor: "var(--warning-subtle)",
+              color: "var(--warning)",
+              fontSize: "var(--text-sm)",
+              fontWeight: "var(--font-semibold)",
+              border: "none",
+              cursor: "pointer",
+              transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "none"
+                : "opacity 150ms ease",
+              opacity: 1,
+            }}
           >
-            <i className="bi bi-record-circle-fill" aria-hidden="true" />{" "}
-            Recording…
+            ● Recording
           </button>
         )}
 

@@ -29,13 +29,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ActivityPage } from "../pages/ActivityPage";
+import { ActivityPage } from "@/features/activity/pages/ActivityPage";
+import { useActivityLog } from "@/features/activity/useActivityLog";
 
 // ─── Mock Setup ─────────────────────────────────────────────────────────────
 
 // Mock the useRecordingState hook (doesn't exist yet — RED phase)
-// @ts-ignore — hook doesn't exist yet
-vi.mock("../hooks/useRecordingState", () => ({
+// @ts-expect-error — hook doesn't exist yet
+vi.mock("@/features/activity/hooks/useRecordingState", () => ({
   useRecordingState: vi.fn(() => ({
     isRecording: false,
     startedAt: null,
@@ -57,13 +58,22 @@ const mockHubConnection = {
   onreconnected: vi.fn(),
 };
 
-vi.mock("../../../lib/signalr", () => ({
+vi.mock("@/lib/signalr", () => ({
   getHubConnection: vi.fn(() => mockHubConnection),
 }));
 
 // Mock apiFetch for activity feed initial load
-vi.mock("../../../lib/api", () => ({
+vi.mock("@/lib/api", () => ({
   apiFetch: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+}));
+
+// Mock useActivityLog — default: isConnected: true (override per-test for AC-7/AC-8)
+vi.mock("@/features/activity/useActivityLog", () => ({
+  useActivityLog: vi.fn(() => ({
+    rows: [],
+    isLoading: false,
+    isConnected: true,
+  })),
 }));
 
 // ─── Test Suite ─────────────────────────────────────────────────────────────
@@ -118,8 +128,8 @@ describe("RecordMode — Story 4.5", () => {
     // This test will fail because the hook is mocked but not wired to ActivityPage
 
     const mockStartRecording = vi.fn();
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: false,
       startedAt: null,
@@ -142,8 +152,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-1: button changes to '⏹ Stop' when recording becomes active", async () => {
     // RED phase: button text doesn't change yet because ActivityPage stub is disabled
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),
@@ -167,8 +177,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-2: Recording badge is visible with amber styling when recording", async () => {
     // RED phase: badge stub has display: none
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),
@@ -196,8 +206,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-2: Recording badge is hidden when not recording", async () => {
     // RED phase: badge is always hidden (display: none stub)
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: false,
       startedAt: null,
@@ -210,8 +220,8 @@ describe("RecordMode — Story 4.5", () => {
     renderActivityPage();
 
     await waitFor(() => {
-      const badge = screen.getByTestId("activity-badge-recording");
-      expect(badge).not.toBeVisible();
+      const badge = screen.queryByTestId("activity-badge-recording");
+      expect(badge).not.toBeInTheDocument();
     });
   });
 
@@ -221,8 +231,8 @@ describe("RecordMode — Story 4.5", () => {
     // RED phase: stopRecording not wired yet
 
     const mockStopRecording = vi.fn();
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),
@@ -245,8 +255,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-3: badge hides immediately with no transition when recording stops", async () => {
     // RED phase: badge hide animation not implemented yet (should be instant)
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     const mockImpl = vi.mocked(useRecordingState);
 
     // Start with recording active
@@ -283,12 +293,10 @@ describe("RecordMode — Story 4.5", () => {
     );
 
     await waitFor(() => {
-      const badge = screen.getByTestId("activity-badge-recording");
-      expect(badge).not.toBeVisible();
+      const badge = screen.queryByTestId("activity-badge-recording");
+      expect(badge).not.toBeInTheDocument();
 
-      // Verify no transition property on hide
-      const styles = window.getComputedStyle(badge);
-      expect(styles.transition).not.toContain("opacity");
+      // Badge is removed from DOM on stop (no lingering element, so no transition on hide)
     });
   });
 
@@ -297,8 +305,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-7: badge shows warning state when SignalR disconnects during recording", async () => {
     // RED phase: useActivityLog doesn't expose isConnected yet
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),
@@ -308,15 +316,12 @@ describe("RecordMode — Story 4.5", () => {
       isStopping: false,
     });
 
-    // Mock useActivityLog to expose isConnected (doesn't exist yet)
-    // @ts-ignore
-    vi.mock("../useActivityLog", () => ({
-      useActivityLog: vi.fn(() => ({
-        rows: [],
-        isLoading: false,
-        isConnected: false, // Simulating disconnect
-      })),
-    }));
+    // Override useActivityLog mock for this test: simulate disconnect
+    vi.mocked(useActivityLog).mockReturnValue({
+      rows: [],
+      isLoading: false,
+      isConnected: false,
+    } as ReturnType<typeof useActivityLog>);
 
     renderActivityPage();
 
@@ -341,8 +346,8 @@ describe("RecordMode — Story 4.5", () => {
   it("AC-8: badge returns to normal state when SignalR reconnects", async () => {
     // RED phase: reconnect handling not implemented
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),
@@ -352,15 +357,12 @@ describe("RecordMode — Story 4.5", () => {
       isStopping: false,
     });
 
-    // Mock useActivityLog with reconnect
-    // @ts-ignore
-    vi.mock("../useActivityLog", () => ({
-      useActivityLog: vi.fn(() => ({
-        rows: [],
-        isLoading: false,
-        isConnected: true, // Reconnected
-      })),
-    }));
+    // Override useActivityLog mock for this test: simulate reconnect (isConnected: true already default, explicit here for clarity)
+    vi.mocked(useActivityLog).mockReturnValue({
+      rows: [],
+      isLoading: false,
+      isConnected: true,
+    } as ReturnType<typeof useActivityLog>);
 
     renderActivityPage();
 
@@ -387,8 +389,8 @@ describe("RecordMode — Story 4.5", () => {
       value: true,
     });
 
-    const { useRecordingState } = await import("../hooks/useRecordingState");
-    // @ts-ignore
+    const { useRecordingState } = await import("@/features/activity/hooks/useRecordingState");
+    // @ts-expect-error -- mock type mismatch in test context
     vi.mocked(useRecordingState).mockReturnValue({
       isRecording: true,
       startedAt: new Date().toISOString(),

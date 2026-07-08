@@ -2,8 +2,8 @@
   "cookies": [
     {
       "name": "fishtank_auth",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIwYTU4MGQ5Ni0yNGY3LTQyYjItOWM5YS1kODkwMWQzMGM3MTYiLCJyb2xlIjoiQWRtaW4iLCJ0b2tlbl92ZXJzaW9uIjoiMSIsImJvb3RfZXBvY2giOiI5NjdiYjY5ZC1mYzkxLTQzOGUtYTUyNi02NWNkNjQzN2U4ZDgiLCJuYmYiOjE3ODI1NzYwNTgsImV4cCI6MTc4MjU3OTY1OCwiaWF0IjoxNzgyNTc2MDU4fQ.v66A4xds2Bo3MYnlvEdK3-n0jUyXRqcCeGZDiPpb-Dk",
-      "domain": "localhost",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJmYjA2OTg2Yi1mNGE3LTRlMDgtYjU5YS1hYjk5NWIzMWI4YTMiLCJyb2xlIjoiQWRtaW4iLCJ0b2tlbl92ZXJzaW9uIjoiMCIsImJvb3RfZXBvY2giOiIzYTVlYjc1NS00ZWNhLTQzNzUtOGYwYy05MTZhODc0ZDZiMjUiLCJuYmYiOjE3ODM1NDc2NjQsImV4cCI6MTc4MzU1MTI2NCwiaWF0IjoxNzgzNTQ3NjY0fQ.KV-6MI-Rtqh4IPzOREOCXs6SsIwjVzvRmRk7T4Zh0jo",
+      "domain": "127.0.0.1",
       "path": "/",
       "expires": -1,
       "httpOnly": true,
@@ -11,11 +11,5 @@
       "sameSite": "Strict"
     }
   ],
-  "origins": [],
-  "_authConfig": {
-    "storageDir": "C:\\GIT\\_Personal\\fishtank\\src\\client\\.auth\\local\\default",
-    "debug": false,
-    "configId": "580a278f-0b4e-46d7-a78e-e42747d23c0d",
-    "timestamp": "2026-07-08T21:41:16.123Z"
-  }
+  "origins": []
 }
