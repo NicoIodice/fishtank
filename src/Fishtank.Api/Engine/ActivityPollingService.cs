@@ -128,13 +128,13 @@ public class ActivityPollingService(
                 {
                     try
                     {
-                    await recordingService.CaptureAsync(
-                            serviceId,
-                            info.Slug,  // use actual DB slug, not name-derived slug
-                            row.Method,
-                            row.UrlPath,
-                            row.StatusCode,
-                            row.ResponseBody ?? string.Empty);
+                        await recordingService.CaptureAsync(
+                                serviceId,
+                                info.Slug,  // use actual DB slug, not name-derived slug
+                                row.Method,
+                                row.UrlPath,
+                                row.StatusCode,
+                                row.ResponseBody ?? string.Empty);
                     }
                     catch (Exception ex)
                     {

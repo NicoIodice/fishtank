@@ -547,3 +547,17 @@ Following `RECORDING_*` prefix convention:
 ### Completion Notes List
 
 ### File List
+
+---
+
+### Review Findings
+
+- [ ] [Review][Patch] B-1: Wrong service slug in `ActivityPollingService` — `info.Name.ToLowerInvariant().Replace(" ", "-")` is passed as `serviceSlug` to `CaptureAsync`; `FetchServiceInfoAsync` returns only `(Name, Port)` not the DB `Slug` field. Files are written to the wrong directory when the DB slug differs from the naive name derivation. Fix: extend `FetchServiceInfoAsync` to also return `svc.Slug` and pass `info.Slug` instead. [src/Fishtank.Api/Engine/ActivityPollingService.cs:131]
+- [ ] [Review][Patch] B-2: `isConnected` null treated as falsy in badge ternary — shows warning badge during initial SignalR connection (~500ms on every ActivityPage mount when recording is active). Fix: change `{isConnected ? "● Recording" : warning}` to `{isConnected !== false ? "● Recording" : warning}`. [src/client/src/features/activity/pages/ActivityPage.tsx:352]
+- [ ] [Review][Patch] M-1: No `onError` handler in `startMutation`/`stopMutation` — errors silently swallowed, user gets no feedback on 409 or network failures. Add `onError` callbacks. [src/client/src/features/activity/hooks/useRecordingState.ts:24]
+- [ ] [Review][Patch] M-2: `window.matchMedia` called inline in render without `typeof window !== "undefined"` guard — deviates from the safer pattern established in `ActivityPage.tsx`; will throw in environments where `matchMedia` is not mocked. [src/client/src/components/layout/TopBar.tsx:124]
+- [ ] [Review][Patch] M-3: `GetUniquePathAsync` read-then-write TOCTOU race — concurrent captures of same endpoint can both observe file as non-existent and the second write silently overwrites the first. [src/Fishtank.Api/Services/RecordingService.cs:163]
+- [ ] [Review][Patch] m-1: `role="button"` redundant on native `<button>` element; `tabIndex={0}` and `onKeyDown` for Enter/Space also redundant. [src/client/src/components/layout/TopBar.tsx:103]
+- [ ] [Review][Patch] m-2: `RecordingStatusResponse` record defined in endpoints file — should be in `Models/` per project convention. [src/Fishtank.Api/Endpoints/RecordingEndpoints.cs:65]
+- [x] [Review][Defer] m-3: Fire-and-forget `Task.Run` in `ActivityPollingService` has no cancellation token — deferred, pre-existing pattern and low practical impact during graceful shutdown. [src/Fishtank.Api/Engine/ActivityPollingService.cs:126]
+- [x] [Review][Defer] m-4: `TopBar.module.css` missing `.recordingIndicator` class — implementation uses inline styles instead; functionally equivalent but deviates from spec and CSS module convention. Deferred, pre-existing style-vs-spec gap. [src/client/src/components/layout/TopBar.module.css]

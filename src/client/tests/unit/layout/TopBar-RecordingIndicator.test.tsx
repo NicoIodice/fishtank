@@ -99,7 +99,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
     renderTopBarAt("/mappings", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
     expect(indicator).toBeVisible();
     expect(indicator).toHaveTextContent("● Recording");
   });
@@ -107,7 +109,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
   it("AC-5: indicator has correct amber pill styling", async () => {
     renderTopBarAt("/services", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
 
     // Check inline style attribute directly (CSS vars not resolved by jsdom)
     const styleAttr = indicator.getAttribute("style") ?? "";
@@ -121,7 +125,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
     renderTopBarAt("/settings", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
 
     expect(indicator).toHaveAttribute("role", "button");
     expect(indicator).toHaveAttribute(
@@ -136,7 +142,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
     renderTopBarAt("/mappings", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
     await user.click(indicator);
 
     expect(mockNavigate).toHaveBeenCalledWith("/activity");
@@ -147,7 +155,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
     renderTopBarAt("/services", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
     indicator.focus();
     await user.keyboard("{Enter}");
 
@@ -159,7 +169,9 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
     renderTopBarAt("/settings", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
     indicator.focus();
     await user.keyboard(" ");
 
@@ -208,20 +220,25 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
   it("AC-9: indicator entrance animation respects prefers-reduced-motion", async () => {
     // Mock window.matchMedia to report prefers-reduced-motion: reduce = true
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
-      matches: query === "(prefers-reduced-motion: reduce)",
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }) as MediaQueryList);
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === "(prefers-reduced-motion: reduce)",
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList,
+    );
 
     renderTopBarAt("/mappings", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
 
     // Verify transition: none — check inline style attribute (NOT animation: none)
     const styleAttr = indicator.getAttribute("style") ?? "";
@@ -230,20 +247,25 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
 
   it("AC-9: indicator entrance uses transition (not animation) when motion allowed", async () => {
     // Mock matchMedia to return matches: false (motion allowed — default state)
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }) as MediaQueryList);
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList,
+    );
 
     renderTopBarAt("/services", true);
 
-    const indicator = await screen.findByTestId("topbar-badge-recording-active");
+    const indicator = await screen.findByTestId(
+      "topbar-badge-recording-active",
+    );
 
     // Verify opacity transition in inline style attribute (entrance: opacity 0→1 150ms ease per DESIGN.md)
     const styleAttr = indicator.getAttribute("style") ?? "";

@@ -59,6 +59,8 @@ const mockConnection = {
   off: vi.fn(),
   start: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
+  onclose: vi.fn(),
+  onreconnected: vi.fn(),
   state: "Connected",
 };
 
@@ -75,6 +77,9 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/features/activity/api", () => ({
   fetchActivityRows: vi.fn().mockResolvedValue([]),
   clearActivityLog: vi.fn().mockResolvedValue(undefined),
+  getRecordingStatus: vi.fn().mockResolvedValue({ isRecording: false, startedAt: null }),
+  startRecording: vi.fn().mockResolvedValue({ isRecording: true, startedAt: null }),
+  stopRecording: vi.fn().mockResolvedValue({ isRecording: false, startedAt: null }),
 }));
 
 import { fetchActivityRows, clearActivityLog } from "@/features/activity/api";

@@ -120,7 +120,8 @@ export function TopBar({
               fontWeight: "var(--font-semibold)",
               border: "none",
               cursor: "pointer",
-              transition: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              transition: window.matchMedia("(prefers-reduced-motion: reduce)")
+                .matches
                 ? "none"
                 : "opacity 150ms ease",
               opacity: 1,
