@@ -14,6 +14,15 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 _Theme: Manage users, control feature availability, and review the audit trail._
 
+### Added
+
+- **Admin Console page** — new `/admin` route with a tabbed shell (Feature Toggles / Health / Audit Log); accessible to Admin-role users only; Standard Users are redirected to `/services` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Admin Console nav item** — collapsible sidebar nav item with `bi-shield-lock` icon, rendered below a visual divider; only visible to Admin-role users (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Feature toggles runtime control** — `GET /api/admin/toggles` and `PUT /api/admin/toggles/{name}` endpoints; 5 toggles seeded at startup (Network Activity, Mappings Editor, Record Mode, System Events, Services Management); all default to enabled (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Environment variable override** — `FISHTANK_TOGGLE_{NAME}` environment variables take precedence over database state; locked toggles display an "Overridden by env var" badge and reject PUT with HTTP 409 `ADMIN_TOGGLE_ENV_LOCKED` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Real-time toggle broadcast** — `TogglesHub` at `/hubs/toggles` broadcasts `FeatureToggleChanged` events to all connected sessions on every state change; `HUB_INVALIDATION_MAP` updated with `FeatureToggleChanged → ["toggles"]` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Disable confirmation dialog** — disabling an enabled toggle shows a confirmation dialog; enabling requires no confirmation (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+
 ---
 
 ## [v0.4.0] — 2026-07-09 (Mappings & Mock Capture)

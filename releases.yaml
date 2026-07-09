@@ -165,7 +165,7 @@ releases:
     released: null
     stories:
       - id: "5-1-feature-toggles-runtime-control-and-signalr-broadcast"
-        status: "in-progress"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v1.0.0 — Release Polish & Distribution (Epic 6)
