@@ -19,6 +19,7 @@ export function AdminConsolePage() {
 
       <nav className={styles.tabs} role="tablist">
         <button
+          id="tab-feature-toggles"
           role="tab"
           aria-selected={activeTab === "feature-toggles"}
           aria-controls="panel-feature-toggles"
@@ -29,6 +30,7 @@ export function AdminConsolePage() {
           Feature Toggles
         </button>
         <button
+          id="tab-health"
           role="tab"
           aria-selected={activeTab === "health"}
           aria-controls="panel-health"
@@ -39,6 +41,7 @@ export function AdminConsolePage() {
           Health
         </button>
         <button
+          id="tab-audit-log"
           role="tab"
           aria-selected={activeTab === "audit-log"}
           aria-controls="panel-audit-log"

@@ -125,7 +125,7 @@ development_status:
   # EPIC 5: Admin Console & User Management
   # ─────────────────────────────────────────────────────────────────────────────
   epic-5: in-progress
-  5-1-feature-toggles-runtime-control-and-signalr-broadcast: in-progress
+  5-1-feature-toggles-runtime-control-and-signalr-broadcast: in-test
   5-2-user-management-create-view-and-deactivate: backlog
   5-3-health-dashboard-audit-log-and-auto-registration-toggle: backlog
   5-4-structured-file-logging-rolling-daily-files: backlog

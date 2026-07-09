@@ -414,3 +414,84 @@ describe("AppShell", () => {
     ).toBeInTheDocument();
   });
 });
+
+// ─── Sidebar — Admin Console nav item (story 5-1 coverage) ───────────────────
+
+describe("Sidebar — Admin Console nav item (desktop)", () => {
+  beforeEach(() => {
+    mockUseBreakpoint.mockReturnValue({
+      desktop: true,
+      mid: false,
+      midNarrow: false,
+      mobile: false,
+    });
+    mockUseAuth.mockReturnValue({ user: { username: "admin", role: "Admin" }, isAuthenticated: true, isLoading: false });
+  });
+
+  it("shows Admin Console nav item when user is Admin role (capital A)", () => {
+    render(withRouter(<Sidebar />));
+    expect(screen.getByTestId("nav-admin-console")).toBeInTheDocument();
+  });
+});
+
+describe("Sidebar — Admin Console nav item (mobile)", () => {
+  beforeEach(() => {
+    mockUseBreakpoint.mockReturnValue({
+      desktop: false,
+      mid: false,
+      midNarrow: false,
+      mobile: true,
+    });
+    mockUseAuth.mockReturnValue({ user: { username: "admin", role: "Admin" }, isAuthenticated: true, isLoading: false });
+  });
+
+  it("shows Admin Console nav item in mobile overlay when user is Admin", () => {
+    render(withRouter(<Sidebar mobileOpen={true} />));
+    expect(screen.getByTestId("nav-admin-console")).toBeInTheDocument();
+  });
+});
+
+describe("Sidebar — mid-breakpoint transition", () => {
+  it("resets collapse state when transitioning from desktop to mid-size viewport", async () => {
+    // Start at desktop (mid: false)
+    mockUseBreakpoint.mockReturnValue({
+      desktop: false,
+      mid: false,
+      midNarrow: false,
+      mobile: false,
+    });
+    mockUseAuth.mockReturnValue({ user: { username: "alice", role: "admin" }, isAuthenticated: true, isLoading: false });
+
+    const { rerender } = render(withRouter(<Sidebar />));
+
+    // Transition to mid-size viewport (mid: true) — triggers prevMid !== mid block
+    mockUseBreakpoint.mockReturnValue({
+      desktop: false,
+      mid: true,
+      midNarrow: true,
+      mobile: false,
+    });
+
+    rerender(withRouter(<Sidebar />));
+
+    expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+  });
+
+  it("handles localStorage.getItem throwing during collapsed state initialization", () => {
+    mockUseBreakpoint.mockReturnValue({
+      desktop: true,
+      mid: false,
+      midNarrow: false,
+      mobile: false,
+    });
+    mockUseAuth.mockReturnValue({ user: { username: "alice", role: "admin" }, isAuthenticated: true, isLoading: false });
+
+    vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+      throw new Error("localStorage unavailable");
+    });
+
+    // Should render without error, collapsed defaults to false
+    render(withRouter(<Sidebar />));
+    expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+  });
+});

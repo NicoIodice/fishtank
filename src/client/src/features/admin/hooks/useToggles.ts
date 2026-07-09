@@ -25,7 +25,7 @@ async function fetchToggles(): Promise<FeatureToggle[]> {
 }
 
 async function setToggle(name: string, request: SetToggleRequest): Promise<FeatureToggle> {
-  const response = await fetch(`/api/admin/toggles/${name}`, {
+  const response = await fetch(`/api/admin/toggles/${encodeURIComponent(name)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
