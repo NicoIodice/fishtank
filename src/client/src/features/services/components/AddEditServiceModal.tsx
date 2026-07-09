@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   useNextPort,
   useCreateService,
   useUpdateService,
 } from "../hooks/useServices";
 import { useAppSettings } from "@/features/settings/hooks/useAppSettings";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import type { Service } from "../types/service";
 import { ApiError } from "@/lib/api";
 import styles from "./AddEditServiceModal.module.css";
@@ -53,10 +54,44 @@ export function AddEditServiceModal({
     port: service?.port?.toString() ?? "",
     tags: service?.tags ? [...service.tags] : [],
   }));
+
+  // Store initial values for isDirty comparison
+  const [initialValues] = useState<FormValues>(() => ({
+    name: service?.name ?? "",
+    description: service?.description ?? "",
+    externalUrl: service?.externalUrl ?? "",
+    port: service?.port?.toString() ?? "",
+    tags: service?.tags ? [...service.tags] : [],
+  }));
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [debouncedName, setDebouncedName] = useState(values.name);
+
+  const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
+
+  // Compute isDirty by comparing current values with initial values
+  const isDirty = useMemo(
+    () =>
+      values.name !== initialValues.name ||
+      values.description !== initialValues.description ||
+      values.externalUrl !== initialValues.externalUrl ||
+      values.port !== initialValues.port ||
+      JSON.stringify(values.tags) !== JSON.stringify(initialValues.tags),
+    [values, initialValues],
+  );
+
+  // Register with global unsaved changes context when modal is open AND dirty
+  // Modal is implicitly "open" when this component is rendered
+  useEffect(() => {
+    if (isDirty) {
+      registerUnsaved("service-modal");
+    } else {
+      clearUnsaved("service-modal");
+    }
+    return () => clearUnsaved("service-modal");
+  }, [isDirty, registerUnsaved, clearUnsaved]);
 
   // Debounce name field for path preview (200ms)
   useEffect(() => {

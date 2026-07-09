@@ -147,6 +147,15 @@ var dbPath = builder.Configuration["FISHTANK_DB_PATH"] ?? "/app/data/fishtank.db
 builder.Services.AddDbContext<FishtankDbContext>(opt =>
     opt.UseSqlite($"Data Source={dbPath}"));
 
+// ─── Mocks Root — where WireMock mapping/response files live.
+// Default to /mocks (the conventional volume mount documented in
+// docker-compose.example.yml) so the app works out-of-the-box; deployments, CI,
+// and tests override it with their own (writable) path. All consumers
+// (MappingService, ResyncService, ServiceManager, EngineStartup) read this key,
+// so defaulting once here keeps them consistent and avoids a hard crash when the
+// variable is not explicitly provided.
+builder.Configuration["FISHTANK_MOCKS_ROOT"] ??= "/mocks";
+
 // ─── 6. Application services ──────────────────────────────────────────────────
 builder.Services.AddSingleton<IServerConfigService, ServerConfigService>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
@@ -165,6 +174,12 @@ builder.Services.AddScoped<IHeaderRedactionService, HeaderRedactionService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddHostedService<EngineStartup>();
 builder.Services.AddHostedService<ActivityPollingService>();
+
+// ─── 6c. File management (Story 4.1) ─────────────────────────────────────
+builder.Services.AddScoped<IMappingService, MappingService>();
+builder.Services.AddScoped<IResyncService, ResyncService>();
+// ─── 6d. Recording mode (Story 4.5) ────────────────────────────────────────
+builder.Services.AddSingleton<IRecordingService, RecordingService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -234,6 +249,8 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
+app.MapMappingsEndpoints();
+app.MapRecordingEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();

@@ -112,11 +112,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.3.0"
     epic: "epic-3"
-    status: "in-progress"
+    status: "released"
     branch: "release/v0.3.0"
     started: "2026-06-27"
     completed: "2026-06-28"
-    released: null
+    released: "2026-06-28"
     stories:
       - id: "3-1-activity-log-backend-request-capture-and-header-redaction"
         status: "done"
@@ -133,12 +133,24 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.4.0"
     epic: "epic-4"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v0.4.0"
-    started: null
-    completed: null
+    started: "2026-06-28"
+    completed: "2026-07-09"
     released: null
-    stories: []
+    stories:
+      - id: "4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine"
+        status: "done"
+      - id: "4-2-mappings-file-explorer-and-dual-mode-editor"
+        status: "done"
+      - id: "4-3-resync-ui-with-toast-feedback-and-conflict-banners"
+        status: "done"
+      - id: "4-4-save-as-mock-mock-suggestion-modal"
+        status: "done"
+      - id: "4-5-record-mode-and-cross-screen-recording-indicator"
+        status: "done"
+      - id: "4-6-navigation-guard-and-sign-out-protection"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.5.0 — Admin Console (Epic 5)

@@ -10,6 +10,46 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.4.0] — 2026-07-09 (Mappings & Mock Capture)
+
+_Theme: Edit mock files in the browser and record real traffic into permanent stubs._
+
+### Added
+
+- **Mappings file CRUD backend** — `POST /api/mappings`, `GET /api/mappings`, `PUT /api/mappings/{path}`, `DELETE /api/mappings/{path}` for creating, listing, updating, and deleting WireMock mapping/response files via API (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Path traversal protection** — `MappingService.SanitizePath` blocks `../`, URL-encoded traversal sequences, absolute paths, and any path resolving outside the configured mocks root (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **`IFileWatcher` abstraction** — `FakeFileWatcher` test double enabling synchronous, deterministic file-change simulation in integration tests without OS-level `FileSystemWatcher` noise (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Resync engine** — `POST /api/resync` reloads all mapping and response files for every registered service; returns `{ mappingsLoaded, responsesLoaded, elapsedMs, failures[], conflicts[] }` (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Conflict detection** — resync flags files that were externally modified (disk `LastWriteTimeUtc` newer than `_lastKnownModified` baseline set by the API) (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Concurrent resync guard** — `SemaphoreSlim(1,1)` static lock returns HTTP 409 `RESYNC_IN_PROGRESS` if a resync is already running (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **ResyncCompleted SignalR broadcast** — on resync completion, `ServicesHub` broadcasts `ResyncCompleted` to all connected clients (`feature/4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine`)
+- **Mappings file explorer** — new `/mappings` screen with a collapsible folder tree (Mocks Root → service folders → `mappings/`·`responses/` → files), session-persisted expand/collapse, active-file highlight, and full keyboard navigation (arrow keys + Enter) (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Dual-mode mapping editor** — Form view for common WireMock fields plus a Raw JSON tab (CodeMirror, `lang-json` + one-dark theme); edits are preserved across tab switches and advanced fields are never dropped (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **In-browser file management** — create (New Mapping / New Response), edit & save, rename, duplicate, and delete mapping/response files directly from the UI; deletes require confirmation and every write waits for server confirmation with an error toast on failure (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **`GET /api/mappings/{path}`** — single-file content-read endpoint returning file content plus metadata, guarded by the same path-traversal sanitisation and authentication as the rest of the Mappings API (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Unsaved-changes navigation guard** — leaving `/mappings` with unsaved edits prompts a confirmation dialog so changes are never lost silently (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Settings → Mocks Root** — read-only display of the configured Mocks Root path with guidance that changing it requires a service restart and resync (`feature/4-2-mappings-file-explorer-and-dual-mode-editor`)
+- **Resync button with toast feedback** — toolbar button in the Mappings page triggers `POST /api/resync`; shows an in-progress spinner, a success toast (with formatted duration), a partial-success toast listing failed files, or a persistent error toast on network/API failure; 409 "already in progress" is handled gracefully (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Conflict banner** — when Resync reports a file as externally modified and the editor has unsaved changes, an inline warning banner appears with "Keep my edits" and a guarded "View disk version" action (requires a confirmation step to prevent accidental discard) (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Deleted-file banner** — when Resync reports the active file was deleted on disk, an inline banner prompts the user to close the now-orphaned editor tab (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Silent reload for clean files** — when a conflicted file has no unsaved changes, Resync automatically reloads the latest content from disk without any user interaction (`feature/4-3-resync-ui-with-toast-feedback-and-conflict-banners`)
+- **Save as Mock action** — `bi-lightning-charge` icon appears in the Network Activity table Actions column exclusively for proxied rows; clicking it opens the Mock Suggestion modal pre-populated with the captured request and response data (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Mock Suggestion modal** — two side-by-side editable blocks: Mapping JSON (auto-generated with WireMock WildcardMatcher, method, `BodyAsFile` reference, and `UseTransformer: true`) and Response Body (pre-populated from the proxied response, pretty-printed when valid JSON); both blocks are fully editable before saving (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Auto-generated mock filenames** — Mapping file saved as `{serviceSlug}/mappings/{method}_{path-slugified}_{status}.json`; Response file saved as `{serviceSlug}/responses/{method}_{path-slugified}_{status}_body.json`; slugification truncates to 64 chars and strips non-alphanumeric characters (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Save as Mock from row detail** — "Save as Mock" button available in all three row detail styles (Modal, Right Drawer, Bottom Panel) for proxied rows, opening the same Mock Suggestion modal (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **UseTransformer checkbox** — enables or disables WireMock response templating (`Response.UseTransformer`) in the generated Mapping JSON; checked by default (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Status mismatch warning** — non-blocking inline note appears when the user edits `Response.StatusCode` in the Mapping JSON to a value different from the original proxied status, reminding the user to rename the file if needed (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Mock save error handling** — write failure keeps the modal open with an inline error message and creates a System Event; the Save button remains enabled for retry (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Record mode** — `POST /api/recording/start` and `POST /api/recording/stop` endpoints toggle global auto-capture; while active, every proxied request is automatically promoted to a Mapping + Response file pair on disk without user action, using the same filename convention as Save as Mock (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **`GET /api/recording/status`** — returns current recording state (`isRecording`, `startedAt`); requires auth; used by both ActivityPage and TopBar to synchronise UI state via shared React Query cache key (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Recording badge** — persistent amber `● Recording` pill appears in the Network Activity page header while Record mode is active; changes to `⚠ Recording paused — connection lost` on SignalR disconnect; hides immediately (no animation) when recording stops (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Cross-screen recording indicator** — amber `● Recording` button in the top bar appears whenever Record mode is active and the user is not on `/activity`; keyboard-accessible (`role="button"`, `tabIndex={0}`, `aria-label`); pressing Enter or Space navigates to `/activity`; respects `prefers-reduced-motion` via `transition: none` (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Sign-out guard** — attempting to sign out when unsaved Mapping edits, a pending Mocks Root path, or an in-progress Service modal exists presents a confirmation dialog with a context-specific body message; if no unsaved state is present, sign-out proceeds immediately with no dialog (`feature/4-6-navigation-guard-and-sign-out-protection`)
+- **Full navigation guard (all 5 trigger types)** — `useBlocker` now intercepts sidebar nav clicks, logo clicks, browser back/forward buttons, and programmatic navigation; a `beforeunload` handler covers direct URL entry and page refresh so unsaved Mapping edits are never silently discarded by any navigation path (`feature/4-6-navigation-guard-and-sign-out-protection`)
+- **Global unsaved state context** — `useUnsavedChanges` provider centralises unsaved state tracking across Mappings editor, Settings Mocks Root, and Service modal; sign-out dialog body text is dynamically constructed from whichever sources are active at the time (`feature/4-6-navigation-guard-and-sign-out-protection`)
+
+---
+
 ## [v0.3.0] — 2026-06-28 (Network Activity)
 
 _Theme: See every request hitting your mock services in real time._

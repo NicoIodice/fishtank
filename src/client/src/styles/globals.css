@@ -13,6 +13,7 @@
   --z-modal:             70;
   --z-toast:             80;
   --z-tooltip:           90;
+  --z-critical-dialog:   95; /* Sign-out / critical confirmation — must float above all modals */
 
   /* Layout spacing */
   --topbar-height:           44px;

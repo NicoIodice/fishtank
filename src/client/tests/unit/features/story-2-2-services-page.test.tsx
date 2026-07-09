@@ -14,6 +14,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // â”€â”€â”€ Component under test â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 import { ServicesPage } from "@/features/services/pages/ServicesPage";
@@ -53,7 +54,9 @@ function makeQc() {
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
-    <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+    </UnsavedChangesProvider>
   );
 }
 

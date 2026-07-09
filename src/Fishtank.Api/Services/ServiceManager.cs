@@ -209,6 +209,25 @@ public partial class ServiceManager(
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
 
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var service = await FindActiveServiceAsync(id, ct);
+
+        if (registry.TryRemove(service.Id, out var server) && server is not null)
+        {
+            try { server.Stop(); server.Dispose(); }
+            catch (Exception ex) { Log.Warning(ex, "Error disposing WireMock server for {ServiceId} on delete", id); }
+        }
+
+        service.DeletedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        await servicesHub.Clients.All.SendAsync(
+            "ServiceDeleted",
+            new { id = service.Id.ToString() },
+            ct);
+    }
+
     private async Task<Service> FindActiveServiceAsync(Guid id, CancellationToken ct)
     {
         var service = await db.Services

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AboutModal } from "@/components/modals/AboutModal";
+import { SignOutConfirmDialog } from "@/components/dialogs/SignOutConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { apiFetch } from "@/lib/api";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -7,6 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUnreadCount } from "@/features/events/hooks/useSystemEvents";
 import { NotificationBadge } from "@/features/events/components/NotificationBadge";
 import { NotificationPanel } from "@/features/events/components/NotificationPanel";
+import { useRecordingState } from "@/features/activity/hooks/useRecordingState";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -30,6 +33,16 @@ export function TopBar({
   const [panelOpenPath, setPanelOpenPath] = useState<string | null>(null);
   const panelOpen = panelOpenPath === location.pathname;
   const { data: unread = 0 } = useUnreadCount();
+  const { isRecording } = useRecordingState();
+  const { hasAnyUnsaved, getSignOutMessage } = useUnsavedChanges();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+
+  // Determine if we should show the cross-screen recording indicator (FR-16)
+  const isOnActivity = location.pathname === "/activity";
+  const isAuthScreen =
+    location.pathname === "/login" || location.pathname === "/setup";
+  const showCrossScreenIndicator =
+    isRecording && !isAuthScreen && !isOnActivity;
 
   // Close the notification panel on Esc — AC-9
   useEffect(() => {
@@ -43,8 +56,21 @@ export function TopBar({
 
   async function handleSignOut() {
     if (signingOut) return;
-    setAvatarOpen(false);
+
+    // AC-9: Check for unsaved state before signing out
+    if (hasAnyUnsaved) {
+      setAvatarOpen(false);
+      setShowSignOutDialog(true);
+      return;
+    }
+
+    // AC-9: No unsaved state — sign out immediately
+    performSignOut();
+  }
+
+  async function performSignOut() {
     setSigningOut(true);
+    setShowSignOutDialog(false);
     try {
       await apiFetch<null>("/api/auth/logout", {
         method: "POST",
@@ -84,6 +110,43 @@ export function TopBar({
             <span className={styles.wordmark}>Fishtank</span>
           </div>
         </div>
+
+        {/* Cross-screen recording indicator - FR-16 */}
+        {showCrossScreenIndicator && (
+          <button
+            onClick={() => navigate("/activity")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate("/activity");
+              }
+            }}
+            role="button"
+            aria-label="Recording active — return to Network Activity"
+            tabIndex={0}
+            data-testid="topbar-badge-recording-active"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "2px 10px",
+              borderRadius: "9999px",
+              backgroundColor: "var(--warning-subtle)",
+              color: "var(--warning)",
+              fontSize: "var(--text-sm)",
+              fontWeight: "var(--font-semibold)",
+              border: "none",
+              cursor: "pointer",
+              transition: window.matchMedia("(prefers-reduced-motion: reduce)")
+                .matches
+                ? "none"
+                : "opacity 150ms ease",
+              opacity: 1,
+            }}
+          >
+            ● Recording
+          </button>
+        )}
 
         <div className={styles.right}>
           <button
@@ -163,6 +226,18 @@ export function TopBar({
       </header>
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+
+      {showSignOutDialog && (
+        <SignOutConfirmDialog
+          open={showSignOutDialog}
+          onOpenChange={setShowSignOutDialog}
+          message={
+            getSignOutMessage() ??
+            "You have unsaved changes. Sign out now? Unsaved changes will be lost."
+          }
+          onConfirm={performSignOut}
+        />
+      )}
     </>
   );
 }

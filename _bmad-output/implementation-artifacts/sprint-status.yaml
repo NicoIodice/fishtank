@@ -56,7 +56,7 @@
 # - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
 
 generated: 2026-06-20
-last_updated: 2026-06-28
+last_updated: 2026-07-01
 project: Fishtank
 project_key: NOKEY
 tracking_system: file-system
@@ -112,13 +112,13 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 4: Mappings, Mock Capture & Recording
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-4: backlog
-  4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine: backlog
-  4-2-mappings-file-explorer-and-dual-mode-editor: backlog
-  4-3-resync-ui-with-toast-feedback-and-conflict-banners: backlog
-  4-4-save-as-mock-mock-suggestion-modal: backlog
-  4-5-record-mode-and-cross-screen-recording-indicator: backlog
-  4-6-navigation-guard-and-sign-out-protection: backlog
+  epic-4: done
+  4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine: done
+  4-2-mappings-file-explorer-and-dual-mode-editor: done
+  4-3-resync-ui-with-toast-feedback-and-conflict-banners: done
+  4-4-save-as-mock-mock-suggestion-modal: done
+  4-5-record-mode-and-cross-screen-recording-indicator: done
+  4-6-navigation-guard-and-sign-out-protection: done
   epic-4-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { QueryClient, type QueryKey } from "@tanstack/react-query";
 export const HUB_INVALIDATION_MAP: Record<string, QueryKey[]> = {
   ServiceStatusChanged: [["services"]],
   SystemEventCreated: [["events"]],
+  ResyncCompleted: [["mappings"]],
 };
 
 export const queryClient = new QueryClient({

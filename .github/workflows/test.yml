@@ -176,6 +176,7 @@ jobs:
           ASPNETCORE_ENVIRONMENT: "Development"
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
           FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
+          FISHTANK_MOCKS_ROOT: "/tmp/fishtank-mocks"
         run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
@@ -297,6 +298,7 @@ jobs:
           ASPNETCORE_ENVIRONMENT: "Development"
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
           FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
+          FISHTANK_MOCKS_ROOT: "/tmp/fishtank-mocks"
           # Raise the login rate limit high enough to survive back-to-back burn-in iterations.
           # Each iteration performs several logins (explicit login test + re-auth after
           # the sign-out test invalidates the cached JWT). The default of 5/60s is far

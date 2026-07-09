@@ -21,3 +21,22 @@ export async function fetchActivityRows(
 export async function clearActivityLog(): Promise<void> {
   await apiFetch<null>("/api/activity", { method: "DELETE" });
 }
+
+// ─── Recording mode (FR-16) ──────────────────────────────────────────────────
+
+export interface RecordingStatus {
+  isRecording: boolean;
+  startedAt: string | null; // ISO 8601 or null
+}
+
+export async function getRecordingStatus(): Promise<RecordingStatus> {
+  return apiFetch<RecordingStatus>("/api/recording/status");
+}
+
+export async function startRecording(): Promise<RecordingStatus> {
+  return apiFetch<RecordingStatus>("/api/recording/start", { method: "POST" });
+}
+
+export async function stopRecording(): Promise<RecordingStatus> {
+  return apiFetch<RecordingStatus>("/api/recording/stop", { method: "POST" });
+}

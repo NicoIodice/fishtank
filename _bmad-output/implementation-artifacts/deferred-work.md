@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: NFR-19 focus trap fix on feature/4-6 (2026-07-09)
+
+- [A11-1] `SignOutConfirmDialog` is missing `aria-describedby` on the dialog container — the message `<p>` has no `id` and the dialog element has no `aria-describedby`. Screen readers announce the title (`aria-labelledby`) but not the body text. Add `id="signout-dialog-description"` to the `<p>` and `aria-describedby="signout-dialog-description"` to the dialog container in a future a11y pass.
+- [A11-2] `GuardDialog` in `NavigationGuard.tsx` similarly lacks `aria-describedby` for its description paragraph. Add in the same a11y pass.
+- [A11-3] `useFocusTrap` doesn't filter out elements that are visually hidden (`display: none`, `visibility: hidden`, zero-size). If conditional rendering ever puts hidden elements inside a trapped dialog, focus could land on an invisible element. Add a visibility check to `FOCUSABLE_SELECTORS` filtering in a future pass.
+- [A11-4] Keyboard event targets are inconsistent: `SignOutConfirmDialog` attaches its Escape listener to `window`; `GuardDialog` attaches to `document`. These dialogs are never co-active, so there's no runtime conflict, but align them in a future a11y pass.
+
 ## Deferred from: exploratory testing session (2026-06-27)
 
 - [EX-1] `ServiceManager.StopAsync` and `StartAsync` do not emit `Info` system events on success. The UX spec (EXPERIENCE.md — System Events screen, Info tab) explicitly lists "service restarts" as an expected Info tab entry. Neither stop nor start writes a `SystemEvent` with `severity=info` today. Add `systemEvents.AddAsync(SystemEventSeverity.Info, ...)` calls at the successful-exit paths of both methods in a future story.
@@ -35,3 +42,13 @@
 - `useBreakpoint`: resize handler not debounced — minor performance; add 50ms debounce in future
 - `/setup` route accessible to authenticated users — server-side guard is authoritative; add client redirect in future
 - SignalR: reconnect loop does not handle 401 (expired session) — add `onclose` 401 detection when SignalR consumers are implemented
+
+## Deferred from: test-review + NFR + trace of 4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine (2026-06-29)
+
+- ~~[4-1-T1] **AC-12 concurrent guard test false-positive**~~ ✅ Fixed 2026-06-28
+- ~~[4-1-T2] **AC-5 I/O failure → System Event**~~ ✅ Fixed 2026-06-28
+- ~~[4-1-T3] **NFR-2 performance test** uses 0-file fixture~~ ✅ Fixed 2026-06-28 (200 seeded files, ≤5s)
+- ~~[4-1-T4] **AC-7 HTTP 409** and **AC-8 HTTP 404** missing integration tests~~ ✅ Fixed 2026-06-28
+- [4-1-T5] **AC-16** (`POST /api/services/import`) deferred to future story; integration test has `[Skip]` attribute.
+- ~~[4-1-T6] **FakeFileWatcher `Simulate*` methods** not directly tested~~ ✅ Fixed 2026-06-28 (6 tests added to FileWatcherContractTests)
+- [4-1-T7] **AC-15 SignalR broadcast** only verified via HTTP response (not actual hub event). Full verification requires cookie-forwarded HubConnection or Playwright E2E test.
