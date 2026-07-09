@@ -1,6 +1,7 @@
-import React, { Component, useState, useEffect, useCallback } from "react";
+import React, { Component, useState, useEffect, useCallback, useRef } from "react";
 import { useBlocker } from "react-router-dom";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface NavigationGuardProps {
   isDirty: boolean;
@@ -14,6 +15,23 @@ interface GuardDialogProps {
 }
 
 function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  // Stable ref so the Escape effect never tears down/re-attaches on re-render
+  const onStayRef = useRef(onStay);
+  onStayRef.current = onStay;
+
+  // Trap focus within the dialog (NFR-19)
+  useFocusTrap(contentRef, true);
+
+  // Escape key → stay on page (NFR-19); empty deps — always reads latest via ref
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onStayRef.current();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div
       role="dialog"
@@ -31,6 +49,7 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
       }}
     >
       <div
+        ref={contentRef}
         style={{
           background: "var(--surface, #fff)",
           borderRadius: "8px",

@@ -158,4 +158,57 @@ describe("SignOutConfirmDialog", () => {
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("moves focus into the dialog when opened (NFR-19 focus trap)", () => {
+    // NFR-19: Focus must be trapped — first focusable element receives focus on open
+    render(<SignOutConfirmDialog {...defaultProps} />);
+
+    // The Cancel button is the first focusable element
+    const cancelBtn = screen.getByTestId("dialog-signout-cancel");
+    expect(document.activeElement).toBe(cancelBtn);
+  });
+
+  it("traps Tab key within dialog — wraps from last to first button (NFR-19)", async () => {
+    // NFR-19: Tab from the last focusable element cycles back to the first
+    const user = userEvent.setup();
+    render(<SignOutConfirmDialog {...defaultProps} />);
+
+    const cancelBtn = screen.getByTestId("dialog-signout-cancel");
+    const confirmBtn = screen.getByTestId("dialog-signout-confirm-btn");
+
+    // Move focus to confirm (last) button
+    confirmBtn.focus();
+    expect(document.activeElement).toBe(confirmBtn);
+
+    // Tab forward from the last button → should cycle back to first (Cancel)
+    await user.tab();
+    expect(document.activeElement).toBe(cancelBtn);
+  });
+
+  it("traps Shift+Tab key within dialog — wraps from first to last button (NFR-19)", async () => {
+    // NFR-19: Shift+Tab from the first focusable element cycles to the last
+    const user = userEvent.setup();
+    render(<SignOutConfirmDialog {...defaultProps} />);
+
+    const cancelBtn = screen.getByTestId("dialog-signout-cancel");
+    const confirmBtn = screen.getByTestId("dialog-signout-confirm-btn");
+
+    // Focus is on Cancel (first) — Shift+Tab should wrap to Sign out (last)
+    cancelBtn.focus();
+    await user.tab({ shift: true });
+    expect(document.activeElement).toBe(confirmBtn);
+  });
+
+  it("confirms sign-out on Enter when Sign out button is focused (NFR-19)", async () => {
+    // NFR-19: Enter submits — pressing Enter on the focused confirm button calls onConfirm
+    const onConfirm = vi.fn();
+    const user = userEvent.setup();
+    render(<SignOutConfirmDialog {...defaultProps} onConfirm={onConfirm} />);
+
+    const confirmBtn = screen.getByTestId("dialog-signout-confirm-btn");
+    confirmBtn.focus();
+    await user.keyboard("{Enter}");
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
 });

@@ -1,5 +1,12 @@
 # Deferred Work
 
+## Deferred from: NFR-19 focus trap fix on feature/4-6 (2026-07-09)
+
+- [A11-1] `SignOutConfirmDialog` is missing `aria-describedby` on the dialog container — the message `<p>` has no `id` and the dialog element has no `aria-describedby`. Screen readers announce the title (`aria-labelledby`) but not the body text. Add `id="signout-dialog-description"` to the `<p>` and `aria-describedby="signout-dialog-description"` to the dialog container in a future a11y pass.
+- [A11-2] `GuardDialog` in `NavigationGuard.tsx` similarly lacks `aria-describedby` for its description paragraph. Add in the same a11y pass.
+- [A11-3] `useFocusTrap` doesn't filter out elements that are visually hidden (`display: none`, `visibility: hidden`, zero-size). If conditional rendering ever puts hidden elements inside a trapped dialog, focus could land on an invisible element. Add a visibility check to `FOCUSABLE_SELECTORS` filtering in a future pass.
+- [A11-4] Keyboard event targets are inconsistent: `SignOutConfirmDialog` attaches its Escape listener to `window`; `GuardDialog` attaches to `document`. These dialogs are never co-active, so there's no runtime conflict, but align them in a future a11y pass.
+
 ## Deferred from: exploratory testing session (2026-06-27)
 
 - [EX-1] `ServiceManager.StopAsync` and `StartAsync` do not emit `Info` system events on success. The UX spec (EXPERIENCE.md — System Events screen, Info tab) explicitly lists "service restarts" as an expected Info tab entry. Neither stop nor start writes a `SystemEvent` with `severity=info` today. Add `systemEvents.AddAsync(SystemEventSeverity.Info, ...)` calls at the successful-exit paths of both methods in a future story.

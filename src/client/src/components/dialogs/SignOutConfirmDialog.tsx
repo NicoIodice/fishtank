@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import styles from "./SignOutConfirmDialog.module.css";
 
 interface SignOutConfirmDialogProps {
@@ -14,7 +15,12 @@ export function SignOutConfirmDialog({
   message,
   onConfirm,
 }: SignOutConfirmDialogProps) {
-  // Handle Escape key to close dialog
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Trap focus within the dialog while open (NFR-19)
+  useFocusTrap(modalRef, open);
+
+  // Handle Escape key to close dialog (NFR-19)
   useEffect(() => {
     if (!open) return;
     
@@ -43,6 +49,7 @@ export function SignOutConfirmDialog({
       role="presentation"
     >
       <div
+        ref={modalRef}
         className={styles.modal}
         role="dialog"
         aria-modal="true"
