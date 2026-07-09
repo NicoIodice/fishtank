@@ -86,21 +86,24 @@ async function createMappingFile(
   serviceName: string,
   filename: string = "test-mapping.json",
 ): Promise<void> {
-  const mappingContent = {
+  const mappingContent = JSON.stringify({
     request: {
       method: "GET",
-      urlPath: "/api/test",
+      url: "/api/test",
     },
     response: {
       status: 200,
-      body: { message: "test response" },
+      body: "test response",
     },
-  };
+  });
 
-  await apiFetch(request, `/api/mappings/${serviceName}/mappings/${filename}`, {
-    method: "PUT",
+  await apiFetch(request, "/api/mappings", {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    data: JSON.stringify(mappingContent),
+    data: JSON.stringify({
+      path: `${serviceName}/mappings/${filename}`,
+      content: mappingContent,
+    }),
   });
 }
 
