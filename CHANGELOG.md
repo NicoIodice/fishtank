@@ -10,6 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — v0.5.0 (Admin Console)
+
+_Theme: Manage users, control feature availability, and review the audit trail._
+
+---
+
 ## [v0.4.0] — 2026-07-09 (Mappings & Mock Capture)
 
 _Theme: Edit mock files in the browser and record real traffic into permanent stubs._
