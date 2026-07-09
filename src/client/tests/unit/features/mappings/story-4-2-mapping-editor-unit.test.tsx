@@ -214,9 +214,9 @@ describe("MappingEditor — tabs", () => {
 // ─── Save / Discard button states ────────────────────────────────────────────
 
 describe("MappingEditor — Save / Discard button states", () => {
-  it("Save is disabled and Discard is disabled when not dirty", () => {
+  it("Save button is not rendered and Discard is disabled when not dirty", () => {
     renderEditor({ isDirty: false });
-    expect(screen.getByTestId("mappings-btn-save")).toBeDisabled();
+    expect(screen.queryByTestId("mappings-btn-save")).not.toBeInTheDocument();
     expect(screen.getByTestId("mappings-btn-discard")).toBeDisabled();
   });
 

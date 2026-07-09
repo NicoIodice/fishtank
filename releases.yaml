@@ -136,7 +136,7 @@ releases:
     status: "in-progress"
     branch: "release/v0.4.0"
     started: "2026-06-28"
-    completed: null
+    completed: "2026-07-09"
     released: null
     stories:
       - id: "4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine"
@@ -148,6 +148,8 @@ releases:
       - id: "4-4-save-as-mock-mock-suggestion-modal"
         status: "done"
       - id: "4-5-record-mode-and-cross-screen-recording-indicator"
+        status: "done"
+      - id: "4-6-navigation-guard-and-sign-out-protection"
         status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────

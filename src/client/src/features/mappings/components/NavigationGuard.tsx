@@ -1,5 +1,15 @@
-import React, { Component, useState, useEffect, useCallback } from "react";
+import React, {
+  Component,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useBlocker } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import styles from "./NavigationGuard.module.css";
 
 interface NavigationGuardProps {
   isDirty: boolean;
@@ -13,69 +23,52 @@ interface GuardDialogProps {
 }
 
 function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  // Stable ref so the Escape effect never tears down/re-attaches on re-render
+  const onStayRef = useRef(onStay);
+  useLayoutEffect(() => {
+    onStayRef.current = onStay;
+  });
+
+  // Trap focus within the dialog (NFR-19)
+  useFocusTrap(contentRef, true);
+
+  // Escape key → stay on page (NFR-19); empty deps — always reads latest via ref
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onStayRef.current();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Unsaved changes"
-      data-testid="mappings-modal-discard-confirm"
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        background: "rgba(0,0,0,0.5)",
-      }}
+      data-testid="dialog-navigation-guard"
+      className={styles.backdrop}
     >
-      <div
-        style={{
-          background: "var(--surface, #fff)",
-          borderRadius: "8px",
-          padding: "24px",
-          minWidth: "320px",
-          maxWidth: "480px",
-          width: "100%",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-        }}
-      >
-        <h3 style={{ margin: "0 0 12px", fontSize: "1rem", fontWeight: 600 }}>
-          Unsaved Changes
-        </h3>
-        <p style={{ margin: "0 0 20px", fontSize: "0.9375rem", color: "var(--content-fg, #374151)" }}>
+      <div ref={contentRef} className={styles.dialog}>
+        <h3 className={styles.title}>Unsaved Changes</h3>
+        <p className={styles.body}>
           You have unsaved changes. If you leave now, your changes will be lost.
         </p>
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div className={styles.actions}>
           <button
-            data-testid="mappings-btn-discard-cancel"
+            data-testid="dialog-navigation-guard-cancel"
             type="button"
             onClick={onStay}
-            style={{
-              padding: "8px 16px",
-              border: "1px solid var(--input-border, #e5e7eb)",
-              borderRadius: "4px",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
+            className={styles.stayBtn}
           >
-            Stay / Cancel
+            Stay
           </button>
           <button
-            data-testid="mappings-btn-discard-confirm"
+            data-testid="dialog-navigation-guard-confirm"
             type="button"
             onClick={onDiscard}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "4px",
-              background: "var(--danger, #ef4444)",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+            className={styles.discardBtn}
           >
             Discard and navigate
           </button>
@@ -97,9 +90,33 @@ interface BlockerDialogProps {
  * (e.g. when used inside MemoryRouter in tests), it degrades gracefully and
  * NavigationGuardFallback takes over using history-patching instead.
  *
- * Story 4.6: generalize guard + sign-out protection
+ * Story 4.6: Added global context integration and beforeunload handler
  */
 function BlockerDialog({ isDirty }: BlockerDialogProps) {
+  const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
+
+  // Register/unregister with global unsaved changes context
+  useEffect(() => {
+    if (isDirty) {
+      registerUnsaved("mappings-editor");
+    } else {
+      clearUnsaved("mappings-editor");
+    }
+    return () => clearUnsaved("mappings-editor");
+  }, [isDirty, registerUnsaved, clearUnsaved]);
+
+  // beforeunload handler for page refresh/direct URL navigation (AC-12)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname,
@@ -142,7 +159,10 @@ function NavigationGuardFallback({ isDirty }: { isDirty: boolean }) {
       // Dispatch custom event for the guard to pick up
       window.dispatchEvent(
         new CustomEvent(NAV_ATTEMPT_EVENT, {
-          detail: { url: targetUrl, proceed: () => original(data, unused, url) },
+          detail: {
+            url: targetUrl,
+            proceed: () => original(data, unused, url),
+          },
         }),
       );
     }
@@ -178,7 +198,8 @@ function NavigationGuardFallback({ isDirty }: { isDirty: boolean }) {
 
   useEffect(() => {
     window.addEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
-    return () => window.removeEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
+    return () =>
+      window.removeEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
   }, [handleNavAttempt]);
 
   if (!blocked) return null;

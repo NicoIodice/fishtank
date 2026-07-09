@@ -31,6 +31,16 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
+vi.mock("@/hooks/useUnsavedChanges", () => ({
+  useUnsavedChanges: () => ({
+    registerUnsaved: vi.fn(),
+    clearUnsaved: vi.fn(),
+    hasAnyUnsaved: false,
+    getSignOutMessage: vi.fn(() => null),
+    unsavedSources: new Set(),
+  }),
+}));
+
 // Hooks resolved after resetModules
 type AddEditServiceModalType =
   typeof import("@/features/services/components/AddEditServiceModal").AddEditServiceModal;
