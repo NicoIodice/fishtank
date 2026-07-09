@@ -96,7 +96,7 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
 
         // Re-seed BootEpoch (required by IServerConfigService singleton)
         db.ServerConfigs.Add(new ServerConfig { Id = 1, BootEpoch = Guid.NewGuid() });
-        
+
         // Re-seed feature toggles (migration seed data gets cleared above)
         db.FeatureToggles.AddRange(new[]
         {
@@ -106,7 +106,7 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
             new FeatureToggle { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "system_events", DisplayName = "System Events", Description = "Infrastructure event log", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow },
             new FeatureToggle { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "services_management", DisplayName = "Services Management", Description = "Service CRUD operations", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow }
         });
-        
+
         await db.SaveChangesAsync();
 
         // Clear the singleton BootEpoch cache so the new value is picked up

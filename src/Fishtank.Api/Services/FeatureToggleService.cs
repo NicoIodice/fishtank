@@ -40,28 +40,28 @@ public class FeatureToggleService : IFeatureToggleService
     private static Dictionary<string, bool> LoadEnvVarOverrides(IConfiguration configuration)
     {
         var overrides = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-        
+
         // Scan all environment variables for FISHTANK_TOGGLE_* pattern
         var knownToggles = new[] { "network_activity", "mappings_editor", "record_mode", "system_events", "services_management" };
-        
+
         foreach (var toggle in knownToggles)
         {
             var envKey = $"FISHTANK_TOGGLE_{toggle.ToUpperInvariant()}";
             var envValue = configuration[envKey];
-            
+
             if (!string.IsNullOrWhiteSpace(envValue) && bool.TryParse(envValue, out var value))
             {
                 overrides[toggle] = value;
             }
         }
-        
+
         return overrides;
     }
 
     public async Task<List<FeatureToggleDto>> GetAllTogglesAsync(CancellationToken ct = default)
     {
         var toggles = await _db.FeatureToggles.ToListAsync(ct);
-        
+
         return toggles
             .Select(t => new FeatureToggleDto(
                 t.Name,

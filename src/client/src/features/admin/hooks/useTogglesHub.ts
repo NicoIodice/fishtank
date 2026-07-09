@@ -5,7 +5,7 @@ import { createHubConnection } from "@/lib/signalr";
 /**
  * Hook to establish SignalR connection to /hubs/toggles and invalidate ["toggles"]
  * queries when FeatureToggleChanged event is received (AC-12).
- * 
+ *
  * Wire this hook in AdminConsolePage or a central location where toggle data is used.
  */
 export function useTogglesHub() {

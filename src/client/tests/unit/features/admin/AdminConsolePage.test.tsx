@@ -12,7 +12,7 @@ import { AdminConsolePage } from "@/features/admin/pages/AdminConsolePage";
  * - Tab selection and aria attributes
  * - Tab panel visibility
  * - useTogglesHub integration
- * 
+ *
  * Coverage goal: 90%+ line/branch coverage
  */
 
@@ -24,7 +24,11 @@ vi.mock("@/features/admin/hooks/useTogglesHub", () => ({
 
 // Mock FeatureTogglesSection to isolate AdminConsolePage tests
 vi.mock("@/features/admin/components/FeatureTogglesSection", () => ({
-  FeatureTogglesSection: () => <div data-testid="mock-feature-toggles-section">Feature Toggles Section</div>,
+  FeatureTogglesSection: () => (
+    <div data-testid="mock-feature-toggles-section">
+      Feature Toggles Section
+    </div>
+  ),
 }));
 
 describe("AdminConsolePage", () => {
@@ -49,7 +53,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Admin Console")).toBeInTheDocument();
@@ -64,12 +68,15 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const featureTogglesTab = screen.getByTestId("tab-feature-toggles");
     expect(featureTogglesTab).toHaveAttribute("aria-selected", "true");
-    expect(featureTogglesTab).toHaveAttribute("aria-controls", "panel-feature-toggles");
+    expect(featureTogglesTab).toHaveAttribute(
+      "aria-controls",
+      "panel-feature-toggles",
+    );
 
     // Verify panel is visible
     const panel = screen.getByRole("tabpanel", { name: /feature toggles/i });
@@ -85,7 +92,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const healthTab = screen.getByTestId("tab-health");
@@ -96,7 +103,7 @@ describe("AdminConsolePage", () => {
     });
 
     expect(screen.getByText("Coming in Story 5.3")).toBeInTheDocument();
-    
+
     // Verify Feature Toggles tab is no longer active
     const featureTogglesTab = screen.getByTestId("tab-feature-toggles");
     expect(featureTogglesTab).toHaveAttribute("aria-selected", "false");
@@ -110,7 +117,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const auditLogTab = screen.getByTestId("tab-audit-log");
@@ -121,7 +128,7 @@ describe("AdminConsolePage", () => {
     });
 
     expect(screen.getByText("Coming in Story 5.3")).toBeInTheDocument();
-    
+
     // Verify Feature Toggles tab is no longer active
     const featureTogglesTab = screen.getByTestId("tab-feature-toggles");
     expect(featureTogglesTab).toHaveAttribute("aria-selected", "false");
@@ -135,13 +142,15 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     // Navigate to Health tab
     const healthTab = screen.getByTestId("tab-health");
     await user.click(healthTab);
-    await waitFor(() => expect(healthTab).toHaveAttribute("aria-selected", "true"));
+    await waitFor(() =>
+      expect(healthTab).toHaveAttribute("aria-selected", "true"),
+    );
 
     // Navigate back to Feature Toggles
     const featureTogglesTab = screen.getByTestId("tab-feature-toggles");
@@ -151,7 +160,9 @@ describe("AdminConsolePage", () => {
       expect(featureTogglesTab).toHaveAttribute("aria-selected", "true");
     });
 
-    expect(screen.getByTestId("mock-feature-toggles-section")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("mock-feature-toggles-section"),
+    ).toBeInTheDocument();
     expect(healthTab).toHaveAttribute("aria-selected", "false");
   });
 
@@ -163,11 +174,13 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     // Initially Feature Toggles panel is visible
-    expect(screen.getByTestId("mock-feature-toggles-section")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("mock-feature-toggles-section"),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Coming in Story 5.3")).not.toBeInTheDocument();
 
     // Switch to Health tab
@@ -179,7 +192,9 @@ describe("AdminConsolePage", () => {
     });
 
     // Feature Toggles section should not be rendered
-    expect(screen.queryByTestId("mock-feature-toggles-section")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("mock-feature-toggles-section"),
+    ).not.toBeInTheDocument();
   });
 
   it("initializes SignalR hub connection via useTogglesHub hook", () => {
@@ -188,7 +203,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(mockUseTogglesHub).toHaveBeenCalledTimes(1);
@@ -200,7 +215,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByTestId("page-admin-console")).toBeInTheDocument();
@@ -212,7 +227,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const featureTogglesTab = screen.getByTestId("tab-feature-toggles");
@@ -232,13 +247,16 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     // Feature Toggles panel
     const featureTogglesPanel = screen.getByRole("tabpanel");
     expect(featureTogglesPanel).toHaveAttribute("id", "panel-feature-toggles");
-    expect(featureTogglesPanel).toHaveAttribute("aria-labelledby", "tab-feature-toggles");
+    expect(featureTogglesPanel).toHaveAttribute(
+      "aria-labelledby",
+      "tab-feature-toggles",
+    );
 
     // Switch to Health and verify
     await user.click(screen.getByTestId("tab-health"));
@@ -255,7 +273,7 @@ describe("AdminConsolePage", () => {
         <MemoryRouter>
           <AdminConsolePage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const tablist = screen.getByRole("tablist");

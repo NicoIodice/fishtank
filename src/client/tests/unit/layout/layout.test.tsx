@@ -425,7 +425,11 @@ describe("Sidebar — Admin Console nav item (desktop)", () => {
       midNarrow: false,
       mobile: false,
     });
-    mockUseAuth.mockReturnValue({ user: { username: "admin", role: "Admin" }, isAuthenticated: true, isLoading: false });
+    mockUseAuth.mockReturnValue({
+      user: { username: "admin", role: "Admin" },
+      isAuthenticated: true,
+      isLoading: false,
+    });
   });
 
   it("shows Admin Console nav item when user is Admin role (capital A)", () => {
@@ -442,7 +446,11 @@ describe("Sidebar — Admin Console nav item (mobile)", () => {
       midNarrow: false,
       mobile: true,
     });
-    mockUseAuth.mockReturnValue({ user: { username: "admin", role: "Admin" }, isAuthenticated: true, isLoading: false });
+    mockUseAuth.mockReturnValue({
+      user: { username: "admin", role: "Admin" },
+      isAuthenticated: true,
+      isLoading: false,
+    });
   });
 
   it("shows Admin Console nav item in mobile overlay when user is Admin", () => {
@@ -460,7 +468,11 @@ describe("Sidebar — mid-breakpoint transition", () => {
       midNarrow: false,
       mobile: false,
     });
-    mockUseAuth.mockReturnValue({ user: { username: "alice", role: "admin" }, isAuthenticated: true, isLoading: false });
+    mockUseAuth.mockReturnValue({
+      user: { username: "alice", role: "admin" },
+      isAuthenticated: true,
+      isLoading: false,
+    });
 
     const { rerender } = render(withRouter(<Sidebar />));
 
@@ -484,7 +496,11 @@ describe("Sidebar — mid-breakpoint transition", () => {
       midNarrow: false,
       mobile: false,
     });
-    mockUseAuth.mockReturnValue({ user: { username: "alice", role: "admin" }, isAuthenticated: true, isLoading: false });
+    mockUseAuth.mockReturnValue({
+      user: { username: "alice", role: "admin" },
+      isAuthenticated: true,
+      isLoading: false,
+    });
 
     vi.spyOn(localStorage, "getItem").mockImplementation(() => {
       throw new Error("localStorage unavailable");

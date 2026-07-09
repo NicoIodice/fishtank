@@ -15,7 +15,7 @@ import type { FeatureToggle } from "@/features/admin/types";
  * - No confirmation for enable action
  * - Env-var-locked toggle UI state
  * - Loading state
- * 
+ *
  * Coverage goal: 90%+ line/branch coverage
  */
 
@@ -89,14 +89,18 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByTestId("section-feature-toggles")).toBeInTheDocument();
     expect(screen.getByTestId("table-toggles")).toBeInTheDocument();
 
-    expect(screen.getByTestId("toggle-row-network_activity")).toBeInTheDocument();
-    expect(screen.getByTestId("toggle-row-mappings_editor")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("toggle-row-network_activity"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("toggle-row-mappings_editor"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("toggle-row-record_mode")).toBeInTheDocument();
   });
 
@@ -106,17 +110,21 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Network Activity")).toBeInTheDocument();
     expect(screen.getByText("View network activity logs")).toBeInTheDocument();
-    
+
     expect(screen.getByText("Mappings Editor")).toBeInTheDocument();
-    expect(screen.getByText("Edit request/response mappings")).toBeInTheDocument();
+    expect(
+      screen.getByText("Edit request/response mappings"),
+    ).toBeInTheDocument();
 
     expect(screen.getByText("Record Mode")).toBeInTheDocument();
-    expect(screen.getByText("Record real service responses")).toBeInTheDocument();
+    expect(
+      screen.getByText("Record real service responses"),
+    ).toBeInTheDocument();
   });
 
   it("renders toggle switches with correct checked state", () => {
@@ -125,12 +133,18 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity") as HTMLInputElement;
-    const mappingsEditorSwitch = screen.getByTestId("toggle-switch-mappings_editor") as HTMLInputElement;
-    const recordModeSwitch = screen.getByTestId("toggle-switch-record_mode") as HTMLInputElement;
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    ) as HTMLInputElement;
+    const mappingsEditorSwitch = screen.getByTestId(
+      "toggle-switch-mappings_editor",
+    ) as HTMLInputElement;
+    const recordModeSwitch = screen.getByTestId(
+      "toggle-switch-record_mode",
+    ) as HTMLInputElement;
 
     expect(networkActivitySwitch.checked).toBe(true);
     expect(mappingsEditorSwitch.checked).toBe(true);
@@ -145,10 +159,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -156,9 +172,17 @@ describe("FeatureTogglesSection", () => {
     });
 
     expect(screen.getByText("Disable Network Activity?")).toBeInTheDocument();
-    expect(screen.getByText("This will take effect immediately for all active sessions.")).toBeInTheDocument();
-    expect(screen.getByTestId("dialog-toggle-disable-cancel")).toBeInTheDocument();
-    expect(screen.getByTestId("dialog-toggle-disable-confirm")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "This will take effect immediately for all active sessions.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("dialog-toggle-disable-cancel"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("dialog-toggle-disable-confirm"),
+    ).toBeInTheDocument();
   });
 
   it("cancels disable when Cancel button clicked in confirmation dialog", async () => {
@@ -169,10 +193,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -183,7 +209,9 @@ describe("FeatureTogglesSection", () => {
     await user.click(cancelButton);
 
     await waitFor(() => {
-      expect(screen.queryByTestId("dialog-toggle-disable")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("dialog-toggle-disable"),
+      ).not.toBeInTheDocument();
     });
 
     expect(mockSetToggle).not.toHaveBeenCalled();
@@ -197,10 +225,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -211,11 +241,16 @@ describe("FeatureTogglesSection", () => {
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockSetToggle).toHaveBeenCalledWith({ name: "network_activity", enabled: false });
+      expect(mockSetToggle).toHaveBeenCalledWith({
+        name: "network_activity",
+        enabled: false,
+      });
     });
 
     await waitFor(() => {
-      expect(screen.queryByTestId("dialog-toggle-disable")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("dialog-toggle-disable"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -227,18 +262,23 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const recordModeSwitch = screen.getByTestId("toggle-switch-record_mode");
     await user.click(recordModeSwitch);
 
     await waitFor(() => {
-      expect(mockSetToggle).toHaveBeenCalledWith({ name: "record_mode", enabled: true });
+      expect(mockSetToggle).toHaveBeenCalledWith({
+        name: "record_mode",
+        enabled: true,
+      });
     });
 
     // Verify no confirmation dialog was shown
-    expect(screen.queryByTestId("dialog-toggle-disable")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("dialog-toggle-disable"),
+    ).not.toBeInTheDocument();
   });
 
   it("closes dialog when backdrop is clicked", async () => {
@@ -249,10 +289,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -264,7 +306,9 @@ describe("FeatureTogglesSection", () => {
     await user.click(backdrop);
 
     await waitFor(() => {
-      expect(screen.queryByTestId("dialog-toggle-disable")).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("dialog-toggle-disable"),
+      ).not.toBeInTheDocument();
     });
 
     expect(mockSetToggle).not.toHaveBeenCalled();
@@ -278,10 +322,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -316,7 +362,7 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const badge = screen.getByTestId("toggle-env-badge-network_activity");
@@ -324,7 +370,7 @@ describe("FeatureTogglesSection", () => {
     expect(badge).toHaveTextContent("Overridden by env var");
     expect(badge).toHaveAttribute(
       "title",
-      "This toggle is locked by environment variable FISHTANK_TOGGLE_NETWORK_ACTIVITY and cannot be changed at runtime."
+      "This toggle is locked by environment variable FISHTANK_TOGGLE_NETWORK_ACTIVITY and cannot be changed at runtime.",
     );
   });
 
@@ -350,10 +396,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity") as HTMLInputElement;
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    ) as HTMLInputElement;
     expect(networkActivitySwitch.disabled).toBe(true);
     expect(networkActivitySwitch).toHaveAttribute("aria-disabled", "true");
     expect(networkActivitySwitch.checked).toBe(false); // env var override applies
@@ -382,11 +430,13 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
-    
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
+
     // Try to click the disabled switch
     await user.click(networkActivitySwitch);
 
@@ -416,10 +466,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity") as HTMLInputElement;
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    ) as HTMLInputElement;
     expect(networkActivitySwitch.checked).toBe(false); // env var override takes precedence
   });
 
@@ -437,7 +489,7 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Loading toggles...")).toBeInTheDocument();
@@ -458,12 +510,18 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity") as HTMLInputElement;
-    const mappingsEditorSwitch = screen.getByTestId("toggle-switch-mappings_editor") as HTMLInputElement;
-    const recordModeSwitch = screen.getByTestId("toggle-switch-record_mode") as HTMLInputElement;
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    ) as HTMLInputElement;
+    const mappingsEditorSwitch = screen.getByTestId(
+      "toggle-switch-mappings_editor",
+    ) as HTMLInputElement;
+    const recordModeSwitch = screen.getByTestId(
+      "toggle-switch-record_mode",
+    ) as HTMLInputElement;
 
     expect(networkActivitySwitch.disabled).toBe(true);
     expect(mappingsEditorSwitch.disabled).toBe(true);
@@ -476,7 +534,7 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Feature")).toBeInTheDocument();
@@ -491,11 +549,11 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     const row = screen.getByTestId("toggle-row-network_activity");
-    
+
     // Timestamp should be formatted as locale string
     const timestamp = within(row).getByText(/7\/9\/2026/i); // Matches locale-formatted date
     expect(timestamp).toBeInTheDocument();
@@ -509,10 +567,12 @@ describe("FeatureTogglesSection", () => {
         <MemoryRouter>
           <FeatureTogglesSection />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
-    const networkActivitySwitch = screen.getByTestId("toggle-switch-network_activity");
+    const networkActivitySwitch = screen.getByTestId(
+      "toggle-switch-network_activity",
+    );
     await user.click(networkActivitySwitch);
 
     await waitFor(() => {
@@ -523,4 +583,3 @@ describe("FeatureTogglesSection", () => {
     });
   });
 });
-

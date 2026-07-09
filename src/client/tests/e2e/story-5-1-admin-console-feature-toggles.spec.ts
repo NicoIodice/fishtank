@@ -168,17 +168,17 @@ test.describe("P0 — AC-8: Toggle change broadcasts via SignalR", () => {
     const session1Toggle = session1Page.getByTestId(
       "toggle-switch-network_activity",
     );
-    
+
     // If disabling, expect confirmation dialog
     if (initialState) {
       await session1Toggle.click();
-      
+
       // Confirm disable action
       const confirmButton = session1Page.getByTestId(
         "dialog-toggle-disable-confirm",
       );
       await confirmButton.click();
-      
+
       // Wait for dialog to close
       await expect(
         session1Page.getByTestId("dialog-toggle-disable"),
@@ -227,12 +227,22 @@ test.describe("P0 — AC-8: Toggle change broadcasts via SignalR", () => {
       // Access window._hubInvalidationMap if exported for testing
       // Or check if SignalR listener is registered for FeatureToggleChanged
       // RED phase: this will fail because mapping doesn't exist yet
-      
+
       // For now, we verify by checking if SignalR connection includes
       // FeatureToggleChanged handler
       return Boolean(
-        (window as Window & { __REACT_QUERY_DEVTOOLS__?: unknown; __HUB_INVALIDATION_MAP__?: { FeatureToggleChanged?: unknown } }).__REACT_QUERY_DEVTOOLS__ ||
-        (window as Window & { __REACT_QUERY_DEVTOOLS__?: unknown; __HUB_INVALIDATION_MAP__?: { FeatureToggleChanged?: unknown } }).__HUB_INVALIDATION_MAP__?.FeatureToggleChanged
+        (
+          window as Window & {
+            __REACT_QUERY_DEVTOOLS__?: unknown;
+            __HUB_INVALIDATION_MAP__?: { FeatureToggleChanged?: unknown };
+          }
+        ).__REACT_QUERY_DEVTOOLS__ ||
+        (
+          window as Window & {
+            __REACT_QUERY_DEVTOOLS__?: unknown;
+            __HUB_INVALIDATION_MAP__?: { FeatureToggleChanged?: unknown };
+          }
+        ).__HUB_INVALIDATION_MAP__?.FeatureToggleChanged,
       );
     });
 
@@ -270,7 +280,7 @@ test.describe("P1 — Toggle state persists across page refresh", () => {
 
     // Act — change toggle state
     const toggle = page.getByTestId("toggle-switch-mappings_editor");
-    
+
     if (initialState) {
       // Disabling
       await toggle.click();
@@ -293,7 +303,9 @@ test.describe("P1 — Toggle state persists across page refresh", () => {
     await page.waitForSelector('[data-testid="table-toggles"]');
 
     // Assert — new state persists
-    const toggleAfterRefresh = page.getByTestId("toggle-switch-mappings_editor");
+    const toggleAfterRefresh = page.getByTestId(
+      "toggle-switch-mappings_editor",
+    );
     if (newState) {
       await expect(toggleAfterRefresh).toBeChecked();
     } else {
@@ -312,17 +324,17 @@ test.describe("P1 — Standard User cannot call admin endpoints", () => {
   test("Standard User calling GET /api/admin/toggles returns 403", async () => {
     // This test requires creating a Standard User session
     // and calling admin endpoints with Standard User JWT
-    
+
     // Arrange — create Standard User and get token
     // (Requires test helper for Standard User authentication)
-    
+
     // Act — call admin endpoint as Standard User
     // Expect HTTP 403 Forbidden
-    
+
     // For RED phase scaffold:
     // const response = await request.get("/api/admin/toggles");
     // expect(response.status()).toBe(403);
-    
+
     test.skip();
     // TODO(GREEN phase): implement Standard User role enforcement test
   });

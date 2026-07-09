@@ -198,7 +198,7 @@ public class FeatureToggleServiceTests
         result.Should().HaveCount(3);
         result.Select(t => t.DisplayName).Should().BeInAscendingOrder(
             "toggles should be ordered alphabetically by DisplayName");
-        
+
         // Verify order: Mappings Editor < Network Activity < Record Mode
         result[0].DisplayName.Should().Be("Mappings Editor");
         result[1].DisplayName.Should().Be("Network Activity");
@@ -339,8 +339,8 @@ public class FeatureToggleServiceTests
         // Assert
         await _mockClientProxy.Received(1).SendCoreAsync(
             "FeatureToggleChanged",
-            Arg.Is<object?[]>(arr => 
-                arr.Length == 1 && 
+            Arg.Is<object?[]>(arr =>
+                arr.Length == 1 &&
                 arr[0] != null &&
                 arr[0].GetType().GetProperty("name")!.GetValue(arr[0])!.Equals("network_activity") &&
                 arr[0].GetType().GetProperty("enabled")!.GetValue(arr[0])!.Equals(false)),

@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
  * - Query invalidation after successful mutation
  * - Error handling for fetch and mutation
  * - API envelope parsing
- * 
+ *
  * Coverage goal: 90%+ line/branch coverage
  */
 
@@ -240,7 +240,9 @@ describe("useToggles", () => {
       expect(result.current.toggles).not.toEqual(initialToggles);
     });
 
-    const updatedToggle = result.current.toggles.find((t) => t.name === "record_mode");
+    const updatedToggle = result.current.toggles.find(
+      (t) => t.name === "record_mode",
+    );
     expect(updatedToggle?.enabled).toBe(true);
   });
 
@@ -255,7 +257,10 @@ describe("useToggles", () => {
         statusText: "Not Found",
         json: async () => ({
           success: false,
-          error: { code: "ADMIN_TOGGLE_NOT_FOUND", message: "Toggle not found" },
+          error: {
+            code: "ADMIN_TOGGLE_NOT_FOUND",
+            message: "Toggle not found",
+          },
         }),
       } as Response);
 
@@ -285,7 +290,10 @@ describe("useToggles", () => {
         ok: true,
         json: async () => ({
           success: false,
-          error: { code: "ADMIN_TOGGLE_ENV_LOCKED", message: "Toggle is locked by env var" },
+          error: {
+            code: "ADMIN_TOGGLE_ENV_LOCKED",
+            message: "Toggle is locked by env var",
+          },
         }),
       } as Response);
 
@@ -334,7 +342,7 @@ describe("useToggles", () => {
 
     expect(fetch).toHaveBeenCalledWith(
       "/api/admin/toggles/network_activity",
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -349,7 +357,7 @@ describe("useToggles", () => {
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
         "/api/admin/toggles",
-        expect.objectContaining({ credentials: "include" })
+        expect.objectContaining({ credentials: "include" }),
       );
     });
   });
@@ -372,9 +380,9 @@ describe("useToggles", () => {
                     data: { ...mockToggles[0], enabled: false },
                   }),
                 } as Response),
-              100
-            )
-          )
+              100,
+            ),
+          ),
       );
 
     const { result } = renderHook(() => useToggles(), { wrapper });
@@ -393,7 +401,7 @@ describe("useToggles", () => {
       () => {
         expect(result.current.isSettingToggle).toBe(false);
       },
-      { timeout: 200 }
+      { timeout: 200 },
     );
   });
 
@@ -402,7 +410,10 @@ describe("useToggles", () => {
   it("fetchToggles uses fallback message when error.message is absent", async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ success: false, error: { code: "ADMIN_FORBIDDEN" } }),
+      json: async () => ({
+        success: false,
+        error: { code: "ADMIN_FORBIDDEN" },
+      }),
     } as Response);
 
     const { result } = renderHook(() => useToggles(), { wrapper });
@@ -411,7 +422,9 @@ describe("useToggles", () => {
       expect(result.current.error).toBeTruthy();
     });
 
-    expect((result.current.error as Error).message).toBe("Failed to fetch toggles");
+    expect((result.current.error as Error).message).toBe(
+      "Failed to fetch toggles",
+    );
   });
 
   it("setToggle uses statusText fallback when non-ok response has no message", async () => {
@@ -423,7 +436,10 @@ describe("useToggles", () => {
       .mockResolvedValueOnce({
         ok: false,
         statusText: "Forbidden",
-        json: async () => ({ success: false, error: { code: "ADMIN_FORBIDDEN" } }),
+        json: async () => ({
+          success: false,
+          error: { code: "ADMIN_FORBIDDEN" },
+        }),
       } as Response);
 
     const { result } = renderHook(() => useToggles(), { wrapper });
@@ -447,7 +463,10 @@ describe("useToggles", () => {
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: false, error: { code: "ADMIN_TOGGLE_ENV_LOCKED" } }),
+        json: async () => ({
+          success: false,
+          error: { code: "ADMIN_TOGGLE_ENV_LOCKED" },
+        }),
       } as Response);
 
     const { result } = renderHook(() => useToggles(), { wrapper });

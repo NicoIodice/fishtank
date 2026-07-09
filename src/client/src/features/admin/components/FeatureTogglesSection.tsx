@@ -16,7 +16,12 @@ export function FeatureTogglesSection() {
     toggleDisplayName: "",
   });
 
-  function handleToggleChange(name: string, displayName: string, currentEnabled: boolean, isLocked: boolean) {
+  function handleToggleChange(
+    name: string,
+    displayName: string,
+    currentEnabled: boolean,
+    isLocked: boolean,
+  ) {
     if (isLocked) {
       // AC-9: Locked toggles are disabled and cannot be changed
       return;
@@ -24,7 +29,11 @@ export function FeatureTogglesSection() {
 
     if (currentEnabled) {
       // AC-6: Disabling requires confirmation
-      setConfirmDialog({ open: true, toggleName: name, toggleDisplayName: displayName });
+      setConfirmDialog({
+        open: true,
+        toggleName: name,
+        toggleDisplayName: displayName,
+      });
     } else {
       // AC-7: Enabling requires no confirmation
       setToggle({ name, enabled: true });
@@ -58,13 +67,17 @@ export function FeatureTogglesSection() {
         <tbody>
           {toggles.map((toggle) => {
             const isLocked = toggle.envVarOverride !== null;
-            const effectiveEnabled = isLocked ? toggle.envVarOverride! : toggle.enabled;
-            
+            const effectiveEnabled = isLocked
+              ? toggle.envVarOverride!
+              : toggle.enabled;
+
             return (
               <tr key={toggle.name} data-testid={`toggle-row-${toggle.name}`}>
                 <td>
                   <div className={styles.nameCell}>
-                    <span className={styles.displayName}>{toggle.displayName}</span>
+                    <span className={styles.displayName}>
+                      {toggle.displayName}
+                    </span>
                     {isLocked && (
                       <span
                         className={styles.lockedBadge}
@@ -80,12 +93,23 @@ export function FeatureTogglesSection() {
                 <td className={styles.stateCol}>
                   <label
                     className={`${styles.toggle} ${isLocked ? styles.toggleDisabled : ""}`}
-                    title={isLocked ? `This toggle is locked by environment variable FISHTANK_TOGGLE_${toggle.name.toUpperCase()} and cannot be changed at runtime.` : ""}
+                    title={
+                      isLocked
+                        ? `This toggle is locked by environment variable FISHTANK_TOGGLE_${toggle.name.toUpperCase()} and cannot be changed at runtime.`
+                        : ""
+                    }
                   >
                     <input
                       type="checkbox"
                       checked={effectiveEnabled}
-                      onChange={() => handleToggleChange(toggle.name, toggle.displayName, effectiveEnabled, isLocked)}
+                      onChange={() =>
+                        handleToggleChange(
+                          toggle.name,
+                          toggle.displayName,
+                          effectiveEnabled,
+                          isLocked,
+                        )
+                      }
                       disabled={isLocked || isSettingToggle}
                       aria-disabled={isLocked}
                       data-testid={`toggle-switch-${toggle.name}`}
