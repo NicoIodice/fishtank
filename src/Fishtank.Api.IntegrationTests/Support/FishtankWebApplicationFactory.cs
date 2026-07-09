@@ -79,6 +79,7 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         db.Services.RemoveRange(await db.Services.ToListAsync());
         db.Users.RemoveRange(await db.Users.ToListAsync());
         db.ServerConfigs.RemoveRange(await db.ServerConfigs.ToListAsync());
+        db.FeatureToggles.RemoveRange(await db.FeatureToggles.ToListAsync());
         await db.SaveChangesAsync();
 
         // Stop all running WireMock servers so ports are freed between test runs,
@@ -95,6 +96,17 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
 
         // Re-seed BootEpoch (required by IServerConfigService singleton)
         db.ServerConfigs.Add(new ServerConfig { Id = 1, BootEpoch = Guid.NewGuid() });
+
+        // Re-seed feature toggles (migration seed data gets cleared above)
+        db.FeatureToggles.AddRange(new[]
+        {
+            new FeatureToggle { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "network_activity", DisplayName = "Network Activity", Description = "Real-time request monitoring", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow },
+            new FeatureToggle { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "mappings_editor", DisplayName = "Mappings Editor", Description = "File explorer and editor", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow },
+            new FeatureToggle { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "record_mode", DisplayName = "Record Mode", Description = "Auto-capture proxied requests", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow },
+            new FeatureToggle { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "system_events", DisplayName = "System Events", Description = "Infrastructure event log", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow },
+            new FeatureToggle { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "services_management", DisplayName = "Services Management", Description = "Service CRUD operations", Enabled = true, UpdatedAt = DateTimeOffset.UtcNow }
+        });
+
         await db.SaveChangesAsync();
 
         // Clear the singleton BootEpoch cache so the new value is picked up

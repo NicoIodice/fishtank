@@ -10,6 +10,8 @@ using Fishtank.Api.Hubs;
 using Fishtank.Api.Middleware;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -108,6 +110,8 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler,
+    JsonAuthorizationMiddlewareResultHandler>();
 
 // ─── 4. Rate limiter ──────────────────────────────────────────────────────────
 var permitLimit = int.Parse(
@@ -180,6 +184,8 @@ builder.Services.AddScoped<IMappingService, MappingService>();
 builder.Services.AddScoped<IResyncService, ResyncService>();
 // ─── 6d. Recording mode (Story 4.5) ────────────────────────────────────────
 builder.Services.AddSingleton<IRecordingService, RecordingService>();
+// ─── 6e. Feature toggles (Story 5.1) ───────────────────────────────────────
+builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -255,9 +261,11 @@ app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();
 app.MapActivityEndpoints();
+app.MapAdminEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 app.MapHub<EventsHub>("/hubs/events");
 app.MapHub<ActivityHub>("/hubs/activity");
+app.MapHub<TogglesHub>("/hubs/toggles");
 
 // SPA fallback: serve index.html for all non-API routes.
 // Routes matching /api/*, /hubs/*, /health, /openapi are excluded.
