@@ -124,7 +124,7 @@ test.describe("Story 4-5: Record Mode & Cross-Screen Recording Indicator", () =>
     await page.goto("/mappings");
     await expect(page.locator("[data-testid='page-mappings']")).toBeVisible();
 
-    // Then — verify Mapping and Response files appear in the tree (AC-4)
+    // Then — verify Mapping file appears in the tree (AC-4)
     // File path naming: Story 4.4 convention — method_path-slugified_status.json
     const pathSlug = testPath
       .replace(/^\//, "")
@@ -132,7 +132,6 @@ test.describe("Story 4-5: Record Mode & Cross-Screen Recording Indicator", () =>
       .toLowerCase()
       .slice(0, 64);
     const mappingFilename = `get_${pathSlug}_200.json`;
-    const responseFilename = `get_${pathSlug}_200_body.json`;
 
     const mappingNode = page.locator(
       `[data-testid='mappings-tree-node-${service.slug}-mappings-${mappingFilename}']`,
