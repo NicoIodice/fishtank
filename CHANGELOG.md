@@ -40,6 +40,10 @@ _Theme: Edit mock files in the browser and record real traffic into permanent st
 - **UseTransformer checkbox** — enables or disables WireMock response templating (`Response.UseTransformer`) in the generated Mapping JSON; checked by default (`feature/4-4-save-as-mock-mock-suggestion-modal`)
 - **Status mismatch warning** — non-blocking inline note appears when the user edits `Response.StatusCode` in the Mapping JSON to a value different from the original proxied status, reminding the user to rename the file if needed (`feature/4-4-save-as-mock-mock-suggestion-modal`)
 - **Mock save error handling** — write failure keeps the modal open with an inline error message and creates a System Event; the Save button remains enabled for retry (`feature/4-4-save-as-mock-mock-suggestion-modal`)
+- **Record mode** — `POST /api/recording/start` and `POST /api/recording/stop` endpoints toggle global auto-capture; while active, every proxied request is automatically promoted to a Mapping + Response file pair on disk without user action, using the same filename convention as Save as Mock (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **`GET /api/recording/status`** — returns current recording state (`isRecording`, `startedAt`); requires auth; used by both ActivityPage and TopBar to synchronise UI state via shared React Query cache key (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Recording badge** — persistent amber `● Recording` pill appears in the Network Activity page header while Record mode is active; changes to `⚠ Recording paused — connection lost` on SignalR disconnect; hides immediately (no animation) when recording stops (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Cross-screen recording indicator** — amber `● Recording` button in the top bar appears whenever Record mode is active and the user is not on `/activity`; keyboard-accessible (`role="button"`, `tabIndex={0}`, `aria-label`); pressing Enter or Space navigates to `/activity`; respects `prefers-reduced-motion` via `transition: none` (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
 
 ---
 

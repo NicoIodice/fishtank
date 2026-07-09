@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "fishtank_auth",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIwYTU4MGQ5Ni0yNGY3LTQyYjItOWM5YS1kODkwMWQzMGM3MTYiLCJyb2xlIjoiQWRtaW4iLCJ0b2tlbl92ZXJzaW9uIjoiMSIsImJvb3RfZXBvY2giOiI5NjdiYjY5ZC1mYzkxLTQzOGUtYTUyNi02NWNkNjQzN2U4ZDgiLCJuYmYiOjE3ODI1NzYwNTgsImV4cCI6MTc4MjU3OTY1OCwiaWF0IjoxNzgyNTc2MDU4fQ.v66A4xds2Bo3MYnlvEdK3-n0jUyXRqcCeGZDiPpb-Dk",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI4MWJmMjRiMy05MWIwLTRkOGYtOTg0MS1mOWM3ODQ5MmJkOWQiLCJyb2xlIjoiQWRtaW4iLCJ0b2tlbl92ZXJzaW9uIjoiMCIsImJvb3RfZXBvY2giOiJiMzI5YmM0ZS1jZTBlLTQxNWQtOTdiNC1mZDAwYzczY2ZjZDMiLCJuYmYiOjE3ODM1NTcwNjksImV4cCI6MTc4MzU2MDY2OSwiaWF0IjoxNzgzNTU3MDY5fQ.mULnfqTaRUdL0mMVFg95PQ1RKPjU6ShndHt5SrMzcQY",
       "domain": "localhost",
       "path": "/",
       "expires": -1,

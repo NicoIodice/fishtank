@@ -178,6 +178,8 @@ builder.Services.AddHostedService<ActivityPollingService>();
 // ─── 6c. File management (Story 4.1) ─────────────────────────────────────
 builder.Services.AddScoped<IMappingService, MappingService>();
 builder.Services.AddScoped<IResyncService, ResyncService>();
+// ─── 6d. Recording mode (Story 4.5) ────────────────────────────────────────
+builder.Services.AddSingleton<IRecordingService, RecordingService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -248,6 +250,7 @@ app.MapHealthChecks("/health");
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
 app.MapMappingsEndpoints();
+app.MapRecordingEndpoints();
 app.MapSettingsEndpoints();
 app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();

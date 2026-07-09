@@ -22,6 +22,8 @@ const mockConnection = {
   off: vi.fn(),
   start: vi.fn().mockResolvedValue(undefined),
   stop: vi.fn().mockResolvedValue(undefined),
+  onclose: vi.fn(),
+  onreconnected: vi.fn(),
   state: "Connected",
 };
 

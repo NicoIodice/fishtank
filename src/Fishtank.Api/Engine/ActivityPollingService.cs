@@ -11,15 +11,17 @@ namespace Fishtank.Api.Engine;
 /// <summary>
 /// Background hosted service that polls WireMock <see cref="ILogEntry"/> queues
 /// at 250ms intervals and feeds new entries into <see cref="IActivityService"/>.
+/// Also auto-captures proxied requests when Record mode is active (FR-16).
 /// </summary>
 public class ActivityPollingService(
     IServicesRegistry registry,
-    IServiceScopeFactory scopeFactory) : IHostedService
+    IServiceScopeFactory scopeFactory,
+    IRecordingService recordingService) : IHostedService
 {
     private Timer? _timer;
     private int _isPolling; // 0=idle, 1=running — prevents re-entrant polling
     private readonly ConcurrentDictionary<Guid, int> _logOffsets = new();
-    private readonly ConcurrentDictionary<Guid, (string Name, int Port)> _serviceInfo = new();
+    private readonly ConcurrentDictionary<Guid, (string Name, int Port, string Slug)> _serviceInfo = new();
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -118,6 +120,29 @@ public class ActivityPollingService(
             };
 
             await activityService.CaptureAsync(row);
+
+            // FR-16: Auto-capture proxied requests when Record mode is active
+            if (type == ActivityType.Proxied && await recordingService.IsRecordingAsync())
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await recordingService.CaptureAsync(
+                                serviceId,
+                                info.Slug,  // use actual DB slug, not name-derived slug
+                                row.Method,
+                                row.UrlPath,
+                                row.StatusCode,
+                                row.ResponseBody ?? string.Empty);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Recording failed to capture proxied request: {Method} {Path}",
+                            row.Method, row.UrlPath);
+                    }
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -125,14 +150,14 @@ public class ActivityPollingService(
         }
     }
 
-    private async Task<(string Name, int Port)> FetchServiceInfoAsync(Guid serviceId)
+    private async Task<(string Name, int Port, string Slug)> FetchServiceInfoAsync(Guid serviceId)
     {
         try
         {
             using var scope = scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<FishtankDbContext>();
             var svc = await db.Services.FindAsync(serviceId);
-            return svc is null ? default : (svc.Name, svc.Port);
+            return svc is null ? default : (svc.Name, svc.Port, svc.Slug);
         }
         catch (Exception ex)
         {

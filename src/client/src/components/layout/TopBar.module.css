@@ -164,3 +164,29 @@
 .dropdownItem:hover {
   background: var(--content-bg);
 }
+
+/* Cross-screen recording indicator - FR-16 */
+.recordingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--warning-subtle);
+  color: var(--warning);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  white-space: nowrap;
+}
+
+.recordingIndicator:hover {
+  background: var(--warning-bg);
+}
+
+.recordingIndicator:focus-visible {
+  outline: 2px solid var(--warning);
+  outline-offset: 2px;
+}

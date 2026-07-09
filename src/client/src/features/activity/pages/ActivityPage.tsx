@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useActivityLog } from "../useActivityLog";
+import { useRecordingState } from "../hooks/useRecordingState";
 import { ActivityTable, type SortableColumn } from "../ActivityTable";
 import { ProxyCounterPill } from "../ProxyCounterPill";
 import { fetchActivityRows, clearActivityLog } from "../api";
@@ -18,11 +19,14 @@ interface CachedService {
 }
 
 export function ActivityPage() {
-  const { rows, clearRows, isLoading, hadRows } = useActivityLog();
+  const { rows, clearRows, isLoading, hadRows, isConnected } = useActivityLog();
+  const { isRecording, startRecording, stopRecording, isStarting, isStopping } =
+    useRecordingState();
   const queryClient = useQueryClient();
   const { settings } = useActivitySettings();
   const isIntervalDisabled = settings.autoRefreshInterval === "disabled";
   const { effectiveStyle } = useRowDetailStyle();
+  const isTransitioning = isStarting || isStopping;
 
   // Row detail selection
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
@@ -329,33 +333,54 @@ export function ActivityPage() {
           </button>
         )}
 
-        {/* Recording badge stub */}
-        <span
-          data-testid="activity-badge-recording"
-          style={{ display: "none" }}
-        >
-          Recording
-        </span>
+        {/* Recording badge - FR-16 */}
+        {isRecording && (
+          <span
+            data-testid="activity-badge-recording"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "2px 10px",
+              borderRadius: "9999px",
+              backgroundColor: "var(--warning-subtle)",
+              color: "var(--warning)",
+              fontSize: "var(--text-sm)",
+              fontWeight: "var(--font-semibold)",
+            }}
+          >
+            {isConnected !== false ? (
+              "● Recording"
+            ) : (
+              <>
+                <i className="bi bi-exclamation-triangle" aria-hidden="true" />{" "}
+                Recording paused — connection lost
+              </>
+            )}
+          </span>
+        )}
 
         <div style={{ flex: 1 }} />
 
         {/* Proxy counter pill - always full unfiltered rows */}
         <ProxyCounterPill rows={rows} />
 
-        {/* Record button stub */}
+        {/* Record / Stop button - FR-16 */}
         <button
           data-testid="activity-btn-record"
-          disabled
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isTransitioning}
+          aria-pressed={isRecording}
           style={{
             padding: "6px 12px",
             border: "1px solid #e5e7eb",
             borderRadius: "4px",
-            backgroundColor: "#f9fafb",
+            backgroundColor: isTransitioning ? "#f9fafb" : "white",
             fontSize: "0.875rem",
-            cursor: "not-allowed",
+            cursor: isTransitioning ? "not-allowed" : "pointer",
           }}
         >
-          Record
+          {isRecording ? "⏹ Stop" : "● Record"}
         </button>
 
         {/* Clear log button */}

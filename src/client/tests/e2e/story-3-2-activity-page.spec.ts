@@ -117,7 +117,9 @@ test("AC-2: New activity row appears in real-time via SignalR", async ({
 }) => {
   // Navigate first so the SignalR subscription is active before we seed.
   await page.goto("/activity");
-  await expect(page.locator('[data-testid="activity-btn-live-paused"]')).toBeVisible();
+  await expect(
+    page.locator('[data-testid="activity-btn-live-paused"]'),
+  ).toBeVisible();
 
   // Get initial row count
   const initialRows = page.locator('[data-testid^="activity-row-"]');
@@ -169,10 +171,10 @@ test("AC-11: Page header renders all elements in correct order", async ({
   await expect(clearBtn).toBeVisible();
   await expect(clearBtn).toBeEnabled();
 
-  // Verify Record button stub — still disabled, deferred to a future story
+  // Verify Record button — functional since story 4-5
   const recordBtn = page.locator('[data-testid="activity-btn-record"]');
   await expect(recordBtn).toBeVisible();
-  await expect(recordBtn).toBeDisabled();
+  await expect(recordBtn).toBeEnabled();
 });
 
 // ─── AC-11: Toolbar stubs render correctly ──────────────────────────────────
