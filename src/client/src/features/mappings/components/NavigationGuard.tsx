@@ -50,10 +50,7 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
       data-testid="dialog-navigation-guard"
       className={styles.backdrop}
     >
-      <div
-        ref={contentRef}
-        className={styles.dialog}
-      >
+      <div ref={contentRef} className={styles.dialog}>
         <h3 className={styles.title}>Unsaved Changes</h3>
         <p className={styles.body}>
           You have unsaved changes. If you leave now, your changes will be lost.
