@@ -10,6 +10,7 @@ public class FishtankDbContext(DbContextOptions<FishtankDbContext> options)
     public DbSet<ServerConfig> ServerConfigs => Set<ServerConfig>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<SystemEvent> SystemEvents => Set<SystemEvent>();
+    public DbSet<FeatureToggle> FeatureToggles => Set<FeatureToggle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,5 +26,8 @@ public class FishtankDbContext(DbContextOptions<FishtankDbContext> options)
             .HasForeignKey(e => e.ServiceId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<FeatureToggle>()
+            .HasIndex(t => t.Name).IsUnique();
     }
 }

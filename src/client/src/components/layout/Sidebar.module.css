@@ -54,6 +54,13 @@
   gap: 2px;
 }
 
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0.75rem;
+  list-style: none;
+}
+
 .navItem {
   display: flex;
   align-items: center;
