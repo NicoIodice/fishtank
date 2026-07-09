@@ -148,7 +148,7 @@ releases:
       - id: "4-4-save-as-mock-mock-suggestion-modal"
         status: "done"
       - id: "4-5-record-mode-and-cross-screen-recording-indicator"
-        status: "in-progress"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v0.5.0 — Admin Console (Epic 5)

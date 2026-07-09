@@ -1,6 +1,6 @@
 story_key: "4-5-record-mode-and-cross-screen-recording-indicator"
 epic_id: "4"
-current_phase: test-review
+current_phase: done
 status: active
 blocked_reason: ""
 test_design_retries: 0
@@ -13,4 +13,4 @@ nfr_retries: 0
 trace_retries: 0
 quickdev_cycle: 0
 last_updated: "2026-07-09"
-phases_completed: ["preflight-framework", "preflight-test-design", "create-story", "validate", "atdd", "dev-story", "code-review", "test-automate"]
+phases_completed: ["preflight-framework", "preflight-test-design", "create-story", "validate", "atdd", "dev-story", "code-review", "test-automate", "test-review", "nfr", "trace"]
