@@ -9,6 +9,7 @@ import React, {
 import { useBlocker } from "react-router-dom";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import styles from "./NavigationGuard.module.css";
 
 interface NavigationGuardProps {
   isDirty: boolean;
@@ -47,55 +48,22 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
       aria-modal="true"
       aria-label="Unsaved changes"
       data-testid="dialog-navigation-guard"
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        background: "rgba(0,0,0,0.5)",
-      }}
+      className={styles.backdrop}
     >
       <div
         ref={contentRef}
-        style={{
-          background: "var(--surface, #fff)",
-          borderRadius: "8px",
-          padding: "24px",
-          minWidth: "320px",
-          maxWidth: "480px",
-          width: "100%",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-        }}
+        className={styles.dialog}
       >
-        <h3 style={{ margin: "0 0 12px", fontSize: "1rem", fontWeight: 600 }}>
-          Unsaved Changes
-        </h3>
-        <p
-          style={{
-            margin: "0 0 20px",
-            fontSize: "0.9375rem",
-            color: "var(--content-fg, #374151)",
-          }}
-        >
+        <h3 className={styles.title}>Unsaved Changes</h3>
+        <p className={styles.body}>
           You have unsaved changes. If you leave now, your changes will be lost.
         </p>
-        <div
-          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
-        >
+        <div className={styles.actions}>
           <button
             data-testid="dialog-navigation-guard-cancel"
             type="button"
             onClick={onStay}
-            style={{
-              padding: "8px 16px",
-              border: "1px solid var(--input-border, #e5e7eb)",
-              borderRadius: "4px",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
+            className={styles.stayBtn}
           >
             Stay
           </button>
@@ -103,16 +71,7 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
             data-testid="dialog-navigation-guard-confirm"
             type="button"
             onClick={onDiscard}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "4px",
-              background: "var(--danger, #ef4444)",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+            className={styles.discardBtn}
           >
             Discard and navigate
           </button>

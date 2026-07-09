@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   useNextPort,
   useCreateService,
@@ -72,12 +72,15 @@ export function AddEditServiceModal({
   const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
 
   // Compute isDirty by comparing current values with initial values
-  const isDirty =
-    values.name !== initialValues.name ||
-    values.description !== initialValues.description ||
-    values.externalUrl !== initialValues.externalUrl ||
-    values.port !== initialValues.port ||
-    JSON.stringify(values.tags) !== JSON.stringify(initialValues.tags);
+  const isDirty = useMemo(
+    () =>
+      values.name !== initialValues.name ||
+      values.description !== initialValues.description ||
+      values.externalUrl !== initialValues.externalUrl ||
+      values.port !== initialValues.port ||
+      JSON.stringify(values.tags) !== JSON.stringify(initialValues.tags),
+    [values, initialValues],
+  );
 
   // Register with global unsaved changes context when modal is open AND dirty
   // Modal is implicitly "open" when this component is rendered

@@ -30,8 +30,8 @@ export function SignOutConfirmDialog({
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, onOpenChange]);
 
   if (!open) return null;
