@@ -19,14 +19,22 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
-import { MemoryRouter, createMemoryRouter, RouterProvider, Link } from "react-router-dom";
+import {
+  MemoryRouter,
+  createMemoryRouter,
+  RouterProvider,
+  Link,
+} from "react-router-dom";
 
 import { FileNameModal } from "@/features/mappings/components/FileNameModal";
 import { ServiceSelectModal } from "@/features/mappings/components/ServiceSelectModal";
 import { DeleteConfirmDialog } from "@/features/mappings/components/DeleteConfirmDialog";
 import { FolderTree } from "@/features/mappings/components/FolderTree";
 import { NavigationGuard } from "@/features/mappings/components/NavigationGuard";
-import type { FolderTree as FolderTreeType, TreeNode } from "@/features/mappings/types/mappings";
+import type {
+  FolderTree as FolderTreeType,
+  TreeNode,
+} from "@/features/mappings/types/mappings";
 import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -63,7 +71,6 @@ const TREE: FolderTreeType = {
   ],
 };
 
-
 const SERVICES: TreeNode[] = [
   {
     name: "payments-api",
@@ -94,7 +101,9 @@ describe("FileNameModal — uncovered paths", () => {
     render(
       <FileNameModal isOpen={false} onConfirm={vi.fn()} onCancel={vi.fn()} />,
     );
-    expect(screen.queryByTestId("mappings-modal-file-name")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("mappings-modal-file-name"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders dialog when isOpen=true", () => {
@@ -199,13 +208,20 @@ describe("FileNameModal — uncovered paths", () => {
         onCancel={vi.fn()}
       />,
     );
-    const input = screen.getByTestId("mappings-input-filename") as HTMLInputElement;
+    const input = screen.getByTestId(
+      "mappings-input-filename",
+    ) as HTMLInputElement;
     expect(input.value).toBe("existing-file.json");
   });
 
   it("input value resets to initialValue when isOpen toggles", async () => {
     const { rerender } = render(
-      <FileNameModal isOpen={true} initialValue="original.json" onConfirm={vi.fn()} onCancel={vi.fn()} />,
+      <FileNameModal
+        isOpen={true}
+        initialValue="original.json"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
     );
 
     // (initial input captured here for context — value is checked after rerender)
@@ -213,15 +229,27 @@ describe("FileNameModal — uncovered paths", () => {
 
     // Close modal
     rerender(
-      <FileNameModal isOpen={false} initialValue="original.json" onConfirm={vi.fn()} onCancel={vi.fn()} />,
+      <FileNameModal
+        isOpen={false}
+        initialValue="original.json"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
     );
 
     // Re-open with new initial value
     rerender(
-      <FileNameModal isOpen={true} initialValue="renamed.json" onConfirm={vi.fn()} onCancel={vi.fn()} />,
+      <FileNameModal
+        isOpen={true}
+        initialValue="renamed.json"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
     );
 
-    const refreshedInput = screen.getByTestId("mappings-input-filename") as HTMLInputElement;
+    const refreshedInput = screen.getByTestId(
+      "mappings-input-filename",
+    ) as HTMLInputElement;
     expect(refreshedInput.value).toBe("renamed.json");
   });
 });
@@ -252,7 +280,9 @@ describe("ServiceSelectModal — uncovered paths", () => {
         onCancel={vi.fn()}
       />,
     );
-    expect(screen.getByRole("dialog", { name: /select service/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: /select service/i }),
+    ).toBeInTheDocument();
   });
 
   it("Continue button is disabled when no service is selected", () => {
@@ -358,8 +388,12 @@ describe("ServiceSelectModal — uncovered paths", () => {
       />,
     );
 
-    expect(screen.getByRole("option", { name: "payments-api" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "orders-api" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "payments-api" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "orders-api" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -370,16 +404,26 @@ describe("ServiceSelectModal — uncovered paths", () => {
 describe("DeleteConfirmDialog — cancel / confirm flows", () => {
   it("does not render when isOpen=false", () => {
     render(
-      <DeleteConfirmDialog isOpen={false} onConfirm={vi.fn()} onCancel={vi.fn()} />,
+      <DeleteConfirmDialog
+        isOpen={false}
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("renders dialog when isOpen=true", () => {
     render(
-      <DeleteConfirmDialog isOpen={true} onConfirm={vi.fn()} onCancel={vi.fn()} />,
+      <DeleteConfirmDialog
+        isOpen={true}
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
     );
-    expect(screen.getByRole("dialog", { name: /confirm delete/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: /confirm delete/i }),
+    ).toBeInTheDocument();
   });
 
   it("Cancel button calls onCancel", async () => {
@@ -387,7 +431,11 @@ describe("DeleteConfirmDialog — cancel / confirm flows", () => {
     const onCancel = vi.fn();
 
     render(
-      <DeleteConfirmDialog isOpen={true} onConfirm={vi.fn()} onCancel={onCancel} />,
+      <DeleteConfirmDialog
+        isOpen={true}
+        onConfirm={vi.fn()}
+        onCancel={onCancel}
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: /^cancel$/i }));
@@ -399,7 +447,11 @@ describe("DeleteConfirmDialog — cancel / confirm flows", () => {
     const onConfirm = vi.fn();
 
     render(
-      <DeleteConfirmDialog isOpen={true} onConfirm={onConfirm} onCancel={vi.fn()} />,
+      <DeleteConfirmDialog
+        isOpen={true}
+        onConfirm={onConfirm}
+        onCancel={vi.fn()}
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: /confirm delete/i }));
@@ -468,7 +520,7 @@ const FLAT_TWO_SERVICE_TREE: FolderTreeType = {
       path: "flat-svc-one",
       lastModified: null,
       sizeBytes: null,
-      children: [],  // explicitly empty — no file children to expand/collapse
+      children: [], // explicitly empty — no file children to expand/collapse
     },
     {
       name: "flat-svc-two",
@@ -592,12 +644,16 @@ describe("FolderTree — keyboard navigation", () => {
       />,
     );
 
-    const fileNode = screen.getByTestId("mappings-tree-node-enter-test-svc-enter-file.json");
+    const fileNode = screen.getByTestId(
+      "mappings-tree-node-enter-test-svc-enter-file.json",
+    );
     fileNode.focus();
     await user.keyboard("{Enter}");
 
     expect(onFileClick).toHaveBeenCalledWith(
-      expect.objectContaining({ path: "enter-test-svc/mappings/enter-file.json" }),
+      expect.objectContaining({
+        path: "enter-test-svc/mappings/enter-file.json",
+      }),
     );
   });
 
@@ -616,12 +672,16 @@ describe("FolderTree — keyboard navigation", () => {
       />,
     );
 
-    const fileNode = screen.getByTestId("mappings-tree-node-space-test-svc-space-file.json");
+    const fileNode = screen.getByTestId(
+      "mappings-tree-node-space-test-svc-space-file.json",
+    );
     fileNode.focus();
     await user.keyboard(" ");
 
     expect(onFileClick).toHaveBeenCalledWith(
-      expect.objectContaining({ path: "space-test-svc/mappings/space-file.json" }),
+      expect.objectContaining({
+        path: "space-test-svc/mappings/space-file.json",
+      }),
     );
   });
 
@@ -652,7 +712,9 @@ describe("FolderTree — keyboard navigation", () => {
     await waitFor(() => {
       // After collapse the file is no longer in DOM
       expect(
-        screen.queryByTestId("mappings-tree-node-space-test-svc-space-file.json"),
+        screen.queryByTestId(
+          "mappings-tree-node-space-test-svc-space-file.json",
+        ),
       ).not.toBeInTheDocument();
     });
 
@@ -700,13 +762,17 @@ describe("FolderTree — keyboard navigation", () => {
     // First ArrowDown: null → items[0] (flat-svc-one)
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
 
     // Second ArrowDown: flat-svc-one → items[1] (flat-svc-two)
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-two");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-two");
     });
   });
 
@@ -727,17 +793,23 @@ describe("FolderTree — keyboard navigation", () => {
     // Navigate to second item
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-two");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-two");
     });
 
     // ArrowUp moves back to first item
     fireEvent.keyDown(tree, { key: "ArrowUp" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
   });
 
@@ -758,13 +830,17 @@ describe("FolderTree — keyboard navigation", () => {
     // Move to first item
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
 
     // ArrowUp at first item — should stay on flat-svc-one (Math.max(-1, 0) = 0)
     fireEvent.keyDown(tree, { key: "ArrowUp" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
   });
 
@@ -785,17 +861,23 @@ describe("FolderTree — keyboard navigation", () => {
     // Navigate to last item (flat-svc-two)
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-two");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-two");
     });
 
     // ArrowDown at last item — should stay on flat-svc-two
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-two");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-two");
     });
   });
 
@@ -843,7 +925,9 @@ describe("FolderTree — keyboard navigation", () => {
     // ArrowDown to set focusedPath to flat-svc-one
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     await waitFor(() => {
-      expect((document.activeElement as HTMLElement).getAttribute("data-node-path")).toBe("flat-svc-one");
+      expect(
+        (document.activeElement as HTMLElement).getAttribute("data-node-path"),
+      ).toBe("flat-svc-one");
     });
 
     // Enter should click flat-svc-one (a service folder at depth=0 → onServiceSelect)
@@ -885,7 +969,9 @@ describe("FolderTree — keyboard navigation", () => {
       />,
     );
 
-    const fileNode = screen.getByTestId("mappings-tree-node-dirty-test-svc-dirty-file.json");
+    const fileNode = screen.getByTestId(
+      "mappings-tree-node-dirty-test-svc-dirty-file.json",
+    );
     expect(fileNode).toHaveAttribute("data-dirty", "true");
   });
 
@@ -904,11 +990,15 @@ describe("FolderTree — keyboard navigation", () => {
       />,
     );
 
-    const fileNode = screen.getByTestId("mappings-tree-node-dirty-test-svc-dirty-file.json");
+    const fileNode = screen.getByTestId(
+      "mappings-tree-node-dirty-test-svc-dirty-file.json",
+    );
     await user.click(fileNode);
 
     expect(onFileClick).toHaveBeenCalledWith(
-      expect.objectContaining({ path: "dirty-test-svc/mappings/dirty-file.json" }),
+      expect.objectContaining({
+        path: "dirty-test-svc/mappings/dirty-file.json",
+      }),
     );
   });
 
@@ -996,7 +1086,9 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
     dispatchNavAttempt(proceed);
 
     await waitFor(() => {
-      expect(screen.getByRole("dialog", { name: /unsaved changes/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("dialog", { name: /unsaved changes/i }),
+      ).toBeInTheDocument();
     });
 
     // proceed must NOT have been called yet
@@ -1080,7 +1172,11 @@ describe("NavigationGuard (fallback) — history patching", () => {
     window.addEventListener("__fishtank_nav_attempt__", listener);
 
     render(
-      <UnsavedChangesProvider><MemoryRouter><NavigationGuard isDirty={false} /></MemoryRouter></UnsavedChangesProvider>,
+      <UnsavedChangesProvider>
+        <MemoryRouter>
+          <NavigationGuard isDirty={false} />
+        </MemoryRouter>
+      </UnsavedChangesProvider>,
     );
 
     // Give effect time to mount and patch
@@ -1098,7 +1194,11 @@ describe("NavigationGuard (fallback) — history patching", () => {
     window.addEventListener("__fishtank_nav_attempt__", listener);
 
     render(
-      <UnsavedChangesProvider><MemoryRouter><NavigationGuard isDirty={false} /></MemoryRouter></UnsavedChangesProvider>,
+      <UnsavedChangesProvider>
+        <MemoryRouter>
+          <NavigationGuard isDirty={false} />
+        </MemoryRouter>
+      </UnsavedChangesProvider>,
     );
 
     await waitFor(() => {
@@ -1125,7 +1225,9 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const PageA = () => (
       <div>
         <NavigationGuard isDirty={isDirty} />
-        <Link to="/page-b" data-testid="nav-link">Go to B</Link>
+        <Link to="/page-b" data-testid="nav-link">
+          Go to B
+        </Link>
         <span>Page A</span>
       </div>
     );
@@ -1144,7 +1246,11 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(false);
 
-    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
+    render(
+      <UnsavedChangesProvider>
+        <RouterProvider router={router} />
+      </UnsavedChangesProvider>,
+    );
 
     // Navigate to page B
     await user.click(screen.getByTestId("nav-link"));
@@ -1153,14 +1259,20 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     await waitFor(() => {
       expect(screen.getByText("Page B")).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("dialog-navigation-guard"),
+    ).not.toBeInTheDocument();
   });
 
   it("BlockerDialog: shows guard dialog when isDirty=true and navigation is attempted", async () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
+    render(
+      <UnsavedChangesProvider>
+        <RouterProvider router={router} />
+      </UnsavedChangesProvider>,
+    );
 
     // Attempt to navigate to page B
     await user.click(screen.getByTestId("nav-link"));
@@ -1178,7 +1290,11 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
+    render(
+      <UnsavedChangesProvider>
+        <RouterProvider router={router} />
+      </UnsavedChangesProvider>,
+    );
 
     await user.click(screen.getByTestId("nav-link"));
 
@@ -1190,7 +1306,9 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     await user.click(screen.getByTestId("dialog-navigation-guard-cancel"));
 
     // Dialog dismissed, still on page A
-    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("dialog-navigation-guard"),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Page A")).toBeInTheDocument();
   });
 
@@ -1198,7 +1316,11 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
+    render(
+      <UnsavedChangesProvider>
+        <RouterProvider router={router} />
+      </UnsavedChangesProvider>,
+    );
 
     // Trigger navigation
     await user.click(screen.getByTestId("nav-link"));
@@ -1215,6 +1337,8 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
       expect(screen.getByText("Page B")).toBeInTheDocument();
     });
 
-    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("dialog-navigation-guard"),
+    ).not.toBeInTheDocument();
   });
 });

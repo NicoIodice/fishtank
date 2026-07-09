@@ -146,7 +146,9 @@ async function openFile(user: ReturnType<typeof userEvent.setup>) {
     ),
   );
   await waitFor(() => {
-    expect(screen.getByTestId("mappings-breadcrumb-editor")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("mappings-breadcrumb-editor"),
+    ).toBeInTheDocument();
   });
 }
 
@@ -163,7 +165,9 @@ describe("Story 4.2 — MappingsPage: Save / Discard", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -251,7 +255,9 @@ describe("Story 4.2 — MappingsPage: Save / Discard", () => {
 
     // A success toast must appear
     await waitFor(() => {
-      const toasts = document.querySelectorAll("[role='status'], [role='alert']");
+      const toasts = document.querySelectorAll(
+        "[role='status'], [role='alert']",
+      );
       const hasSuccessToast = Array.from(toasts).some(
         (el) =>
           el.textContent?.toLowerCase().includes("saved") ||
@@ -312,7 +318,9 @@ describe("Story 4.2 — MappingsPage: Create files", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -329,7 +337,9 @@ describe("Story 4.2 — MappingsPage: Create files", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-new-mapping")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-btn-new-mapping"),
+      ).toBeInTheDocument();
     });
 
     // First select a service so the service-selection step is skipped
@@ -338,7 +348,9 @@ describe("Story 4.2 — MappingsPage: Create files", () => {
     await user.click(screen.getByTestId("mappings-btn-new-mapping"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-file-name")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-modal-file-name"),
+      ).toBeInTheDocument();
       expect(screen.getByTestId("mappings-input-filename")).toBeInTheDocument();
     });
   });
@@ -354,14 +366,18 @@ describe("Story 4.2 — MappingsPage: Create files", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-new-response")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-btn-new-response"),
+      ).toBeInTheDocument();
     });
 
     await user.click(screen.getByText("payments-api"));
     await user.click(screen.getByTestId("mappings-btn-new-response"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-file-name")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-modal-file-name"),
+      ).toBeInTheDocument();
     });
   });
 
@@ -378,7 +394,9 @@ describe("Story 4.2 — MappingsPage: Create files", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-new-mapping")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-btn-new-mapping"),
+      ).toBeInTheDocument();
     });
 
     // Click New Mapping WITHOUT selecting a service first
@@ -405,7 +423,9 @@ describe("Story 4.2 — MappingsPage: Delete", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -428,7 +448,11 @@ describe("Story 4.2 — MappingsPage: Delete", () => {
 
     // Confirmation dialog must appear
     await waitFor(() => {
-      expect(screen.getByText("Delete this mapping? This removes the file from disk.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Delete this mapping? This removes the file from disk.",
+        ),
+      ).toBeInTheDocument();
     });
   });
 
@@ -454,7 +478,11 @@ describe("Story 4.2 — MappingsPage: Delete", () => {
     await user.click(screen.getByTestId("mappings-btn-delete"));
 
     await waitFor(() => {
-      expect(screen.getByText("Delete this mapping? This removes the file from disk.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Delete this mapping? This removes the file from disk.",
+        ),
+      ).toBeInTheDocument();
     });
 
     // Cancel the dialog
@@ -467,7 +495,9 @@ describe("Story 4.2 — MappingsPage: Delete", () => {
     // Dialog closed
     await waitFor(() => {
       expect(
-        screen.queryByText("Delete this mapping? This removes the file from disk."),
+        screen.queryByText(
+          "Delete this mapping? This removes the file from disk.",
+        ),
       ).not.toBeInTheDocument();
     });
   });
@@ -528,7 +558,11 @@ describe("Story 4.2 — MappingsPage: Delete", () => {
     await user.click(screen.getByTestId("mappings-btn-delete"));
 
     await waitFor(() => {
-      expect(screen.getByText("Delete this mapping? This removes the file from disk.")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Delete this mapping? This removes the file from disk.",
+        ),
+      ).toBeInTheDocument();
     });
 
     // Confirm deletion (find the confirm button — it may say "Delete" or "Confirm")
@@ -557,7 +591,9 @@ describe("Story 4.2 — MappingsPage: Rename & Duplicate", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -578,7 +614,9 @@ describe("Story 4.2 — MappingsPage: Rename & Duplicate", () => {
     await user.click(screen.getByTestId("mappings-btn-rename"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-file-name")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("mappings-modal-file-name"),
+      ).toBeInTheDocument();
       const filenameInput = screen.getByTestId("mappings-input-filename");
       expect(filenameInput).toHaveValue("get_account_happy-path.json");
     });
@@ -593,7 +631,10 @@ describe("Story 4.2 — MappingsPage: Rename & Duplicate", () => {
 
     server.use(
       http.post("/api/mappings", async ({ request }) => {
-        const body = (await request.json()) as { path: string; content: string };
+        const body = (await request.json()) as {
+          path: string;
+          content: string;
+        };
         postPath = body.path;
         return HttpResponse.json(
           {
@@ -631,7 +672,9 @@ describe("Story 4.2 — MappingsPage: Error handling", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -691,7 +734,9 @@ describe("Story 4.2 — MappingsPage: Navigation guard", () => {
   beforeEach(() => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_WITH_SERVICE)),
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -702,7 +747,10 @@ describe("Story 4.2 — MappingsPage: Navigation guard", () => {
     const user = userEvent.setup();
 
     render(
-      <MemoryRouter initialEntries={["/mappings", "/services"]} initialIndex={0}>
+      <MemoryRouter
+        initialEntries={["/mappings", "/services"]}
+        initialIndex={0}
+      >
         <QueryClientProvider client={makeQc()}>
           <MappingsPage />
         </QueryClientProvider>
@@ -718,14 +766,16 @@ describe("Story 4.2 — MappingsPage: Navigation guard", () => {
     window.history.pushState({}, "", "/services");
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId("dialog-navigation-guard"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Dialog must have Discard and Stay buttons
-    expect(screen.getByTestId("dialog-navigation-guard-confirm")).toBeInTheDocument();
-    expect(screen.getByTestId("dialog-navigation-guard-cancel")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("dialog-navigation-guard-confirm"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("dialog-navigation-guard-cancel"),
+    ).toBeInTheDocument();
   });
 
   it("AC-18: navigation away without unsaved edits does NOT show blocker dialog", async () => {
