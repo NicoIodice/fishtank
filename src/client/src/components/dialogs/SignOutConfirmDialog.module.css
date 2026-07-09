@@ -1,0 +1,77 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--modal-padding, 24px);
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--content-fg);
+}
+
+.message {
+  margin: 0 0 24px 0;
+  color: var(--content-fg-muted);
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelBtn,
+.confirmBtn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.875rem;
+  border: none;
+  transition: all 150ms ease;
+}
+
+.cancelBtn {
+  background: var(--input-bg);
+  color: var(--content-fg);
+  border: 1px solid var(--input-border);
+}
+
+.cancelBtn:hover {
+  background: var(--card-hover);
+}
+
+.confirmBtn {
+  background: var(--danger);
+  color: #fff;
+}
+
+.confirmBtn:hover {
+  background: var(--danger-dark, #dc2626);
+}
+
+.confirmBtn:focus,
+.cancelBtn:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

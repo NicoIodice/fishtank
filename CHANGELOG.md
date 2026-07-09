@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v0.4.0 (Mappings & Mock Capture)
+## [v0.4.0] — 2026-07-09 (Mappings & Mock Capture)
 
 _Theme: Edit mock files in the browser and record real traffic into permanent stubs._
 
@@ -44,6 +44,9 @@ _Theme: Edit mock files in the browser and record real traffic into permanent st
 - **`GET /api/recording/status`** — returns current recording state (`isRecording`, `startedAt`); requires auth; used by both ActivityPage and TopBar to synchronise UI state via shared React Query cache key (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
 - **Recording badge** — persistent amber `● Recording` pill appears in the Network Activity page header while Record mode is active; changes to `⚠ Recording paused — connection lost` on SignalR disconnect; hides immediately (no animation) when recording stops (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
 - **Cross-screen recording indicator** — amber `● Recording` button in the top bar appears whenever Record mode is active and the user is not on `/activity`; keyboard-accessible (`role="button"`, `tabIndex={0}`, `aria-label`); pressing Enter or Space navigates to `/activity`; respects `prefers-reduced-motion` via `transition: none` (`feature/4-5-record-mode-and-cross-screen-recording-indicator`)
+- **Sign-out guard** — attempting to sign out when unsaved Mapping edits, a pending Mocks Root path, or an in-progress Service modal exists presents a confirmation dialog with a context-specific body message; if no unsaved state is present, sign-out proceeds immediately with no dialog (`feature/4-6-navigation-guard-and-sign-out-protection`)
+- **Full navigation guard (all 5 trigger types)** — `useBlocker` now intercepts sidebar nav clicks, logo clicks, browser back/forward buttons, and programmatic navigation; a `beforeunload` handler covers direct URL entry and page refresh so unsaved Mapping edits are never silently discarded by any navigation path (`feature/4-6-navigation-guard-and-sign-out-protection`)
+- **Global unsaved state context** — `useUnsavedChanges` provider centralises unsaved state tracking across Mappings editor, Settings Mocks Root, and Service modal; sign-out dialog body text is dynamically constructed from whichever sources are active at the time (`feature/4-6-navigation-guard-and-sign-out-protection`)
 
 ---
 

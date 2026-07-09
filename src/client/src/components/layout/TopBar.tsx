@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AboutModal } from "@/components/modals/AboutModal";
+import { SignOutConfirmDialog } from "@/components/dialogs/SignOutConfirmDialog";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { apiFetch } from "@/lib/api";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,6 +9,7 @@ import { useUnreadCount } from "@/features/events/hooks/useSystemEvents";
 import { NotificationBadge } from "@/features/events/components/NotificationBadge";
 import { NotificationPanel } from "@/features/events/components/NotificationPanel";
 import { useRecordingState } from "@/features/activity/hooks/useRecordingState";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -32,6 +34,8 @@ export function TopBar({
   const panelOpen = panelOpenPath === location.pathname;
   const { data: unread = 0 } = useUnreadCount();
   const { isRecording } = useRecordingState();
+  const { hasAnyUnsaved, getSignOutMessage } = useUnsavedChanges();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   // Determine if we should show the cross-screen recording indicator (FR-16)
   const isOnActivity = location.pathname === "/activity";
@@ -52,8 +56,21 @@ export function TopBar({
 
   async function handleSignOut() {
     if (signingOut) return;
-    setAvatarOpen(false);
+    
+    // AC-9: Check for unsaved state before signing out
+    if (hasAnyUnsaved) {
+      setAvatarOpen(false);
+      setShowSignOutDialog(true);
+      return;
+    }
+    
+    // AC-9: No unsaved state — sign out immediately
+    performSignOut();
+  }
+
+  async function performSignOut() {
     setSigningOut(true);
+    setShowSignOutDialog(false);
     try {
       await apiFetch<null>("/api/auth/logout", {
         method: "POST",
@@ -209,6 +226,15 @@ export function TopBar({
       </header>
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+      
+      {showSignOutDialog && (
+        <SignOutConfirmDialog
+          open={showSignOutDialog}
+          onOpenChange={setShowSignOutDialog}
+          message={getSignOutMessage()!}
+          onConfirm={performSignOut}
+        />
+      )}
     </>
   );
 }

@@ -1,5 +1,6 @@
 import React, { Component, useState, useEffect, useCallback } from "react";
 import { useBlocker } from "react-router-dom";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 interface NavigationGuardProps {
   isDirty: boolean;
@@ -18,7 +19,7 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Unsaved changes"
-      data-testid="mappings-modal-discard-confirm"
+      data-testid="dialog-navigation-guard"
       style={{
         position: "fixed",
         inset: 0,
@@ -48,7 +49,7 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
         </p>
         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
           <button
-            data-testid="mappings-btn-discard-cancel"
+            data-testid="dialog-navigation-guard-cancel"
             type="button"
             onClick={onStay}
             style={{
@@ -60,10 +61,10 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
               fontSize: "0.875rem",
             }}
           >
-            Stay / Cancel
+            Stay
           </button>
           <button
-            data-testid="mappings-btn-discard-confirm"
+            data-testid="dialog-navigation-guard-confirm"
             type="button"
             onClick={onDiscard}
             style={{
@@ -97,9 +98,33 @@ interface BlockerDialogProps {
  * (e.g. when used inside MemoryRouter in tests), it degrades gracefully and
  * NavigationGuardFallback takes over using history-patching instead.
  *
- * Story 4.6: generalize guard + sign-out protection
+ * Story 4.6: Added global context integration and beforeunload handler
  */
 function BlockerDialog({ isDirty }: BlockerDialogProps) {
+  const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
+  
+  // Register/unregister with global unsaved changes context
+  useEffect(() => {
+    if (isDirty) {
+      registerUnsaved("mappings-editor");
+    } else {
+      clearUnsaved("mappings-editor");
+    }
+    return () => clearUnsaved("mappings-editor");
+  }, [isDirty, registerUnsaved, clearUnsaved]);
+
+  // beforeunload handler for page refresh/direct URL navigation (AC-12)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";  // Required for Chrome
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname,
