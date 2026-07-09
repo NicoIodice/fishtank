@@ -74,7 +74,9 @@ async function seedService(
 test.describe("Story 4-5: Record Mode & Cross-Screen Recording Indicator", () => {
   test.beforeEach(async ({ page, request }) => {
     // Ensure recording is stopped before each test (clean state between tests)
-    await apiFetch(request, "/api/recording/stop", { method: "POST" }).catch(() => {});
+    await apiFetch(request, "/api/recording/stop", { method: "POST" }).catch(
+      () => {},
+    );
     // Navigate to activity page and verify it loaded
     await page.goto("/activity");
     await expect(page.locator("[data-testid='page-activity']")).toBeVisible();
@@ -82,7 +84,9 @@ test.describe("Story 4-5: Record Mode & Cross-Screen Recording Indicator", () =>
 
   test.afterEach(async ({ request }) => {
     // Clean up: stop recording if it was left active
-    await apiFetch(request, "/api/recording/stop", { method: "POST" }).catch(() => {});
+    await apiFetch(request, "/api/recording/stop", { method: "POST" }).catch(
+      () => {},
+    );
   });
 
   // ─── AC-4: Auto-capture writes files ───────────────────────────────────
