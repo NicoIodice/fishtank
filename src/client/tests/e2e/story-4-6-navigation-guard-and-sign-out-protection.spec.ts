@@ -132,9 +132,12 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
     );
 
     // Make unsaved edit in Raw JSON tab
-    const editor = page.locator('[data-testid="mappings-tab-raw"]');
-    await editor.click();
-    await page.keyboard.type(" "); // Add a space to trigger unsaved state
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Attempt to navigate away via sidebar (Services link)
     await page.click('[data-testid="sidebar-nav-services"]');
@@ -165,9 +168,12 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
     );
 
     // Make unsaved edit
-    const editor = page.locator('[data-testid="mappings-tab-raw"]');
-    await editor.click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Trigger navigation
     await page.click('[data-testid="sidebar-nav-services"]');
@@ -198,11 +204,15 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
       `[data-testid="mappings-tree-node-${serviceName}-stay-test.json"]`,
     );
 
-    // Make unsaved edit
-    const editor = page.locator('[data-testid="mappings-tab-raw"]');
-    await editor.click();
+    // Make unsaved edit in CodeMirror (must click .cm-content, not just the tab button)
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    const cmEditor = page.locator(".cm-content");
+    await cmEditor.click();
+    await page.keyboard.press("End");
     const testText = "TEST_EDIT_MARKER";
     await page.keyboard.type(testText);
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Trigger navigation
     await page.click('[data-testid="sidebar-nav-services"]');
@@ -217,7 +227,7 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
     await expect(page).toHaveURL(/\/mappings/);
 
     // Assert unsaved changes preserved in editor
-    await expect(editor).toContainText(testText);
+    await expect(cmEditor).toContainText(testText);
   });
 });
 
@@ -241,8 +251,12 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-sidebar-nav.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     await page.click('[data-testid="sidebar-nav-activity"]');
 
@@ -268,8 +282,12 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-logo-nav.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Click logo/brand to navigate to home
     await page.click('[data-testid="topbar-logo"]');
@@ -298,8 +316,12 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-back-nav.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Browser back — fire via evaluate so Playwright doesn't wait for load
     // (useBlocker prevents navigation, so page.goBack() would hang waiting for load)
@@ -328,8 +350,12 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-forward-nav.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Go back (useBlocker blocks it), cancel guard, then go forward
     await page.evaluate(() => history.back());
@@ -359,14 +385,21 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-refresh-nav.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Verify beforeunload handler is registered and prevents default.
     // page.on("dialog") does NOT fire for beforeunload in headless Chromium, so
     // we dispatch the event programmatically and check event.defaultPrevented.
     const handlerPreventsNavigation = await page.evaluate(() => {
-      const event = new Event("beforeunload", { cancelable: true, bubbles: true });
+      const event = new Event("beforeunload", {
+        cancelable: true,
+        bubbles: true,
+      });
       window.dispatchEvent(event);
       return event.defaultPrevented;
     });
@@ -394,8 +427,12 @@ test.describe("Sign-Out Guard — Unsaved Mapping Edits", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-signout-mappings.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Attempt sign-out
     await page.click('[data-testid="topbar-avatar-button"]');
@@ -414,24 +451,18 @@ test.describe("Sign-Out Guard — Unsaved Mapping Edits", () => {
 // ─── AC-5: Sign-out with pending Mocks Root path ───────────────────────────
 
 test.describe("Sign-Out Guard — Pending Mocks Root Path", () => {
-  test.fixme(
-    "AC-5: Sign-out with unsaved Mocks Root path shows confirmation",
-    // Deferred to Epic 5: Settings Mocks Root edit UI does not exist yet.
-    // The useUnsavedChanges infrastructure ("mocks-root-path" source) is implemented
-    // but SettingsPage has no edit mode to trigger it.
-    async () => {},
-  );
+  test.fixme("AC-5: Sign-out with unsaved Mocks Root path shows confirmation", // Deferred to Epic 5: Settings Mocks Root edit UI does not exist yet.
+  // The useUnsavedChanges infrastructure ("mocks-root-path" source) is implemented
+  // but SettingsPage has no edit mode to trigger it.
+  async () => {});
 });
 
 // ─── AC-6: Sign-out with both Mapping + Mocks Root ─────────────────────────
 
 test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
-  test.fixme(
-    "AC-6: Sign-out with both Mapping edits AND Mocks Root path",
-    // Deferred to Epic 5: Mocks Root edit UI (settings-btn-edit-mocks-root) does not exist.
-    // Once Epic 5 ships the Settings edit flow, this test can be re-enabled.
-    async () => {},
-  );
+  test.fixme("AC-6: Sign-out with both Mapping edits AND Mocks Root path", // Deferred to Epic 5: Mocks Root edit UI (settings-btn-edit-mocks-root) does not exist.
+  // Once Epic 5 ships the Settings edit flow, this test can be re-enabled.
+  async () => {});
 
   test("AC-7: Sign-out with in-progress Service modal form data", async ({
     page,
@@ -451,7 +482,8 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
     await page.fill('[data-testid="input-service-url"]', "https://example.com");
 
     // Attempt sign-out without saving
-    await page.click('[data-testid="topbar-avatar-button"]');
+    // The service modal backdrop intercepts pointer events — use force:true to click through
+    await page.click('[data-testid="topbar-avatar-button"]', { force: true });
     await page.click('[data-testid="topbar-signout-button"]');
 
     const dialog = page.locator('[data-testid="dialog-signout-confirm"]');
@@ -459,12 +491,9 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
     await expect(dialog).toContainText("unsaved form data");
   });
 
-  test.fixme(
-    "AC-8: Sign-out with all three unsaved states (Mapping + Mocks Root + Service modal)",
-    // Deferred to Epic 5: Mocks Root edit UI does not exist yet.
-    // The Mapping + Service modal combination is covered by AC-7 interactions.
-    async () => {},
-  );
+  test.fixme("AC-8: Sign-out with all three unsaved states (Mapping + Mocks Root + Service modal)", // Deferred to Epic 5: Mocks Root edit UI does not exist yet.
+  // The Mapping + Service modal combination is covered by AC-7 interactions.
+  async () => {});
 });
 
 // ─── AC-9: Sign-out with no unsaved state proceeds immediately ─────────────
@@ -512,8 +541,12 @@ test.describe("Sign-Out Dialog Actions", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-cancel-signout.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type("MARKER");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     await page.click('[data-testid="topbar-avatar-button"]');
     await page.click('[data-testid="topbar-signout-button"]');
@@ -529,7 +562,7 @@ test.describe("Sign-Out Dialog Actions", () => {
 
     // Assert unsaved state preserved
     await expect(
-      page.locator('[data-testid="mappings-tab-raw"]'),
+      page.locator(".cm-content"),
     ).toContainText("MARKER");
   });
 
@@ -550,8 +583,12 @@ test.describe("Sign-Out Dialog Actions", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-confirm-signout.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     await page.click('[data-testid="topbar-avatar-button"]');
     await page.click('[data-testid="topbar-signout-button"]');
@@ -580,8 +617,12 @@ test.describe("Sign-Out Dialog Actions", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-escape-signout.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     await page.click('[data-testid="topbar-avatar-button"]');
     await page.click('[data-testid="topbar-signout-button"]');
@@ -617,8 +658,12 @@ test.describe("data-testid Attributes", () => {
     await page.click(
       `[data-testid="mappings-tree-node-${serviceName}-testid-check.json"]`,
     );
-    await page.locator('[data-testid="mappings-tab-raw"]').click();
+    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({ timeout: 5000 });
+    await page.getByTestId("mappings-tab-raw").click();
+    await page.locator(".cm-content").click();
+    await page.keyboard.press("End");
     await page.keyboard.type(" ");
+    await expect(page.locator('[data-testid="mappings-btn-discard"]')).not.toBeDisabled({ timeout: 3000 });
 
     // Trigger navigation guard
     await page.click('[data-testid="sidebar-nav-services"]');
