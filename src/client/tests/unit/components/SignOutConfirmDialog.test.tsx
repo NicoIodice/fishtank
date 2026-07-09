@@ -21,7 +21,8 @@ describe("SignOutConfirmDialog", () => {
   const defaultProps = {
     open: true,
     onOpenChange: vi.fn(),
-    message: "You have unsaved changes in the Mappings editor. Sign out now? Unsaved changes will be lost.",
+    message:
+      "You have unsaved changes in the Mappings editor. Sign out now? Unsaved changes will be lost.",
     onConfirm: vi.fn(),
   };
 
@@ -31,7 +32,9 @@ describe("SignOutConfirmDialog", () => {
     // ACTUAL: Component does not exist yet — this test will FAIL (RED)
     render(<SignOutConfirmDialog {...defaultProps} />);
 
-    expect(screen.getByRole("heading", { name: /sign out\?/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /sign out\?/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(defaultProps.message)).toBeInTheDocument();
   });
 
@@ -42,8 +45,12 @@ describe("SignOutConfirmDialog", () => {
     render(<SignOutConfirmDialog {...defaultProps} />);
 
     expect(screen.getByTestId("dialog-signout-cancel")).toBeInTheDocument();
-    expect(screen.getByTestId("dialog-signout-confirm-btn")).toBeInTheDocument();
-    expect(screen.getByTestId("dialog-signout-confirm-btn")).toHaveTextContent("Sign out");
+    expect(
+      screen.getByTestId("dialog-signout-confirm-btn"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("dialog-signout-confirm-btn")).toHaveTextContent(
+      "Sign out",
+    );
   });
 
   it("renders with dialog container data-testid", () => {
@@ -68,7 +75,7 @@ describe("SignOutConfirmDialog", () => {
         {...defaultProps}
         onOpenChange={onOpenChange}
         onConfirm={onConfirm}
-      />
+      />,
     );
 
     await user.click(screen.getByTestId("dialog-signout-cancel"));
@@ -98,7 +105,9 @@ describe("SignOutConfirmDialog", () => {
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
 
-    render(<SignOutConfirmDialog {...defaultProps} onOpenChange={onOpenChange} />);
+    render(
+      <SignOutConfirmDialog {...defaultProps} onOpenChange={onOpenChange} />,
+    );
 
     await user.keyboard("{Escape}");
 
@@ -111,7 +120,9 @@ describe("SignOutConfirmDialog", () => {
     // ACTUAL: Component does not exist yet — this test will FAIL (RED)
     render(<SignOutConfirmDialog {...defaultProps} open={false} />);
 
-    expect(screen.queryByTestId("dialog-signout-confirm")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("dialog-signout-confirm"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders custom message variations correctly", () => {
@@ -126,7 +137,7 @@ describe("SignOutConfirmDialog", () => {
 
     messages.forEach((message) => {
       const { unmount } = render(
-        <SignOutConfirmDialog {...defaultProps} message={message} />
+        <SignOutConfirmDialog {...defaultProps} message={message} />,
       );
       expect(screen.getByText(message)).toBeInTheDocument();
       unmount();
@@ -150,7 +161,9 @@ describe("SignOutConfirmDialog", () => {
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
 
-    render(<SignOutConfirmDialog {...defaultProps} onOpenChange={onOpenChange} />);
+    render(
+      <SignOutConfirmDialog {...defaultProps} onOpenChange={onOpenChange} />,
+    );
 
     // Click the backdrop (parent div with role="presentation")
     const backdrop = screen.getByRole("presentation");

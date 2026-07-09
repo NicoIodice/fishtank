@@ -25,9 +25,9 @@
  *   mappings-btn-delete
  *   mappings-btn-rename
  *   mappings-btn-duplicate
- *   mappings-modal-discard-confirm
- *   mappings-btn-discard-confirm
- *   mappings-btn-discard-cancel
+ *   dialog-navigation-guard
+ *   dialog-navigation-guard-confirm
+ *   dialog-navigation-guard-cancel
  */
 
 import React from "react";
@@ -37,6 +37,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Component under test (does not exist yet — RED) ─────────────────────────
 import { MappingsPage } from "@/features/mappings/pages/MappingsPage";
@@ -123,9 +124,11 @@ function Wrapper({
 }) {
   const client = qc ?? makeQc();
   return (
-    <MemoryRouter initialEntries={["/mappings"]}>
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
-    </MemoryRouter>
+    <UnsavedChangesProvider>
+      <MemoryRouter initialEntries={["/mappings"]}>
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      </MemoryRouter>
+    </UnsavedChangesProvider>
   );
 }
 
@@ -299,8 +302,8 @@ describe("Story 4.2 — MappingsPage: Save / Discard", () => {
       expect(fileNode.textContent).not.toContain("●");
     });
 
-    // Save and Discard must be disabled again
-    expect(screen.getByTestId("mappings-btn-save")).toBeDisabled();
+    // Save button is hidden (only shown when dirty) and Discard must be disabled again
+    expect(screen.queryByTestId("mappings-btn-save")).not.toBeInTheDocument();
     expect(screen.getByTestId("mappings-btn-discard")).toBeDisabled();
   });
 });
@@ -716,13 +719,13 @@ describe("Story 4.2 — MappingsPage: Navigation guard", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByTestId("mappings-modal-discard-confirm"),
+        screen.getByTestId("dialog-navigation-guard"),
       ).toBeInTheDocument();
     });
 
     // Dialog must have Discard and Stay buttons
-    expect(screen.getByTestId("mappings-btn-discard-confirm")).toBeInTheDocument();
-    expect(screen.getByTestId("mappings-btn-discard-cancel")).toBeInTheDocument();
+    expect(screen.getByTestId("dialog-navigation-guard-confirm")).toBeInTheDocument();
+    expect(screen.getByTestId("dialog-navigation-guard-cancel")).toBeInTheDocument();
   });
 
   it("AC-18: navigation away without unsaved edits does NOT show blocker dialog", async () => {
@@ -746,7 +749,7 @@ describe("Story 4.2 — MappingsPage: Navigation guard", () => {
     await new Promise((r) => setTimeout(r, 100));
 
     expect(
-      screen.queryByTestId("mappings-modal-discard-confirm"),
+      screen.queryByTestId("dialog-navigation-guard"),
     ).not.toBeInTheDocument();
   });
 });

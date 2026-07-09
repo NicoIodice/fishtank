@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { UnsavedChangesProvider, useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import {
+  UnsavedChangesProvider,
+  useUnsavedChanges,
+} from "@/hooks/useUnsavedChanges";
 import type { ReactNode } from "react";
 
 /**
@@ -64,7 +67,7 @@ describe("useUnsavedChanges hook", () => {
     expect(result.current.hasAnyUnsaved).toBe(true);
     expect(result.current.unsavedSources.has("mappings-editor")).toBe(true);
     expect(result.current.getSignOutMessage()).toBe(
-      "You have unsaved changes in the Mappings editor. Sign out now? Unsaved changes will be lost."
+      "You have unsaved changes in the Mappings editor. Sign out now? Unsaved changes will be lost.",
     );
 
     act(() => {
@@ -86,7 +89,7 @@ describe("useUnsavedChanges hook", () => {
     });
 
     expect(result.current.getSignOutMessage()).toBe(
-      "You have an unsaved Mocks Root path. Sign out now? Unsaved changes will be lost."
+      "You have an unsaved Mocks Root path. Sign out now? Unsaved changes will be lost.",
     );
   });
 
@@ -101,7 +104,7 @@ describe("useUnsavedChanges hook", () => {
     });
 
     expect(result.current.getSignOutMessage()).toBe(
-      "You have unsaved form data. Sign out now? Unsaved changes will be lost."
+      "You have unsaved form data. Sign out now? Unsaved changes will be lost.",
     );
   });
 
@@ -117,7 +120,7 @@ describe("useUnsavedChanges hook", () => {
     });
 
     expect(result.current.getSignOutMessage()).toBe(
-      "You have unsaved changes in the Mappings editor and an unsaved Mocks Root path. Sign out now? Unsaved changes will be lost."
+      "You have unsaved changes in the Mappings editor and an unsaved Mocks Root path. Sign out now? Unsaved changes will be lost.",
     );
   });
 
@@ -134,7 +137,7 @@ describe("useUnsavedChanges hook", () => {
     });
 
     expect(result.current.getSignOutMessage()).toBe(
-      "You have unsaved changes in the Mappings editor, an unsaved Mocks Root path, and unsaved form data. Sign out now? Unsaved changes will be lost."
+      "You have unsaved changes in the Mappings editor, an unsaved Mocks Root path, and unsaved form data. Sign out now? Unsaved changes will be lost.",
     );
   });
 

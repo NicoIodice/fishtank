@@ -56,14 +56,14 @@ export function TopBar({
 
   async function handleSignOut() {
     if (signingOut) return;
-    
+
     // AC-9: Check for unsaved state before signing out
     if (hasAnyUnsaved) {
       setAvatarOpen(false);
       setShowSignOutDialog(true);
       return;
     }
-    
+
     // AC-9: No unsaved state — sign out immediately
     performSignOut();
   }
@@ -226,12 +226,15 @@ export function TopBar({
       </header>
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
-      
+
       {showSignOutDialog && (
         <SignOutConfirmDialog
           open={showSignOutDialog}
           onOpenChange={setShowSignOutDialog}
-          message={getSignOutMessage()!}
+          message={
+            getSignOutMessage() ??
+            "You have unsaved changes. Sign out now? Unsaved changes will be lost."
+          }
           onConfirm={performSignOut}
         />
       )}

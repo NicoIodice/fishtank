@@ -32,6 +32,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 import { MemoryRouter } from "react-router-dom";
 
 // MSW handler overrides
@@ -51,11 +52,13 @@ function renderMappingsPage() {
     },
   });
   return render(
-    <QueryClientProvider client={qc}>
-      <MemoryRouter>
-        <MappingsPage />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <MappingsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </UnsavedChangesProvider>,
   );
 }
 
@@ -204,7 +207,7 @@ describe("MappingsPage — AC-8: conflict banner (dirty + conflict)", () => {
 
     // Wait for the editor to load the file content
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-save")).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-btn-discard")).toBeInTheDocument();
     });
     // Make the file dirty: type in the URL field to trigger onDirtyChange(true)
     const urlInput = screen.getByRole("textbox", { name: /URL/i });
@@ -421,9 +424,9 @@ describe("MappingsPage — AC-11: unsaved changes never silently discarded", () 
       screen.getByTestId(`mappings-tree-node-payments-api-get_account.json`),
     );
 
-    // Make the file dirty before Resync: type in the URL field
+    // Wait for the editor to open before making edits
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-save")).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-btn-discard")).toBeInTheDocument();
     });
     const urlInput = screen.getByRole("textbox", { name: /URL/i });
     await user.clear(urlInput);

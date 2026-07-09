@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { AppShell } from "@/components/layout/AppShell";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Module mocks ─────────────────────────────────────────────────────────────
 
@@ -101,9 +102,11 @@ function makeQC() {
 
 function withRouter(element: ReactNode) {
   return (
-    <QueryClientProvider client={makeQC()}>
-      <MemoryRouter initialEntries={["/services"]}>{element}</MemoryRouter>
-    </QueryClientProvider>
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={makeQC()}>
+        <MemoryRouter initialEntries={["/services"]}>{element}</MemoryRouter>
+      </QueryClientProvider>
+    </UnsavedChangesProvider>
   );
 }
 

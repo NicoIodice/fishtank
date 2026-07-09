@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 import type { UnsavedSource } from "@/types/unsavedChanges";
 import { SOURCE_LABELS } from "@/types/unsavedChanges";
 
@@ -15,17 +21,21 @@ interface UnsavedChangesContextValue {
   getSignOutMessage: () => string | null;
 }
 
-const UnsavedChangesContext = createContext<UnsavedChangesContextValue | null>(null);
+const UnsavedChangesContext = createContext<UnsavedChangesContextValue | null>(
+  null,
+);
 
 export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
-  const [unsavedSources, setUnsavedSources] = useState<Set<UnsavedSource>>(new Set());
+  const [unsavedSources, setUnsavedSources] = useState<Set<UnsavedSource>>(
+    new Set(),
+  );
 
   const registerUnsaved = useCallback((source: UnsavedSource) => {
-    setUnsavedSources(prev => new Set(prev).add(source));
+    setUnsavedSources((prev) => new Set(prev).add(source));
   }, []);
 
   const clearUnsaved = useCallback((source: UnsavedSource) => {
-    setUnsavedSources(prev => {
+    setUnsavedSources((prev) => {
       const next = new Set(prev);
       next.delete(source);
       return next;
@@ -77,6 +87,9 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useUnsavedChanges() {
   const ctx = useContext(UnsavedChangesContext);
-  if (!ctx) throw new Error("useUnsavedChanges must be used within UnsavedChangesProvider");
+  if (!ctx)
+    throw new Error(
+      "useUnsavedChanges must be used within UnsavedChangesProvider",
+    );
   return ctx;
 }

@@ -16,6 +16,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // RED PHASE: Static imports that will fail until Story 2.2 is implemented.
 // These are intentional — the tests fail to load before implementation.
@@ -32,7 +33,11 @@ function makeQueryClient() {
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   const qc = makeQueryClient();
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  return (
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    </UnsavedChangesProvider>
+  );
 }
 const liveService = {
   id: "550e8400-e29b-41d4-a716-446655440000",

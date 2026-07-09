@@ -97,15 +97,11 @@ async function createMappingFile(
     },
   };
 
-  await apiFetch(
-    request,
-    `/api/mappings/${serviceName}/mappings/${filename}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      data: JSON.stringify(mappingContent),
-    }
-  );
+  await apiFetch(request, `/api/mappings/${serviceName}/mappings/${filename}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    data: JSON.stringify(mappingContent),
+  });
 }
 
 // ─── AC-1, AC-2, AC-3: Navigation guard on unsaved Mapping edits ───────────
@@ -128,7 +124,9 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
     await page.waitForLoadState("networkidle");
 
     // Open file in editor
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-nav-guard-test.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-nav-guard-test.json"]`,
+    );
 
     // Make unsaved edit in Raw JSON tab
     const editor = page.locator('[data-testid="mappings-tab-raw"]');
@@ -159,7 +157,9 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-discard-test.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-discard-test.json"]`,
+    );
 
     // Make unsaved edit
     const editor = page.locator('[data-testid="mappings-tab-raw"]');
@@ -191,7 +191,9 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-stay-test.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-stay-test.json"]`,
+    );
 
     // Make unsaved edit
     const editor = page.locator('[data-testid="mappings-tab-raw"]');
@@ -206,7 +208,9 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
     await page.click('[data-testid="dialog-navigation-guard-cancel"]');
 
     // Assert dialog closed, still on Mappings page
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).not.toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).not.toBeVisible();
     await expect(page).toHaveURL(/\/mappings/);
 
     // Assert unsaved changes preserved in editor
@@ -217,7 +221,10 @@ test.describe("Navigation Guard — Unsaved Mapping Edits", () => {
 // ─── AC-12: All 5 navigation trigger types ─────────────────────────────────
 
 test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
-  test("AC-12a: Trigger type 1 — Sidebar nav click", async ({ page, request }) => {
+  test("AC-12a: Trigger type 1 — Sidebar nav click", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: useBlocker not wired yet
     // EXPECTED: Guard triggers on sidebar link click
     // ACTUAL: This test will FAIL (RED)
@@ -228,16 +235,23 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-sidebar-nav.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-sidebar-nav.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
     await page.click('[data-testid="nav-activity"]');
 
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).toBeVisible();
   });
 
-  test("AC-12b: Trigger type 2 — Logo click (home navigation)", async ({ page, request }) => {
+  test("AC-12b: Trigger type 2 — Logo click (home navigation)", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: useBlocker not wired yet
     // EXPECTED: Guard triggers on logo/brand click
     // ACTUAL: This test will FAIL (RED)
@@ -248,17 +262,24 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-logo-nav.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-logo-nav.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
     // Click logo/brand to navigate to home
     await page.click('[data-testid="brand-logo"]');
 
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).toBeVisible();
   });
 
-  test("AC-12c: Trigger type 3 — Browser back button", async ({ page, request }) => {
+  test("AC-12c: Trigger type 3 — Browser back button", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: useBlocker not wired yet
     // EXPECTED: Guard triggers on browser back
     // ACTUAL: This test will FAIL (RED)
@@ -271,17 +292,24 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.goto("/services");
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-back-nav.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-back-nav.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
     // Browser back button
     await page.goBack();
 
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).toBeVisible();
   });
 
-  test("AC-12d: Trigger type 4 — Browser forward button", async ({ page, request }) => {
+  test("AC-12d: Trigger type 4 — Browser forward button", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: useBlocker not wired yet
     // EXPECTED: Guard triggers on browser forward after back
     // ACTUAL: This test will FAIL (RED)
@@ -293,7 +321,9 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.goto("/services");
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-forward-nav.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-forward-nav.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -302,7 +332,9 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
     await page.click('[data-testid="dialog-navigation-guard-cancel"]'); // Cancel first guard
     await page.goForward();
 
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).toBeVisible();
   });
 
   test("AC-12e: Trigger type 5 — Direct URL entry / page refresh (beforeunload)", async ({
@@ -320,7 +352,9 @@ test.describe("Navigation Guard — All Trigger Types (R-E4-002)", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-refresh-nav.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-refresh-nav.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -358,7 +392,9 @@ test.describe("Sign-Out Guard — Unsaved Mapping Edits", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-signout-mappings.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-signout-mappings.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -371,7 +407,7 @@ test.describe("Sign-Out Guard — Unsaved Mapping Edits", () => {
     await expect(dialog).toBeVisible();
     await expect(dialog).toContainText("Sign out?");
     await expect(dialog).toContainText(
-      "You have unsaved changes in the Mappings editor"
+      "You have unsaved changes in the Mappings editor",
     );
   });
 });
@@ -422,14 +458,19 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-combined-state.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-combined-state.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
     // Also make Mocks Root pending
     await page.goto("/settings");
     await page.click('[data-testid="settings-btn-edit-mocks-root"]');
-    await page.fill('[data-testid="settings-input-mocks-root"]', "/another/path");
+    await page.fill(
+      '[data-testid="settings-input-mocks-root"]',
+      "/another/path",
+    );
 
     // Attempt sign-out
     await page.click('[data-testid="user-menu-trigger"]');
@@ -437,11 +478,15 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
 
     const dialog = page.locator('[data-testid="dialog-signout-confirm"]');
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText("unsaved changes in the Mappings editor");
+    await expect(dialog).toContainText(
+      "unsaved changes in the Mappings editor",
+    );
     await expect(dialog).toContainText("an unsaved Mocks Root path");
   });
 
-  test("AC-7: Sign-out with in-progress Service modal form data", async ({ page }) => {
+  test("AC-7: Sign-out with in-progress Service modal form data", async ({
+    page,
+  }) => {
     // RED PHASE: ServiceModal does not expose state to global context yet
     // EXPECTED: Dialog mentions "unsaved form data"
     // ACTUAL: This test will FAIL (RED)
@@ -480,7 +525,9 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
     // Create unsaved Mapping edit
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-all-three.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-all-three.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -500,7 +547,9 @@ test.describe("Sign-Out Guard — Multiple Unsaved Sources", () => {
 
     const dialog = page.locator('[data-testid="dialog-signout-confirm"]');
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText("unsaved changes in the Mappings editor");
+    await expect(dialog).toContainText(
+      "unsaved changes in the Mappings editor",
+    );
     await expect(dialog).toContainText("an unsaved Mocks Root path");
     await expect(dialog).toContainText("unsaved form data");
   });
@@ -525,7 +574,9 @@ test.describe("Sign-Out — No Unsaved State (Happy Path)", () => {
     await page.click('[data-testid="user-menu-signout"]');
 
     // Assert NO dialog appears
-    await expect(page.locator('[data-testid="dialog-signout-confirm"]')).not.toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-confirm"]'),
+    ).not.toBeVisible();
 
     // Assert redirect to login page
     await expect(page).toHaveURL(/\/login/);
@@ -546,7 +597,9 @@ test.describe("Sign-Out Dialog Actions", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-cancel-signout.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-cancel-signout.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type("MARKER");
 
@@ -557,14 +610,21 @@ test.describe("Sign-Out Dialog Actions", () => {
     await page.click('[data-testid="dialog-signout-cancel"]');
 
     // Assert dialog closed, still on Mappings page
-    await expect(page.locator('[data-testid="dialog-signout-confirm"]')).not.toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-confirm"]'),
+    ).not.toBeVisible();
     await expect(page).toHaveURL(/\/mappings/);
 
     // Assert unsaved state preserved
-    await expect(page.locator('[data-testid="mappings-tab-raw"]')).toContainText("MARKER");
+    await expect(
+      page.locator('[data-testid="mappings-tab-raw"]'),
+    ).toContainText("MARKER");
   });
 
-  test("AC-11: 'Sign out' button proceeds with logout", async ({ page, request }) => {
+  test("AC-11: 'Sign out' button proceeds with logout", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: Dialog not implemented yet
     // EXPECTED: Logout API called, redirect to /login
     // ACTUAL: This test will FAIL (RED)
@@ -575,7 +635,9 @@ test.describe("Sign-Out Dialog Actions", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-confirm-signout.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-confirm-signout.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -589,7 +651,10 @@ test.describe("Sign-Out Dialog Actions", () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("AC-10: Escape key dismisses sign-out dialog", async ({ page, request }) => {
+  test("AC-10: Escape key dismisses sign-out dialog", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: Dialog keyboard handling not implemented yet
     // EXPECTED: Dialog closes on Escape, user stays signed in
     // ACTUAL: This test will FAIL (RED)
@@ -600,7 +665,9 @@ test.describe("Sign-Out Dialog Actions", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-escape-signout.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-escape-signout.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -611,7 +678,9 @@ test.describe("Sign-Out Dialog Actions", () => {
     await page.keyboard.press("Escape");
 
     // Assert dialog closed
-    await expect(page.locator('[data-testid="dialog-signout-confirm"]')).not.toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-confirm"]'),
+    ).not.toBeVisible();
     await expect(page).toHaveURL(/\/mappings/);
   });
 });
@@ -619,7 +688,10 @@ test.describe("Sign-Out Dialog Actions", () => {
 // ─── AC-13: data-testid coverage verification ──────────────────────────────
 
 test.describe("data-testid Attributes", () => {
-  test("AC-13: All required data-testid attributes present", async ({ page, request }) => {
+  test("AC-13: All required data-testid attributes present", async ({
+    page,
+    request,
+  }) => {
     // RED PHASE: Components not implemented yet
     // EXPECTED: All testid attributes from AC-13 table present
     // ACTUAL: This test will FAIL (RED)
@@ -630,7 +702,9 @@ test.describe("data-testid Attributes", () => {
 
     await page.goto("/mappings");
     await page.waitForLoadState("networkidle");
-    await page.click(`[data-testid="mappings-tree-node-${serviceName}-testid-check.json"]`);
+    await page.click(
+      `[data-testid="mappings-tree-node-${serviceName}-testid-check.json"]`,
+    );
     await page.locator('[data-testid="mappings-tab-raw"]').click();
     await page.keyboard.type(" ");
 
@@ -638,9 +712,15 @@ test.describe("data-testid Attributes", () => {
     await page.click('[data-testid="nav-services"]');
 
     // Verify navigation guard dialog testids
-    await expect(page.locator('[data-testid="dialog-navigation-guard"]')).toBeVisible();
-    await expect(page.locator('[data-testid="dialog-navigation-guard-confirm"]')).toBeVisible();
-    await expect(page.locator('[data-testid="dialog-navigation-guard-cancel"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard-confirm"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-navigation-guard-cancel"]'),
+    ).toBeVisible();
 
     // Cancel and trigger sign-out guard
     await page.click('[data-testid="dialog-navigation-guard-cancel"]');
@@ -648,8 +728,14 @@ test.describe("data-testid Attributes", () => {
     await page.click('[data-testid="user-menu-signout"]');
 
     // Verify sign-out dialog testids
-    await expect(page.locator('[data-testid="dialog-signout-confirm"]')).toBeVisible();
-    await expect(page.locator('[data-testid="dialog-signout-cancel"]')).toBeVisible();
-    await expect(page.locator('[data-testid="dialog-signout-confirm-btn"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-confirm"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-cancel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="dialog-signout-confirm-btn"]'),
+    ).toBeVisible();
   });
 });

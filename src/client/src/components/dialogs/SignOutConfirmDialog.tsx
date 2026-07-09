@@ -23,13 +23,13 @@ export function SignOutConfirmDialog({
   // Handle Escape key to close dialog (NFR-19)
   useEffect(() => {
     if (!open) return;
-    
+
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         onOpenChange(false);
       }
     }
-    
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, onOpenChange]);

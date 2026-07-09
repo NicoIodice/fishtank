@@ -27,6 +27,7 @@ import { DeleteConfirmDialog } from "@/features/mappings/components/DeleteConfir
 import { FolderTree } from "@/features/mappings/components/FolderTree";
 import { NavigationGuard } from "@/features/mappings/components/NavigationGuard";
 import type { FolderTree as FolderTreeType, TreeNode } from "@/features/mappings/types/mappings";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -950,9 +951,11 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
 
   function renderGuard(isDirty: boolean) {
     return render(
-      <MemoryRouter>
-        <NavigationGuard isDirty={isDirty} />
-      </MemoryRouter>,
+      <UnsavedChangesProvider>
+        <MemoryRouter>
+          <NavigationGuard isDirty={isDirty} />
+        </MemoryRouter>
+      </UnsavedChangesProvider>,
     );
   }
 
@@ -1008,10 +1011,10 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
     dispatchNavAttempt(proceed);
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByTestId("mappings-btn-discard-cancel"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-cancel"));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(proceed).not.toHaveBeenCalled();
@@ -1025,10 +1028,10 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
     dispatchNavAttempt(proceed);
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByTestId("mappings-btn-discard-confirm"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-confirm"));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(proceed).toHaveBeenCalledOnce();
@@ -1045,11 +1048,11 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
     dispatchNavAttempt(proceed1);
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Discard first
-    await user.click(screen.getByTestId("mappings-btn-discard-confirm"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-confirm"));
     expect(proceed1).toHaveBeenCalledOnce();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
@@ -1057,11 +1060,11 @@ describe("NavigationGuard (fallback path via ErrorBoundary)", () => {
     dispatchNavAttempt(proceed2);
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Stay on second
-    await user.click(screen.getByTestId("mappings-btn-discard-cancel"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-cancel"));
     expect(proceed2).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -1077,9 +1080,7 @@ describe("NavigationGuard (fallback) — history patching", () => {
     window.addEventListener("__fishtank_nav_attempt__", listener);
 
     render(
-      <MemoryRouter>
-        <NavigationGuard isDirty={false} />
-      </MemoryRouter>,
+      <UnsavedChangesProvider><MemoryRouter><NavigationGuard isDirty={false} /></MemoryRouter></UnsavedChangesProvider>,
     );
 
     // Give effect time to mount and patch
@@ -1097,9 +1098,7 @@ describe("NavigationGuard (fallback) — history patching", () => {
     window.addEventListener("__fishtank_nav_attempt__", listener);
 
     render(
-      <MemoryRouter>
-        <NavigationGuard isDirty={false} />
-      </MemoryRouter>,
+      <UnsavedChangesProvider><MemoryRouter><NavigationGuard isDirty={false} /></MemoryRouter></UnsavedChangesProvider>,
     );
 
     await waitFor(() => {
@@ -1145,7 +1144,7 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(false);
 
-    render(<RouterProvider router={router} />);
+    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
 
     // Navigate to page B
     await user.click(screen.getByTestId("nav-link"));
@@ -1154,21 +1153,21 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     await waitFor(() => {
       expect(screen.getByText("Page B")).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("mappings-modal-discard-confirm")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
   });
 
   it("BlockerDialog: shows guard dialog when isDirty=true and navigation is attempted", async () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<RouterProvider router={router} />);
+    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
 
     // Attempt to navigate to page B
     await user.click(screen.getByTestId("nav-link"));
 
     // Guard dialog must appear and navigation must be blocked
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Still on page A
@@ -1179,19 +1178,19 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<RouterProvider router={router} />);
+    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
 
     await user.click(screen.getByTestId("nav-link"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Click Stay
-    await user.click(screen.getByTestId("mappings-btn-discard-cancel"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-cancel"));
 
     // Dialog dismissed, still on page A
-    expect(screen.queryByTestId("mappings-modal-discard-confirm")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
     expect(screen.getByText("Page A")).toBeInTheDocument();
   });
 
@@ -1199,23 +1198,23 @@ describe("NavigationGuard (data router path — BlockerDialog)", () => {
     const user = userEvent.setup();
     const router = buildDataRouter(true);
 
-    render(<RouterProvider router={router} />);
+    render(<UnsavedChangesProvider><RouterProvider router={router} /></UnsavedChangesProvider>);
 
     // Trigger navigation
     await user.click(screen.getByTestId("nav-link"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-modal-discard-confirm")).toBeInTheDocument();
+      expect(screen.getByTestId("dialog-navigation-guard")).toBeInTheDocument();
     });
 
     // Click Discard — calls blocker.proceed() at line 113
-    await user.click(screen.getByTestId("mappings-btn-discard-confirm"));
+    await user.click(screen.getByTestId("dialog-navigation-guard-confirm"));
 
     // Should navigate to page B
     await waitFor(() => {
       expect(screen.getByText("Page B")).toBeInTheDocument();
     });
 
-    expect(screen.queryByTestId("mappings-modal-discard-confirm")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("dialog-navigation-guard")).not.toBeInTheDocument();
   });
 });

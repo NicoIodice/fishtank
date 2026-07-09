@@ -24,6 +24,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TopBar } from "@/components/layout/TopBar";
 import { useRecordingState } from "@/features/activity/hooks/useRecordingState";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Mock Setup ─────────────────────────────────────────────────────────────
 
@@ -82,13 +83,15 @@ describe("TopBar — Cross-Screen Recording Indicator (Story 4.5)", () => {
     });
 
     return render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[route]}>
-          <Routes>
-            <Route path="*" element={<TopBar />} />
-          </Routes>
-        </MemoryRouter>
-      </QueryClientProvider>,
+      <UnsavedChangesProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={[route]}>
+            <Routes>
+              <Route path="*" element={<TopBar />} />
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </UnsavedChangesProvider>,
     );
   }
 

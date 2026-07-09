@@ -1,4 +1,11 @@
-import React, { Component, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  Component,
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useBlocker } from "react-router-dom";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -18,7 +25,9 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   // Stable ref so the Escape effect never tears down/re-attaches on re-render
   const onStayRef = useRef(onStay);
-  onStayRef.current = onStay;
+  useLayoutEffect(() => {
+    onStayRef.current = onStay;
+  });
 
   // Trap focus within the dialog (NFR-19)
   useFocusTrap(contentRef, true);
@@ -63,10 +72,18 @@ function GuardDialog({ onStay, onDiscard }: GuardDialogProps) {
         <h3 style={{ margin: "0 0 12px", fontSize: "1rem", fontWeight: 600 }}>
           Unsaved Changes
         </h3>
-        <p style={{ margin: "0 0 20px", fontSize: "0.9375rem", color: "var(--content-fg, #374151)" }}>
+        <p
+          style={{
+            margin: "0 0 20px",
+            fontSize: "0.9375rem",
+            color: "var(--content-fg, #374151)",
+          }}
+        >
           You have unsaved changes. If you leave now, your changes will be lost.
         </p>
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div
+          style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}
+        >
           <button
             data-testid="dialog-navigation-guard-cancel"
             type="button"
@@ -121,7 +138,7 @@ interface BlockerDialogProps {
  */
 function BlockerDialog({ isDirty }: BlockerDialogProps) {
   const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
-  
+
   // Register/unregister with global unsaved changes context
   useEffect(() => {
     if (isDirty) {
@@ -137,7 +154,7 @@ function BlockerDialog({ isDirty }: BlockerDialogProps) {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault();
-        e.returnValue = "";  // Required for Chrome
+        e.returnValue = ""; // Required for Chrome
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -186,7 +203,10 @@ function NavigationGuardFallback({ isDirty }: { isDirty: boolean }) {
       // Dispatch custom event for the guard to pick up
       window.dispatchEvent(
         new CustomEvent(NAV_ATTEMPT_EVENT, {
-          detail: { url: targetUrl, proceed: () => original(data, unused, url) },
+          detail: {
+            url: targetUrl,
+            proceed: () => original(data, unused, url),
+          },
         }),
       );
     }
@@ -222,7 +242,8 @@ function NavigationGuardFallback({ isDirty }: { isDirty: boolean }) {
 
   useEffect(() => {
     window.addEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
-    return () => window.removeEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
+    return () =>
+      window.removeEventListener(NAV_ATTEMPT_EVENT, handleNavAttempt);
   }, [handleNavAttempt]);
 
   if (!blocked) return null;

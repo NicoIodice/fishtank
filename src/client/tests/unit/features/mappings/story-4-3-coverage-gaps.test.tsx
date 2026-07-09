@@ -29,6 +29,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
@@ -50,19 +51,23 @@ function makeQC() {
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(
-    <QueryClientProvider client={makeQC()}>
-      <MemoryRouter>{ui}</MemoryRouter>
-    </QueryClientProvider>,
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={makeQC()}>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </QueryClientProvider>
+    </UnsavedChangesProvider>,
   );
 }
 
 function renderMappingsPage() {
   return render(
-    <QueryClientProvider client={makeQC()}>
-      <MemoryRouter>
-        <MappingsPage />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <UnsavedChangesProvider>
+      <QueryClientProvider client={makeQC()}>
+        <MemoryRouter>
+          <MappingsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </UnsavedChangesProvider>,
   );
 }
 
@@ -410,7 +415,7 @@ describe("MappingsPage — handleNewResponseClick without service (coverage gap:
 
     // Wait for the editor to confirm a file is open
     await waitFor(() => {
-      expect(screen.getByTestId("mappings-btn-save")).toBeInTheDocument();
+      expect(screen.getByTestId("mappings-btn-discard")).toBeInTheDocument();
     });
 
     // Now click New Response — service is already selected via the file click,

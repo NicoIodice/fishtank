@@ -30,6 +30,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { UnsavedChangesProvider } from "@/hooks/useUnsavedChanges";
 
 // ─── Components under test (do not exist yet — RED) ──────────────────────────
 import { MappingsPage } from "@/features/mappings/pages/MappingsPage";
@@ -42,7 +43,11 @@ import { http, HttpResponse } from "msw";
 
 const MAPPING_CONTENT = JSON.stringify({
   request: { method: "GET", url: "/api/account" },
-  response: { status: 200, body: "ok", headers: { "Content-Type": "application/json" } },
+  response: {
+    status: 200,
+    body: "ok",
+    headers: { "Content-Type": "application/json" },
+  },
   extraField: "advanced-wiremock-key",
 });
 
@@ -102,9 +107,11 @@ function makeQc() {
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
-    <MemoryRouter initialEntries={["/mappings"]}>
-      <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
-    </MemoryRouter>
+    <UnsavedChangesProvider>
+      <MemoryRouter initialEntries={["/mappings"]}>
+        <QueryClientProvider client={makeQc()}>{children}</QueryClientProvider>
+      </MemoryRouter>
+    </UnsavedChangesProvider>
   );
 }
 
@@ -117,7 +124,9 @@ function renderPage() {
 }
 
 /** Click a file node in the tree and wait for the editor to load. */
-async function clickFileAndWaitForEditor(user: ReturnType<typeof userEvent.setup>) {
+async function clickFileAndWaitForEditor(
+  user: ReturnType<typeof userEvent.setup>,
+) {
   await waitFor(() => {
     expect(
       screen.getByTestId(
@@ -131,7 +140,9 @@ async function clickFileAndWaitForEditor(user: ReturnType<typeof userEvent.setup
     ),
   );
   await waitFor(() => {
-    expect(screen.getByTestId("mappings-breadcrumb-editor")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("mappings-breadcrumb-editor"),
+    ).toBeInTheDocument();
   });
 }
 
@@ -142,7 +153,9 @@ describe("Story 4.2 — MappingsPage: Editor", () => {
     server.use(
       http.get("/api/mappings", () => HttpResponse.json(TREE_RESPONSE)),
       // Catch-all for GET /api/mappings/{**path}
-      http.get("/api/mappings/*", () => HttpResponse.json(FILE_CONTENT_RESPONSE)),
+      http.get("/api/mappings/*", () =>
+        HttpResponse.json(FILE_CONTENT_RESPONSE),
+      ),
     );
   });
 
@@ -210,17 +223,11 @@ describe("Story 4.2 — MappingsPage: Editor", () => {
     // Common mapping fields must be visible
     await waitFor(() => {
       // Method field
-      expect(
-        screen.getByLabelText(/method/i),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/method/i)).toBeInTheDocument();
       // URL pattern field
-      expect(
-        screen.getByLabelText(/url/i),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/url/i)).toBeInTheDocument();
       // Status field
-      expect(
-        screen.getByLabelText(/status/i),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/status/i)).toBeInTheDocument();
     });
   });
 
@@ -308,19 +315,15 @@ describe("Story 4.2 — MappingsPage: Editor", () => {
 
   // ─── AC-9: Save / Discard enablement ─────────────────────────────────────
 
-  it("AC-9: Save is disabled and Discard is disabled when file is clean (no unsaved changes)", async () => {
-    // RED: buttons do not exist
+  it("AC-9: Save button is hidden and Discard is disabled when file is clean (no unsaved changes)", async () => {
+    // Save button is hidden when file is clean (only rendered when isDirty=true)
     const user = userEvent.setup();
     renderPage();
 
     await clickFileAndWaitForEditor(user);
 
-    const saveBtn = screen.getByTestId("mappings-btn-save");
-    const discardBtn = screen.getByTestId("mappings-btn-discard");
-
-    // Clean state: Save disabled, Discard disabled
-    expect(saveBtn).toBeDisabled();
-    expect(discardBtn).toBeDisabled();
+    expect(screen.queryByTestId("mappings-btn-save")).not.toBeInTheDocument();
+    expect(screen.getByTestId("mappings-btn-discard")).toBeDisabled();
   });
 
   it("AC-9: Save and Discard are both enabled when file has unsaved changes", async () => {

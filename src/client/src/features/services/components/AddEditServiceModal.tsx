@@ -54,7 +54,7 @@ export function AddEditServiceModal({
     port: service?.port?.toString() ?? "",
     tags: service?.tags ? [...service.tags] : [],
   }));
-  
+
   // Store initial values for isDirty comparison
   const [initialValues] = useState<FormValues>(() => ({
     name: service?.name ?? "",
@@ -63,12 +63,12 @@ export function AddEditServiceModal({
     port: service?.port?.toString() ?? "",
     tags: service?.tags ? [...service.tags] : [],
   }));
-  
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [debouncedName, setDebouncedName] = useState(values.name);
-  
+
   const { registerUnsaved, clearUnsaved } = useUnsavedChanges();
 
   // Compute isDirty by comparing current values with initial values

@@ -4,7 +4,10 @@
  * - "mocks-root-path": Settings page Mocks Root path pending state
  * - "service-modal": Add/Edit Service modal unsaved form data
  */
-export type UnsavedSource = "mappings-editor" | "mocks-root-path" | "service-modal";
+export type UnsavedSource =
+  | "mappings-editor"
+  | "mocks-root-path"
+  | "service-modal";
 
 /**
  * Maps each UnsavedSource to its user-facing label for sign-out messages.
