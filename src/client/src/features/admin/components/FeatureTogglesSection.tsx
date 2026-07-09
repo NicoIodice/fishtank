@@ -93,6 +93,7 @@ export function FeatureTogglesSection() {
                 <td className={styles.stateCol}>
                   <label
                     className={`${styles.toggle} ${isLocked ? styles.toggleDisabled : ""}`}
+                    data-testid={`toggle-label-${toggle.name}`}
                     title={
                       isLocked
                         ? `This toggle is locked by environment variable FISHTANK_TOGGLE_${toggle.name.toUpperCase()} and cannot be changed at runtime.`
