@@ -23,8 +23,8 @@ export function UserManagementSection() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // AC-1: Sort users alphabetically by username
-  const sortedUsers = [...users].sort((a, b) => 
-    a.username.localeCompare(b.username, undefined, { sensitivity: 'base' })
+  const sortedUsers = [...users].sort((a, b) =>
+    a.username.localeCompare(b.username, undefined, { sensitivity: "base" }),
   );
 
   function handleDeactivateClick(user: User) {
@@ -107,7 +107,9 @@ export function UserManagementSection() {
         columns={columns}
         getRowId={(row) => row.id}
         getRowTestId={(row) => `user-row-${row.username}`}
-        getRowClassName={(row) => (!row.isActive ? `${styles.deactivatedRow} deactivatedRow` : "")}
+        getRowClassName={(row) =>
+          !row.isActive ? `${styles.deactivatedRow} deactivatedRow` : ""
+        }
         data-testid="table-users"
       />
 

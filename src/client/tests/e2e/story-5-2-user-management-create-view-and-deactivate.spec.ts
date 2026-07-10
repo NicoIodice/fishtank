@@ -320,32 +320,33 @@ test.describe("P0 — AC-3, AC-4: Create User dialog and validation", () => {
     "Creating user with duplicate username shows error toast",
     { annotation: [{ type: "skipNetworkMonitoring" }] },
     async ({ page }) => {
-    // Arrange — open Create User dialog
-    await page.goto("/admin");
-    await page.getByTestId("tab-users").click();
-    await page.getByTestId("btn-create-user").click();
+      // Arrange — open Create User dialog
+      await page.goto("/admin");
+      await page.getByTestId("tab-users").click();
+      await page.getByTestId("btn-create-user").click();
 
-    // Act — try to create user with existing username (admin)
-    await page.getByTestId("input-create-user-username").fill("admin");
-    await page
-      .getByTestId("input-create-user-password")
-      .fill("TestPassword123");
-    await page
-      .getByTestId("input-create-user-confirm-password")
-      .fill("TestPassword123");
+      // Act — try to create user with existing username (admin)
+      await page.getByTestId("input-create-user-username").fill("admin");
+      await page
+        .getByTestId("input-create-user-password")
+        .fill("TestPassword123");
+      await page
+        .getByTestId("input-create-user-confirm-password")
+        .fill("TestPassword123");
 
-    // RED: POST /api/users does not return 409 yet (endpoint doesn't exist)
-    await page.getByTestId("dialog-create-user-submit").click();
+      // RED: POST /api/users does not return 409 yet (endpoint doesn't exist)
+      await page.getByTestId("dialog-create-user-submit").click();
 
-    // Assert — error toast appears
-    // RED: Error toast does not appear because API call fails differently
-    await expect(
-      page.locator("text=A user with this username already exists"),
-    ).toBeVisible();
+      // Assert — error toast appears
+      // RED: Error toast does not appear because API call fails differently
+      await expect(
+        page.locator("text=A user with this username already exists"),
+      ).toBeVisible();
 
-    // Assert — dialog remains open for correction
-    await expect(page.getByTestId("dialog-create-user")).toBeVisible();
-  });
+      // Assert — dialog remains open for correction
+      await expect(page.getByTestId("dialog-create-user")).toBeVisible();
+    },
+  );
 });
 
 // ─── P0: Deactivate user with confirmation (AC-6, AC-7) ───────────────────
