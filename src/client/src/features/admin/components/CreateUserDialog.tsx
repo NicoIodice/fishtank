@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useCreateUser } from "../hooks/useUsers";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import { useToast } from "@/lib/useToast";
+import { useShowToast } from "@/lib/ToastContext";
 import styles from "./CreateUserDialog.module.css";
 
 interface CreateUserDialogProps {
@@ -30,7 +30,7 @@ export function CreateUserDialog({
 
   const modalRef = useRef<HTMLDivElement>(null);
   const { mutate: createUser, isPending } = useCreateUser();
-  const { showToast } = useToast();
+  const showToast = useShowToast();
 
   useFocusTrap(modalRef, open);
 

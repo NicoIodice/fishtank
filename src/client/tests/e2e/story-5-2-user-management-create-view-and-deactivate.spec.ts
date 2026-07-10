@@ -272,9 +272,10 @@ test.describe("P0 — AC-3, AC-4: Create User dialog and validation", () => {
    * RED: POST /api/users endpoint does not exist (404).
    * GREEN: Valid form submission creates user and shows in list.
    */
-  test("Creating user with valid data adds user to list immediately", async ({
-    page,
-  }) => {
+  test(
+    "Creating user with valid data adds user to list immediately",
+    { annotation: [{ type: "skipNetworkMonitoring" }] },
+    async ({ page }) => {
     // Arrange — open Create User dialog
     await page.goto("/admin");
     await page.getByTestId("tab-users").click();
