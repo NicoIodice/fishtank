@@ -49,7 +49,7 @@ export function UserManagementSection() {
       cell: (row) => (
         <span
           data-testid={`user-status-${row.username}`}
-          className={`${styles.statusBadge} ${row.isActive ? `${styles.statusActive} statusActive` : `${styles.statusInactive} statusInactive`}`}
+          className={`${styles.statusBadge} ${row.isActive ? `${styles.statusActive} statusActive bg-green-100 text-green-700` : `${styles.statusInactive} statusInactive bg-slate-100 text-slate-700`}`}
         >
           {row.isActive ? "Active" : "Deactivated"}
         </span>
@@ -65,20 +65,16 @@ export function UserManagementSection() {
       header: "Actions",
       cell: (row) => {
         const isSelf = currentUser?.username === row.username;
-        return row.isActive ? (
+        if (!row.isActive || isSelf) return null;
+        return (
           <button
             data-testid={`user-deactivate-${row.username}`}
             className={styles.deactivateBtn}
             onClick={() => handleDeactivateClick(row)}
-            disabled={isSelf}
-            aria-disabled={isSelf}
-            title={
-              isSelf ? "You cannot deactivate your own account" : undefined
-            }
           >
             Deactivate
           </button>
-        ) : null;
+        );
       },
     },
   ];

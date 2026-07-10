@@ -25,6 +25,8 @@ export function CreateUserDialog({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [validationError, setValidationError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
   const modalRef = useRef<HTMLDivElement>(null);
   const { mutate: createUser, isPending } = useCreateUser();
@@ -50,11 +52,31 @@ export function CreateUserDialog({
     setPassword("");
     setConfirmPassword("");
     setValidationError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+  }
+
+  function handlePasswordBlur() {
+    if (password && password.length < 12) {
+      setPasswordError("Password must be at least 12 characters");
+    } else {
+      setPasswordError("");
+    }
+  }
+
+  function handleConfirmPasswordBlur() {
+    if (confirmPassword && password !== confirmPassword) {
+      setConfirmPasswordError("Passwords do not match");
+    } else {
+      setConfirmPasswordError("");
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setValidationError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
 
     if (!username.trim()) {
       setValidationError("Username is required");
@@ -62,12 +84,12 @@ export function CreateUserDialog({
     }
 
     if (password.length < 12) {
-      setValidationError("Password must be at least 12 characters");
+      setPasswordError("Password must be at least 12 characters");
       return;
     }
 
     if (password !== confirmPassword) {
-      setValidationError("Passwords do not match");
+      setConfirmPasswordError("Passwords do not match");
       return;
     }
 
@@ -75,7 +97,7 @@ export function CreateUserDialog({
       { username: username.trim(), password },
       {
         onSuccess: (user) => {
-          showToast(`User "${user.username}" created successfully.`, "success");
+          showToast(`User '${user.username}' created`, "success");
           resetForm();
           onOpenChange(false);
         },
@@ -151,10 +173,14 @@ export function CreateUserDialog({
               data-testid="input-create-user-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={handlePasswordBlur}
               placeholder="Minimum 12 characters"
               disabled={isPending}
               className={styles.input}
             />
+            {passwordError && (
+              <div className={styles.error}>{passwordError}</div>
+            )}
           </div>
 
           <div className={styles.field}>
@@ -167,10 +193,14 @@ export function CreateUserDialog({
               data-testid="input-create-user-confirm-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              onBlur={handleConfirmPasswordBlur}
               placeholder="Re-enter password"
               disabled={isPending}
               className={styles.input}
             />
+            {confirmPasswordError && (
+              <div className={styles.error}>{confirmPasswordError}</div>
+            )}
           </div>
 
           {validationError && (

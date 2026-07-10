@@ -316,9 +316,10 @@ test.describe("P0 — AC-3, AC-4: Create User dialog and validation", () => {
    * RED: Duplicate username validation does not exist.
    * GREEN: Duplicate username returns 409 error and shows error toast.
    */
-  test("Creating user with duplicate username shows error toast", async ({
-    page,
-  }) => {
+  test(
+    "Creating user with duplicate username shows error toast",
+    { annotation: [{ type: "skipNetworkMonitoring" }] },
+    async ({ page }) => {
     // Arrange — open Create User dialog
     await page.goto("/admin");
     await page.getByTestId("tab-users").click();
