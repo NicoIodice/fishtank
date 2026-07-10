@@ -1,7 +1,7 @@
 story_key: "5-2-user-management-create-view-and-deactivate"
 epic_id: "5"
 current_phase: "done"
-status: active
+status: done
 blocked_reason: ""
 test_design_retries: 0
 test_design_auto_created: false
@@ -25,3 +25,4 @@ phases_completed:
   - "test-review"
   - "nfr"
   - "trace"
+  - "done"

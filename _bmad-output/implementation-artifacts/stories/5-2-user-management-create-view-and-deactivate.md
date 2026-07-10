@@ -3,7 +3,7 @@ story_id: "5.2"
 story_key: "5-2-user-management-create-view-and-deactivate"
 epic: 5
 story_title: "User Management — Create, View & Deactivate"
-status: ready-for-dev
+status: done
 priority: high
 frs_covered:
   - FR-31 (Admin users can view, create, and deactivate user accounts. v1 supports two roles: Admin and Standard User. Deactivating a user invalidates their active JWT tokens.)
