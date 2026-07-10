@@ -276,42 +276,43 @@ test.describe("P0 — AC-3, AC-4: Create User dialog and validation", () => {
     "Creating user with valid data adds user to list immediately",
     { annotation: [{ type: "skipNetworkMonitoring" }] },
     async ({ page }) => {
-    // Arrange — open Create User dialog
-    await page.goto("/admin");
-    await page.getByTestId("tab-users").click();
-    await page.getByTestId("btn-create-user").click();
+      // Arrange — open Create User dialog
+      await page.goto("/admin");
+      await page.getByTestId("tab-users").click();
+      await page.getByTestId("btn-create-user").click();
 
-    // Act — fill form and submit
-    const newUsername = "testuser";
-    const newPassword = "TestPassword123";
+      // Act — fill form and submit
+      const newUsername = "testuser";
+      const newPassword = "TestPassword123";
 
-    await page.getByTestId("input-create-user-username").fill(newUsername);
-    await page.getByTestId("input-create-user-password").fill(newPassword);
-    await page
-      .getByTestId("input-create-user-confirm-password")
-      .fill(newPassword);
+      await page.getByTestId("input-create-user-username").fill(newUsername);
+      await page.getByTestId("input-create-user-password").fill(newPassword);
+      await page
+        .getByTestId("input-create-user-confirm-password")
+        .fill(newPassword);
 
-    // RED: POST /api/users does not exist yet (will return 404)
-    await page.getByTestId("dialog-create-user-submit").click();
+      // RED: POST /api/users does not exist yet (will return 404)
+      await page.getByTestId("dialog-create-user-submit").click();
 
-    // Assert — dialog closes
-    // RED: Dialog stays open because API call fails
-    await expect(page.getByTestId("dialog-create-user")).not.toBeVisible();
+      // Assert — dialog closes
+      // RED: Dialog stays open because API call fails
+      await expect(page.getByTestId("dialog-create-user")).not.toBeVisible();
 
-    // Assert — success toast appears
-    // RED: Toast does not appear because mutation fails
-    await expect(
-      page.locator(`text=User '${newUsername}' created`),
-    ).toBeVisible();
+      // Assert — success toast appears
+      // RED: Toast does not appear because mutation fails
+      await expect(
+        page.locator(`text=User '${newUsername}' created`),
+      ).toBeVisible();
 
-    // Assert — new user appears in table
-    // RED: user-row-testuser testid does not exist yet
-    await expect(page.getByTestId(`user-row-${newUsername}`)).toBeVisible();
+      // Assert — new user appears in table
+      // RED: user-row-testuser testid does not exist yet
+      await expect(page.getByTestId(`user-row-${newUsername}`)).toBeVisible();
 
-    // Verify new user has Standard User role
-    const userRow = page.getByTestId(`user-row-${newUsername}`);
-    await expect(userRow.locator("text=Standard User")).toBeVisible();
-  });
+      // Verify new user has Standard User role
+      const userRow = page.getByTestId(`user-row-${newUsername}`);
+      await expect(userRow.locator("text=Standard User")).toBeVisible();
+    },
+  );
 
   /**
    * RED: Duplicate username validation does not exist.
