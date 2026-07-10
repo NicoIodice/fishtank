@@ -10,11 +10,13 @@ public class UserManagementService : IUserManagementService
 {
     private readonly FishtankDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IAuditService _auditService;
 
-    public UserManagementService(FishtankDbContext db, IPasswordHasher passwordHasher)
+    public UserManagementService(FishtankDbContext db, IPasswordHasher passwordHasher, IAuditService auditService)
     {
         _db = db;
         _passwordHasher = passwordHasher;
+        _auditService = auditService;
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync(CancellationToken ct = default)
@@ -26,7 +28,7 @@ public class UserManagementService : IUserManagementService
         return users.Select(MapToDto);
     }
 
-    public async Task<UserDto> CreateUserAsync(string username, string password, CancellationToken ct = default)
+    public async Task<UserDto> CreateUserAsync(string username, string password, Guid? actorId, CancellationToken ct = default, bool forcePasswordChange = true)
     {
         // Validate password length
         if (password.Length < 12)
@@ -50,16 +52,25 @@ public class UserManagementService : IUserManagementService
             Role = UserRole.StandardUser,
             IsActive = true,
             TokenVersion = 0,
-            ForcePasswordChange = true,
+            ForcePasswordChange = forcePasswordChange,
         };
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
+        // AC-8: Log audit entry
+        await _auditService.LogAsync(
+            AuditActions.UserCreated,
+            actorId,
+            "User",
+            user.Id.ToString(),
+            new { username = user.Username },
+            ct);
+
         return MapToDto(user);
     }
 
-    public async Task<UserDto> DeactivateUserAsync(Guid userId, CancellationToken ct = default)
+    public async Task<UserDto> DeactivateUserAsync(Guid userId, Guid actorId, CancellationToken ct = default)
     {
         var user = await _db.Users.FindAsync(new object[] { userId }, ct);
         if (user is null)
@@ -91,6 +102,15 @@ public class UserManagementService : IUserManagementService
         user.TokenVersion++;
 
         await _db.SaveChangesAsync(ct);
+
+        // AC-8: Log audit entry
+        await _auditService.LogAsync(
+            AuditActions.UserDeactivated,
+            actorId,
+            "User",
+            user.Id.ToString(),
+            new { username = user.Username },
+            ct);
 
         return MapToDto(user);
     }

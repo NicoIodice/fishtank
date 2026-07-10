@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FeatureTogglesSection } from "../components/FeatureTogglesSection";
 import { UserManagementSection } from "../components/UserManagementSection";
+import { HealthDashboardSection } from "../components/HealthDashboardSection";
+import { AuditLogSection } from "../components/AuditLogSection";
 import { useTogglesHub } from "../hooks/useTogglesHub";
 import styles from "./AdminConsolePage.module.css";
 
@@ -83,13 +85,8 @@ export function AdminConsolePage() {
         )}
 
         {activeTab === "health" && (
-          <div
-            role="tabpanel"
-            id="panel-health"
-            aria-labelledby="tab-health"
-            className={styles.placeholder}
-          >
-            <p>Coming in Story 5.3</p>
+          <div role="tabpanel" id="panel-health" aria-labelledby="tab-health">
+            <HealthDashboardSection />
           </div>
         )}
 
@@ -98,9 +95,8 @@ export function AdminConsolePage() {
             role="tabpanel"
             id="panel-audit-log"
             aria-labelledby="tab-audit-log"
-            className={styles.placeholder}
           >
-            <p>Coming in Story 5.3</p>
+            <AuditLogSection />
           </div>
         )}
       </div>

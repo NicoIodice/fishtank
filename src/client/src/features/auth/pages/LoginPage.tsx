@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useLogin } from "../hooks/useLogin";
+import { useRegistrationStatus } from "../hooks/useRegistrationStatus";
 import { ApiError } from "@/lib/api";
 import styles from "./AuthPage.module.css";
 
@@ -8,6 +9,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { mutateAsync: login, isPending } = useLogin();
+  const { data: regStatus } = useRegistrationStatus();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -94,6 +96,20 @@ export function LoginPage() {
             {isPending ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        {regStatus?.enabled && (
+          <p
+            style={{
+              marginTop: "1rem",
+              textAlign: "center",
+              fontSize: "0.875rem",
+            }}
+          >
+            Don&apos;t have an account?{" "}
+            <Link to="/register" data-testid="link-login-register">
+              Create account
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );

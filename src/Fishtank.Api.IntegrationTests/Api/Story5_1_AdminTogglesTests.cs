@@ -158,8 +158,8 @@ public class Story5_1_AdminTogglesTests : IntegrationTestBase
         var json = JsonDocument.Parse(body).RootElement;
         var toggles = json.GetProperty("data").EnumerateArray().ToList();
 
-        toggles.Should().HaveCount(5,
-            "all 5 known toggles must be seeded: network_activity, mappings_editor, record_mode, system_events, services_management");
+        toggles.Should().HaveCount(6,
+            "all 6 known toggles must be seeded: network_activity, mappings_editor, record_mode, system_events, services_management, auto_registration");
 
         var names = toggles.Select(t => t.GetProperty("name").GetString()).ToList();
         names.Should().Contain("network_activity");
@@ -167,6 +167,7 @@ public class Story5_1_AdminTogglesTests : IntegrationTestBase
         names.Should().Contain("record_mode");
         names.Should().Contain("system_events");
         names.Should().Contain("services_management");
+        names.Should().Contain("auto_registration");
 
         var first = toggles[0];
         first.TryGetProperty("name", out _).Should().BeTrue();

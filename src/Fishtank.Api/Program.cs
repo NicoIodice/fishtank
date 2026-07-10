@@ -188,6 +188,8 @@ builder.Services.AddSingleton<IRecordingService, RecordingService>();
 builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
 // ─── 6f. User management (Story 5.2) ───────────────────────────────────────
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+// ─── 6g. Audit log (Story 5.3) ─────────────────────────────────────────────
+builder.Services.AddScoped<IAuditService, AuditService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();

@@ -5,6 +5,7 @@ using Fishtank.Api.Services;
 using Fishtank.Api.UnitTests.Support;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 
 namespace Fishtank.Api.UnitTests.Services;
 
@@ -35,7 +36,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
             .Options;
         _db = new FishtankDbContext(options);
         _hasher = new FakePasswordHasher();
-        _sut = new UserManagementService(_db, _hasher);
+        var mockAuditService = Substitute.For<IAuditService>();
+        _sut = new UserManagementService(_db, _hasher, mockAuditService);
     }
 
     public void Dispose()
@@ -119,7 +121,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
     public async Task CreateUserAsync_CreatesStandardUser_WithForcePasswordChangeTrue()
     {
         // Act
-        var result = await _sut.CreateUserAsync("newuser", "securePassword123");
+        var actorId = Guid.NewGuid();
+        var result = await _sut.CreateUserAsync("newuser", "securePassword123", actorId);
 
         // Assert
         result.Username.Should().Be("newuser");
@@ -138,7 +141,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
     public async Task CreateUserAsync_HashesPassword_UsingPasswordHasher()
     {
         // Act
-        await _sut.CreateUserAsync("newuser", "securePassword123");
+        var actorId = Guid.NewGuid();
+        await _sut.CreateUserAsync("newuser", "securePassword123", actorId);
 
         // Assert
         _hasher.HashCalls.Should().Contain("securePassword123");
@@ -154,7 +158,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
     public async Task CreateUserAsync_ThrowsValidationException_WhenPasswordUnder12Chars(string password)
     {
         // Act & Assert
-        var act = async () => await _sut.CreateUserAsync("newuser", password);
+        var actorId = Guid.NewGuid();
+        var act = async () => await _sut.CreateUserAsync("newuser", password, actorId);
         await act.Should().ThrowAsync<ValidationException>()
             .WithMessage("Password must be at least 12 characters.");
     }
@@ -172,10 +177,52 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act & Assert
-        var act = async () => await _sut.CreateUserAsync("existinguser", "securePassword123");
+        var actorId = Guid.NewGuid();
+        var act = async () => await _sut.CreateUserAsync("existinguser", "securePassword123", actorId);
         await act.Should().ThrowAsync<ConflictException>()
             .Where(ex => ex.ErrorCode == "AUTH_USERNAME_EXISTS")
             .WithMessage("A user with this username already exists.");
+    }
+
+    // ── CreateUserAsync with forcePasswordChange parameter (Story 5.3) ────
+
+    [Fact]
+    public async Task CreateUserAsync_CreatesUser_WithForcePasswordChangeFalse_WhenSpecified()
+    {
+        // Act: Story 5.3 — self-registration uses forcePasswordChange=false
+        var actorId = Guid.NewGuid();
+        var result = await _sut.CreateUserAsync(
+            username: "selfreguser",
+            password: "securePassword123",
+            actorId: actorId,
+            forcePasswordChange: false);  // <-- new parameter from Story 5.3
+
+        // Assert
+        result.Username.Should().Be("selfreguser");
+        result.Role.Should().Be("StandardUser");
+        result.IsActive.Should().BeTrue();
+
+        var dbUser = await _db.Users.SingleAsync(u => u.Username == "selfreguser");
+        dbUser.Username.Should().Be("selfreguser");
+        dbUser.Role.Should().Be(UserRole.StandardUser);
+        dbUser.ForcePasswordChange.Should().BeFalse("self-registration should NOT force password change");
+        dbUser.TokenVersion.Should().Be(0);
+        dbUser.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_DefaultsForcePasswordChangeToTrue_WhenNotSpecified()
+    {
+        // Act: Story 5.2 behavior — admin creates user without specifying forcePasswordChange
+        var actorId = Guid.NewGuid();
+        var result = await _sut.CreateUserAsync(
+            username: "admincreateduser",
+            password: "securePassword123",
+            actorId: actorId);  // No forcePasswordChange parameter (defaults to true)
+
+        // Assert
+        var dbUser = await _db.Users.SingleAsync(u => u.Username == "admincreateduser");
+        dbUser.ForcePasswordChange.Should().BeTrue("default behavior should require password change");
     }
 
     // ── DeactivateUserAsync ────────────────────────────────────────────
@@ -196,7 +243,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act
-        var result = await _sut.DeactivateUserAsync(user.Id);
+        var actorId = Guid.NewGuid();
+        var result = await _sut.DeactivateUserAsync(user.Id, actorId);
 
         // Assert
         result.IsActive.Should().BeFalse();
@@ -222,7 +270,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act
-        var result = await _sut.DeactivateUserAsync(user.Id);
+        var actorId = Guid.NewGuid();
+        var result = await _sut.DeactivateUserAsync(user.Id, actorId);
 
         // Assert
         result.IsActive.Should().BeFalse();
@@ -235,7 +284,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
     public async Task DeactivateUserAsync_ThrowsNotFoundException_WhenUserDoesNotExist()
     {
         // Act & Assert
-        var act = async () => await _sut.DeactivateUserAsync(Guid.NewGuid());
+        var actorId = Guid.NewGuid();
+        var act = async () => await _sut.DeactivateUserAsync(Guid.NewGuid(), actorId);
         await act.Should().ThrowAsync<NotFoundException>()
             .Where(ex => ex.ErrorCode == "USER_NOT_FOUND")
             .WithMessage("User not found.");
@@ -274,7 +324,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act & Assert: AC-10 last admin guard
-        var act = async () => await _sut.DeactivateUserAsync(lastAdmin.Id);
+        var actorId = Guid.NewGuid();
+        var act = async () => await _sut.DeactivateUserAsync(lastAdmin.Id, actorId);
         await act.Should().ThrowAsync<ConflictException>()
             .Where(ex => ex.ErrorCode == "ADMIN_LAST_ADMIN_DEACTIVATE")
             .WithMessage("Cannot deactivate the last active administrator.");
@@ -306,7 +357,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act: deactivate one admin (should succeed)
-        var result = await _sut.DeactivateUserAsync(admin1.Id);
+        var actorId = Guid.NewGuid();
+        var result = await _sut.DeactivateUserAsync(admin1.Id, actorId);
 
         // Assert
         result.IsActive.Should().BeFalse();
@@ -338,7 +390,8 @@ public class UserManagementServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         // Act: deactivate Standard User (should always succeed regardless of admin count)
-        var result = await _sut.DeactivateUserAsync(standardUser.Id);
+        var actorId = Guid.NewGuid();
+        var result = await _sut.DeactivateUserAsync(standardUser.Id, actorId);
 
         // Assert
         result.IsActive.Should().BeFalse();
