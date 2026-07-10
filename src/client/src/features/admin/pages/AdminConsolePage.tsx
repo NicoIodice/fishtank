@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { FeatureTogglesSection } from "../components/FeatureTogglesSection";
+import { UserManagementSection } from "../components/UserManagementSection";
 import { useTogglesHub } from "../hooks/useTogglesHub";
 import styles from "./AdminConsolePage.module.css";
 
-type Tab = "feature-toggles" | "health" | "audit-log";
+type Tab = "users" | "feature-toggles" | "health" | "audit-log";
 
 export function AdminConsolePage() {
   const [activeTab, setActiveTab] = useState<Tab>("feature-toggles");
@@ -28,6 +29,17 @@ export function AdminConsolePage() {
           onClick={() => setActiveTab("feature-toggles")}
         >
           Feature Toggles
+        </button>
+        <button
+          id="tab-users"
+          role="tab"
+          aria-selected={activeTab === "users"}
+          aria-controls="panel-users"
+          data-testid="tab-users"
+          className={`${styles.tab} ${activeTab === "users" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("users")}
+        >
+          Users
         </button>
         <button
           id="tab-health"
@@ -55,19 +67,39 @@ export function AdminConsolePage() {
 
       <div className={styles.content}>
         {activeTab === "feature-toggles" && (
-          <div role="tabpanel" id="panel-feature-toggles" aria-labelledby="tab-feature-toggles">
+          <div
+            role="tabpanel"
+            id="panel-feature-toggles"
+            aria-labelledby="tab-feature-toggles"
+          >
             <FeatureTogglesSection />
           </div>
         )}
 
+        {activeTab === "users" && (
+          <div role="tabpanel" id="panel-users" aria-labelledby="tab-users">
+            <UserManagementSection />
+          </div>
+        )}
+
         {activeTab === "health" && (
-          <div role="tabpanel" id="panel-health" aria-labelledby="tab-health" className={styles.placeholder}>
+          <div
+            role="tabpanel"
+            id="panel-health"
+            aria-labelledby="tab-health"
+            className={styles.placeholder}
+          >
             <p>Coming in Story 5.3</p>
           </div>
         )}
 
         {activeTab === "audit-log" && (
-          <div role="tabpanel" id="panel-audit-log" aria-labelledby="tab-audit-log" className={styles.placeholder}>
+          <div
+            role="tabpanel"
+            id="panel-audit-log"
+            aria-labelledby="tab-audit-log"
+            className={styles.placeholder}
+          >
             <p>Coming in Story 5.3</p>
           </div>
         )}

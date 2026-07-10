@@ -121,10 +121,17 @@ public static class AuthEndpoints
 
         var result = await auth.LoginAsync(req.Username, req.Password);
 
-        if (result.Status != LoginStatus.Success)
+        if (result.Status == LoginStatus.InvalidCredentials)
             return Results.Json(
                 ApiResponse.Fail("AUTH_INVALID_CREDENTIALS",
                     "Invalid credentials."),  // Generic — does not reveal which field failed (AC-5)
+                statusCode: StatusCodes.Status401Unauthorized);
+
+        // AC-8: Deactivated account
+        if (result.Status == LoginStatus.AccountDeactivated)
+            return Results.Json(
+                ApiResponse.Fail("AUTH_ACCOUNT_DEACTIVATED",
+                    "This account has been deactivated."),
                 statusCode: StatusCodes.Status401Unauthorized);
 
         return await IssueTokenAndRespond(

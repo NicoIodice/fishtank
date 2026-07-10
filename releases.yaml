@@ -166,6 +166,8 @@ releases:
     stories:
       - id: "5-1-feature-toggles-runtime-control-and-signalr-broadcast"
         status: "done"
+      - id: "5-2-user-management-create-view-and-deactivate"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v1.0.0 — Release Polish & Distribution (Epic 6)

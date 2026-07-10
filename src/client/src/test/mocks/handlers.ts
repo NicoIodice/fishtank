@@ -120,4 +120,56 @@ export const handlers = [
       data: { isRecording: false, startedAt: null },
     });
   }),
+
+  // ─── Story 5.2: User Management endpoints ──────────────────────────────────
+  // GET /api/users — returns all users (Admin only)
+  http.get("/api/users", () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: "1",
+          username: "admin",
+          role: "Admin",
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          username: "standarduser",
+          role: "StandardUser",
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+  }),
+
+  // POST /api/users — create new Standard User (Admin only)
+  http.post("/api/users", () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: "3",
+        username: "newuser",
+        role: "StandardUser",
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      },
+    });
+  }),
+
+  // PUT /api/users/{id}/deactivate — deactivate user (Admin only)
+  http.put("/api/users/:id/deactivate", () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        id: "2",
+        username: "standarduser",
+        role: "StandardUser",
+        isActive: false,
+        createdAt: new Date().toISOString(),
+      },
+    });
+  }),
 ];

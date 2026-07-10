@@ -19,6 +19,8 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   caption?: string;
   "data-testid"?: string;
+  getRowTestId?: (row: T) => string;
+  getRowClassName?: (row: T) => string;
 }
 
 export function DataTable<T>({
@@ -28,6 +30,8 @@ export function DataTable<T>({
   onRowClick,
   caption,
   "data-testid": testId,
+  getRowTestId,
+  getRowClassName,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
@@ -133,13 +137,14 @@ export function DataTable<T>({
           {sortedRows.map((row, idx) => (
             <tr
               key={getRowId(row)}
-              className={`${styles.tr} ${onRowClick ? styles.clickable : ""}`}
+              className={`${styles.tr} ${onRowClick ? styles.clickable : ""} ${getRowClassName?.(row) ?? ""}`}
               tabIndex={onRowClick ? 0 : undefined}
               onClick={() => onRowClick?.(row)}
               onKeyDown={(e) => handleKeyDown(e, idx)}
               aria-label={
                 columns[0]?.ariaLabel ? columns[0].ariaLabel(row) : undefined
               }
+              data-testid={getRowTestId?.(row)}
             >
               {columns.map((col) => (
                 <td key={col.key} className={styles.td}>

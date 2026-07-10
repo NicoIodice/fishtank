@@ -16,12 +16,17 @@ _Theme: Manage users, control feature availability, and review the audit trail._
 
 ### Added
 
-- **Admin Console page** — new `/admin` route with a tabbed shell (Feature Toggles / Health / Audit Log); accessible to Admin-role users only; Standard Users are redirected to `/services` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Admin Console page** — new `/admin` route with a tabbed shell (Feature Toggles / **Users** / Health / Audit Log); accessible to Admin-role users only; Standard Users are redirected to `/services` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
 - **Admin Console nav item** — collapsible sidebar nav item with `bi-shield-lock` icon, rendered below a visual divider; only visible to Admin-role users (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
 - **Feature toggles runtime control** — `GET /api/admin/toggles` and `PUT /api/admin/toggles/{name}` endpoints; 5 toggles seeded at startup (Network Activity, Mappings Editor, Record Mode, System Events, Services Management); all default to enabled (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
 - **Environment variable override** — `FISHTANK_TOGGLE_{NAME}` environment variables take precedence over database state; locked toggles display an "Overridden by env var" badge and reject PUT with HTTP 409 `ADMIN_TOGGLE_ENV_LOCKED` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
 - **Real-time toggle broadcast** — `TogglesHub` at `/hubs/toggles` broadcasts `FeatureToggleChanged` events to all connected sessions on every state change; `HUB_INVALIDATION_MAP` updated with `FeatureToggleChanged → ["toggles"]` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
 - **Disable confirmation dialog** — disabling an enabled toggle shows a confirmation dialog; enabling requires no confirmation (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **User Management tab** — Users tab in Admin Console listing all accounts (Username, Role, Status, Created date) sorted alphabetically; Active users show a green badge, deactivated users show a slate badge with 50% row opacity (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Create User** — `POST /api/users` creates Standard User accounts with `ForcePasswordChange: true`; dialog validates username uniqueness and password ≥ 12 characters with match confirmation; returns HTTP 409 `AUTH_USERNAME_EXISTS` on duplicate (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Deactivate User with JWT invalidation** — `PUT /api/users/{id}/deactivate` sets `IsActive = false` and increments `TokenVersion`, immediately invalidating all existing JWTs for that user; guarded by last-admin check (HTTP 409 `ADMIN_LAST_ADMIN_DEACTIVATE`) and self-deactivation prevention in the UI (`feature/5-2-user-management-create-view-and-deactivate`)
+- **User management role enforcement** — `GET /api/users`, `POST /api/users`, and `PUT /api/users/{id}/deactivate` require Admin role; Standard Users receive HTTP 403 `ADMIN_FORBIDDEN` (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Deactivated account login guard** — `POST /api/auth/login` returns HTTP 401 `AUTH_ACCOUNT_DEACTIVATED` when a deactivated user attempts sign-in (`feature/5-2-user-management-create-view-and-deactivate`)
 
 ---
 
