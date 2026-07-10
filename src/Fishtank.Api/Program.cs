@@ -186,6 +186,8 @@ builder.Services.AddScoped<IResyncService, ResyncService>();
 builder.Services.AddSingleton<IRecordingService, RecordingService>();
 // ─── 6e. Feature toggles (Story 5.1) ───────────────────────────────────────
 builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
+// ─── 6f. User management (Story 5.2) ───────────────────────────────────────
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
@@ -262,6 +264,7 @@ app.MapSystemEventsEndpoints();
 app.MapCacheEndpoints();
 app.MapActivityEndpoints();
 app.MapAdminEndpoints();
+app.MapUsersEndpoints();
 app.MapHub<ServicesHub>("/hubs/services");
 app.MapHub<EventsHub>("/hubs/events");
 app.MapHub<ActivityHub>("/hubs/activity");

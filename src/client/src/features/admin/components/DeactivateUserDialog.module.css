@@ -1,0 +1,94 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.description {
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.description p {
+  margin-bottom: 0.5rem;
+}
+
+.warning {
+  color: #f59e0b;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.details {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.list {
+  list-style-type: disc;
+  list-style-position: inside;
+  margin-top: 0.5rem;
+  line-height: 1.75;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+}
+
+.confirmBtn {
+  padding: 0.5rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.cancelBtn:disabled,
+.confirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

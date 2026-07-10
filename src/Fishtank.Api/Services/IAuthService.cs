@@ -5,7 +5,7 @@ namespace Fishtank.Api.Services;
 public enum SetupStatus { Success, AlreadySetup, PasswordTooShort }
 public record SetupResult(SetupStatus Status, User? User = null);
 
-public enum LoginStatus { Success, InvalidCredentials }
+public enum LoginStatus { Success, InvalidCredentials, AccountDeactivated }
 public record LoginResult(LoginStatus Status, User? User = null);
 
 public enum ChangePasswordStatus { Success, PasswordTooShort }

@@ -153,7 +153,7 @@ public class AuthServiceTests : UnitTestBase, IDisposable
         await _db.SaveChangesAsync();
 
         var result = await _sut.LoginAsync("admin", "strongpassword12");
-        result.Status.Should().Be(LoginStatus.InvalidCredentials);
+        result.Status.Should().Be(LoginStatus.AccountDeactivated);
     }
 
     // ── LogoutAsync ────────────────────────────────────────────────────
