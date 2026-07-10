@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Fishtank.Api.Data;
+using Fishtank.Api.Models;
 using Fishtank.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -44,6 +45,12 @@ public static class AuthEndpoints
             var needsSetup = !await db.Users.AnyAsync();
             return Results.Json(new { success = true, data = new { needsSetup } });
         });
+
+        // GET /api/auth/registration-status — PUBLIC, no auth required (AC-11)
+        group.MapGet("/registration-status", GetRegistrationStatusHandler);
+
+        // POST /api/auth/register — PUBLIC, gated by auto_registration toggle (AC-10)
+        group.MapPost("/register", RegisterHandler);
     }
 
     private static async Task<IResult> SetupHandler(
@@ -195,6 +202,97 @@ public static class AuthEndpoints
         };
     }
 
+    // ─── handlers for registration ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// AC-11: GET /api/auth/registration-status (PUBLIC)
+    /// Returns whether auto-registration is enabled
+    /// </summary>
+    private static async Task<IResult> GetRegistrationStatusHandler(
+        IFeatureToggleService toggleService,
+        CancellationToken ct)
+    {
+        var toggles = await toggleService.GetAllTogglesAsync(ct);
+        var autoRegToggle = toggles.FirstOrDefault(t => t.Name == "auto_registration");
+        var enabled = autoRegToggle?.Enabled ?? false;
+
+        var response = new RegistrationStatusDto(Enabled: enabled);
+        return Results.Ok(ApiResponse.Ok(response));
+    }
+
+    /// <summary>
+    /// AC-10: POST /api/auth/register (PUBLIC)
+    /// Creates a Standard User account if auto_registration toggle is enabled
+    /// </summary>
+    private static async Task<IResult> RegisterHandler(
+        RegisterRequest req,
+        IFeatureToggleService toggleService,
+        IUserManagementService userService,
+        IAuthService auth,
+        IServerConfigService configService,
+        FishtankDbContext db,
+        HttpContext ctx,
+        CancellationToken ct)
+    {
+        // Check auto_registration toggle
+        var toggles = await toggleService.GetAllTogglesAsync(ct);
+        var autoRegToggle = toggles.FirstOrDefault(t => t.Name == "auto_registration");
+        if (autoRegToggle?.Enabled != true)
+        {
+            return Results.Json(
+                ApiResponse.Fail("AUTH_REGISTRATION_DISABLED", "User registration is currently disabled."),
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        // Validate password length (≥12 chars)
+        if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 12)
+        {
+            return Results.Json(
+                ApiResponse.Fail("AUTH_PASSWORD_TOO_SHORT", "Password must be at least 12 characters."),
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        // Validate username
+        if (string.IsNullOrWhiteSpace(req.Username))
+        {
+            return Results.Json(
+                ApiResponse.Fail("VALIDATION_ERROR", "Username is required."),
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        try
+        {
+            // AC-10: actorId is null + forcePasswordChange=false for self-registration
+            var userDto = await userService.CreateUserAsync(
+                req.Username, req.Password, actorId: null, ct,
+                forcePasswordChange: false);
+
+            // Issue JWT and set cookie
+            var bootEpoch = await configService.GetBootEpochAsync();
+            var user = await db.Users.FindAsync(new object[] { userDto.Id }, ct);
+            var token = auth.IssueJwt(user!, bootEpoch);
+            SetJwtCookie(ctx.Response, token, IsProduction(ctx));
+
+            return Results.Json(ApiResponse.Ok(new
+            {
+                username = userDto.Username,
+                role = userDto.Role
+            }));
+        }
+        catch (Exceptions.ValidationException ex)
+        {
+            return Results.Json(
+                ApiResponse.Fail(ex.ErrorCode, ex.Message),
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (Exceptions.ConflictException ex)
+        {
+            return Results.Json(
+                ApiResponse.Fail(ex.ErrorCode, ex.Message),
+                statusCode: StatusCodes.Status409Conflict);
+        }
+    }
+
     // ─── helpers ──────────────────────────────────────────────────────────────
 
     private static async Task<IResult> IssueTokenAndRespond<T>(
@@ -232,3 +330,4 @@ public static class AuthEndpoints
 public record SetupRequest(string? Username, string? Password);
 public record LoginRequest(string? Username, string? Password);
 public record ChangePasswordRequest(string? NewPassword);
+public record RegisterRequest(string? Username, string? Password);

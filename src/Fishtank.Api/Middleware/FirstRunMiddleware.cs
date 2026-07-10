@@ -16,6 +16,7 @@ public class FirstRunMiddleware(RequestDelegate next)
         new(StringComparer.OrdinalIgnoreCase)
         {
             "/api/auth/setup",
+            "/api/auth/registration-status",
             "/api/setup/status",
             "/api/test/reset-db",
             "/api/test/reset-services",

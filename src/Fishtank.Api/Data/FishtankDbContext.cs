@@ -11,6 +11,7 @@ public class FishtankDbContext(DbContextOptions<FishtankDbContext> options)
     public DbSet<Service> Services => Set<Service>();
     public DbSet<SystemEvent> SystemEvents => Set<SystemEvent>();
     public DbSet<FeatureToggle> FeatureToggles => Set<FeatureToggle>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,5 +30,15 @@ public class FishtankDbContext(DbContextOptions<FishtankDbContext> options)
 
         modelBuilder.Entity<FeatureToggle>()
             .HasIndex(t => t.Name).IsUnique();
+
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => a.CreatedAt);
+
+        modelBuilder.Entity<AuditLog>()
+            .HasOne(a => a.Actor)
+            .WithMany()
+            .HasForeignKey(a => a.ActorId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

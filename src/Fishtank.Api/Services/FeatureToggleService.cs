@@ -10,7 +10,7 @@ namespace Fishtank.Api.Services;
 public interface IFeatureToggleService
 {
     Task<List<FeatureToggleDto>> GetAllTogglesAsync(CancellationToken ct = default);
-    Task<FeatureToggleDto> SetToggleAsync(string name, bool enabled, CancellationToken ct = default);
+    Task<FeatureToggleDto> SetToggleAsync(string name, bool enabled, Guid actorId, CancellationToken ct = default);
 }
 
 public record FeatureToggleDto(
@@ -25,15 +25,18 @@ public class FeatureToggleService : IFeatureToggleService
 {
     private readonly FishtankDbContext _db;
     private readonly IHubContext<TogglesHub> _hubContext;
+    private readonly IAuditService _auditService;
     private readonly Dictionary<string, bool> _envVarOverrides;
 
     public FeatureToggleService(
         FishtankDbContext db,
         IHubContext<TogglesHub> hubContext,
+        IAuditService auditService,
         IConfiguration configuration)
     {
         _db = db;
         _hubContext = hubContext;
+        _auditService = auditService;
         _envVarOverrides = LoadEnvVarOverrides(configuration);
     }
 
@@ -41,12 +44,19 @@ public class FeatureToggleService : IFeatureToggleService
     {
         var overrides = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
-        // Scan all environment variables for FISHTANK_TOGGLE_* pattern
-        var knownToggles = new[] { "network_activity", "mappings_editor", "record_mode", "system_events", "services_management" };
-
-        foreach (var toggle in knownToggles)
+        // auto_registration uses its own env var name (no _TOGGLE_ segment)
+        var knownToggles = new Dictionary<string, string>
         {
-            var envKey = $"FISHTANK_TOGGLE_{toggle.ToUpperInvariant()}";
+            ["network_activity"]    = "FISHTANK_TOGGLE_NETWORK_ACTIVITY",
+            ["mappings_editor"]     = "FISHTANK_TOGGLE_MAPPINGS_EDITOR",
+            ["record_mode"]         = "FISHTANK_TOGGLE_RECORD_MODE",
+            ["system_events"]       = "FISHTANK_TOGGLE_SYSTEM_EVENTS",
+            ["services_management"] = "FISHTANK_TOGGLE_SERVICES_MANAGEMENT",
+            ["auto_registration"]   = "FISHTANK_AUTO_REGISTRATION",
+        };
+
+        foreach (var (toggle, envKey) in knownToggles)
+        {
             var envValue = configuration[envKey];
 
             if (!string.IsNullOrWhiteSpace(envValue) && bool.TryParse(envValue, out var value))
@@ -75,7 +85,7 @@ public class FeatureToggleService : IFeatureToggleService
             .ToList();
     }
 
-    public async Task<FeatureToggleDto> SetToggleAsync(string name, bool enabled, CancellationToken ct = default)
+    public async Task<FeatureToggleDto> SetToggleAsync(string name, bool enabled, Guid actorId, CancellationToken ct = default)
     {
         // AC-10: Env-var-locked toggle PUT returns 409
         if (_envVarOverrides.ContainsKey(name))
@@ -92,9 +102,19 @@ public class FeatureToggleService : IFeatureToggleService
             throw new NotFoundException("ADMIN_TOGGLE_NOT_FOUND", $"Toggle '{name}' not found.");
         }
 
+        var oldValue = toggle.Enabled;
         toggle.Enabled = enabled;
         toggle.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // AC-8: Log audit entry
+        await _auditService.LogAsync(
+            AuditActions.ToggleChanged,
+            actorId,
+            "Toggle",
+            toggle.Name,
+            new { from = oldValue, to = enabled },
+            ct);
 
         // AC-8: Broadcast via SignalR to all sessions
         await _hubContext.Clients.All.SendAsync("FeatureToggleChanged", new

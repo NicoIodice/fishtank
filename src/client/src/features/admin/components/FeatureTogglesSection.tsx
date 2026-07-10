@@ -113,6 +113,7 @@ export function FeatureTogglesSection() {
                       }
                       disabled={isLocked || isSettingToggle}
                       aria-disabled={isLocked}
+                      aria-checked={effectiveEnabled}
                       data-testid={`toggle-switch-${toggle.name}`}
                     />
                     <span className={styles.toggleTrack} />

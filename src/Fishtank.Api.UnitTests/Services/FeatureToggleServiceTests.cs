@@ -107,7 +107,7 @@ public class FeatureToggleServiceTests
         });
 
         // Act
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var result = await service.GetAllTogglesAsync();
 
         // Assert
@@ -136,7 +136,7 @@ public class FeatureToggleServiceTests
         });
 
         // Act
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var result = await service.GetAllTogglesAsync();
 
         // Assert
@@ -164,7 +164,7 @@ public class FeatureToggleServiceTests
         });
 
         // Act
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var result = await service.GetAllTogglesAsync();
 
         // Assert
@@ -189,7 +189,7 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         var result = await service.GetAllTogglesAsync();
@@ -218,7 +218,7 @@ public class FeatureToggleServiceTests
             ["FISHTANK_TOGGLE_NETWORK_ACTIVITY"] = "false"
         });
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         var result = await service.GetAllTogglesAsync();
@@ -240,7 +240,7 @@ public class FeatureToggleServiceTests
         _db = CreateInMemoryDb();
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         var result = await service.GetAllTogglesAsync();
@@ -267,7 +267,7 @@ public class FeatureToggleServiceTests
         await _db.SaveChangesAsync();
 
         _config = CreateConfig();
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         var result = await service.GetAllTogglesAsync();
@@ -289,10 +289,10 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
-        var result = await service.SetToggleAsync("network_activity", false);
+        var result = await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
 
         // Assert
         result.Name.Should().Be("network_activity");
@@ -312,11 +312,11 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var beforeUpdate = DateTimeOffset.UtcNow;
 
         // Act
-        var result = await service.SetToggleAsync("network_activity", false);
+        var result = await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
 
         // Assert
         result.UpdatedAt.Should().BeOnOrAfter(beforeUpdate);
@@ -331,10 +331,10 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
-        await service.SetToggleAsync("network_activity", false);
+        await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
 
         // Assert
         await _mockClientProxy.Received(1).SendCoreAsync(
@@ -359,10 +359,10 @@ public class FeatureToggleServiceTests
             ["FISHTANK_TOGGLE_NETWORK_ACTIVITY"] = "true"  // Locked by env var
         });
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
-        var act = async () => await service.SetToggleAsync("network_activity", false);
+        var act = async () => await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
 
         // Assert
         await act.Should().ThrowAsync<ConflictException>()
@@ -382,10 +382,10 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
-        var act = async () => await service.SetToggleAsync("unknown_toggle", true);
+        var act = async () => await service.SetToggleAsync("unknown_toggle", true, Guid.NewGuid());
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>()
@@ -401,12 +401,12 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         try
         {
-            await service.SetToggleAsync("unknown_toggle", true);
+            await service.SetToggleAsync("unknown_toggle", true, Guid.NewGuid());
         }
         catch (NotFoundException)
         {
@@ -432,12 +432,12 @@ public class FeatureToggleServiceTests
             ["FISHTANK_TOGGLE_NETWORK_ACTIVITY"] = "true"
         });
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
         try
         {
-            await service.SetToggleAsync("network_activity", false);
+            await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
         }
         catch (ConflictException)
         {
@@ -459,10 +459,10 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act - use mixed case name that doesn't match DB exactly
-        var result = await service.SetToggleAsync("network_activity", false);
+        var result = await service.SetToggleAsync("network_activity", false, Guid.NewGuid());
 
         // Assert
         result.Name.Should().Be("network_activity");
@@ -477,10 +477,10 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
 
         // Act
-        var result = await service.SetToggleAsync("record_mode", true);
+        var result = await service.SetToggleAsync("record_mode", true, Guid.NewGuid());
 
         // Assert
         result.Name.Should().Be("record_mode");
@@ -488,6 +488,111 @@ public class FeatureToggleServiceTests
 
         var dbToggle = await _db.FeatureToggles.FirstAsync(t => t.Name == "record_mode");
         dbToggle.Enabled.Should().BeTrue();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Auto-Registration Toggle Tests (Story 5.3)
+    // ────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "Constructor loads FISHTANK_AUTO_REGISTRATION env var for auto_registration toggle")]
+    public async Task Constructor_LoadsAutoRegistrationEnvVar()
+    {
+        // Arrange
+        _db = CreateInMemoryDb();
+        _db.FeatureToggles.Add(new FeatureToggle
+        {
+            Id = Guid.NewGuid(),
+            Name = "auto_registration",
+            DisplayName = "User Self-Registration",
+            Description = "Allow users to self-register",
+            Enabled = false,  // Default OFF in DB
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        // Env var overrides to TRUE
+        _config = CreateConfig(new Dictionary<string, string?>
+        {
+            ["FISHTANK_AUTO_REGISTRATION"] = "true"
+        });
+
+        // Act
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
+        var result = await service.GetAllTogglesAsync();
+
+        // Assert
+        var autoReg = result.First(t => t.Name == "auto_registration");
+        autoReg.Enabled.Should().BeTrue("FISHTANK_AUTO_REGISTRATION env var should override DB value");
+        autoReg.EnvVarOverride.Should().Be(true);
+    }
+
+    [Fact(DisplayName = "Constructor loads auto_registration without _TOGGLE_ segment in env var name")]
+    public async Task Constructor_LoadsAutoRegistrationWithoutToggleSegment()
+    {
+        // Arrange
+        _db = CreateInMemoryDb();
+        _db.FeatureToggles.Add(new FeatureToggle
+        {
+            Id = Guid.NewGuid(),
+            Name = "auto_registration",
+            DisplayName = "User Self-Registration",
+            Description = "Allow users to self-register",
+            Enabled = false,
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        // Use FISHTANK_AUTO_REGISTRATION, NOT FISHTANK_TOGGLE_AUTO_REGISTRATION
+        _config = CreateConfig(new Dictionary<string, string?>
+        {
+            ["FISHTANK_AUTO_REGISTRATION"] = "true",
+            ["FISHTANK_TOGGLE_AUTO_REGISTRATION"] = "false"  // Should NOT be used
+        });
+
+        // Act
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
+        var result = await service.GetAllTogglesAsync();
+
+        // Assert
+        var autoReg = result.First(t => t.Name == "auto_registration");
+        autoReg.Enabled.Should().BeTrue("FISHTANK_AUTO_REGISTRATION should be used, not FISHTANK_TOGGLE_AUTO_REGISTRATION");
+        autoReg.EnvVarOverride.Should().Be(true);
+    }
+
+    [Fact(DisplayName = "GetAllTogglesAsync includes auto_registration with env var override")]
+    public async Task GetAllTogglesAsync_IncludesAutoRegistrationWithEnvOverride()
+    {
+        // Arrange
+        _db = CreateInMemoryDb();
+        await SeedTogglesAsync(_db);
+        _db.FeatureToggles.Add(new FeatureToggle
+        {
+            Id = Guid.NewGuid(),
+            Name = "auto_registration",
+            DisplayName = "User Self-Registration",
+            Description = "Allow users to self-register",
+            Enabled = false,
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        _config = CreateConfig(new Dictionary<string, string?>
+        {
+            ["FISHTANK_AUTO_REGISTRATION"] = "true"
+        });
+
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
+
+        // Act
+        var result = await service.GetAllTogglesAsync();
+
+        // Assert
+        result.Should().HaveCount(4, "should include auto_registration");
+        var autoReg = result.First(t => t.Name == "auto_registration");
+        autoReg.Name.Should().Be("auto_registration");
+        autoReg.DisplayName.Should().Be("User Self-Registration");
+        autoReg.Enabled.Should().BeTrue("env var should override DB false");
+        autoReg.EnvVarOverride.Should().Be(true);
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -502,7 +607,7 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -521,12 +626,12 @@ public class FeatureToggleServiceTests
         await SeedTogglesAsync(_db);
         _config = CreateConfig();
 
-        var service = new FeatureToggleService(_db, _mockHubContext, _config);
+        var service = new FeatureToggleService(_db, _mockHubContext, Substitute.For<IAuditService>(), _config);
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
         // Act
-        var act = async () => await service.SetToggleAsync("network_activity", false, cts.Token);
+        var act = async () => await service.SetToggleAsync("network_activity", false, Guid.NewGuid(), cts.Token);
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
