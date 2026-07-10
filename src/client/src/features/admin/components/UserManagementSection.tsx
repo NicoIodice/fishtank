@@ -41,7 +41,7 @@ export function UserManagementSection() {
     {
       key: "role",
       header: "Role",
-      cell: (row) => row.role,
+      cell: (row) => (row.role === "StandardUser" ? "Standard User" : row.role),
     },
     {
       key: "isActive",
