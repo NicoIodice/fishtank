@@ -1,7 +1,9 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using Fishtank.Api.IntegrationTests.Support;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Fishtank.Api.IntegrationTests.OpenApi;
 
@@ -355,5 +357,74 @@ public class OpenApiSpecTests : IntegrationTestBase
         hasErrorSchema.Should().BeTrue(
             "OpenAPI spec must document error response schemas with error codes (AC-4). " +
             $"Found schemas: {string.Join(", ", schemaNames.Take(10))}...");
+    }
+
+    // -------------------------------------------------------------------------
+    // AC-1 — OpenAPI spec available in Production environment (new test)
+    // RED:  app.MapOpenApi() is currently guarded to Development + Testing only
+    // GREEN: Move app.MapOpenApi() outside the environment check
+    // -------------------------------------------------------------------------
+
+    [Fact(DisplayName = "AC-1: GET /openapi/v1.json available in Production environment")]
+    public async Task GetOpenApiSpec_AvailableInProductionEnvironment()
+    {
+        // Arrange - Create a WebApplicationFactory with Production environment
+        await using var productionFactory = Factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Production");
+            // Configure required settings for Production startup
+            builder.UseSetting("FISHTANK_JWT_SECRET", "test-jwt-secret-32-characters-minimum!!");
+            builder.UseSetting("FISHTANK_PIPELINE_RESET_KEY", "test-reset-key-32chars-minimum!!");
+        });
+
+        var productionClient = productionFactory.CreateClient(
+            new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false,
+            });
+
+        // Act
+        var response = await productionClient.GetAsync("/openapi/v1.json");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            "OpenAPI spec must be available in Production environment (AC-1) — " +
+            "currently MapOpenApi() is guarded to Development + Testing only");
+
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNullOrEmpty("Production environment spec must contain JSON content");
+
+        // Cleanup
+        productionClient.Dispose();
+    }
+
+    // -------------------------------------------------------------------------
+    // AC-7 (additional verification) — POST /api/services/import returns 501
+    // RED:  Endpoint not implemented or not returning 501
+    // GREEN: Endpoint returns 501 Not Implemented
+    // -------------------------------------------------------------------------
+
+    [Fact(DisplayName = "AC-7: POST /api/services/import returns 501 Not Implemented")]
+    public async Task ServicesImport_ReturnsNotImplemented()
+    {
+        // Arrange - Create authenticated client
+        await Client.PostAsJsonAsync("/api/auth/setup",
+            new { username = "admin", password = "adminpassword123" });
+
+        var authClient = await TestAuthHelper.CreateAuthenticatedClientAsync(
+            Factory, "admin", "adminpassword123");
+
+        // Act
+        var response = await authClient.PostAsJsonAsync("/api/services/import", new
+        {
+            seedFile = "test-seed.json"
+        });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotImplemented,
+            "POST /api/services/import must return 501 Not Implemented (AC-7 — documented but not yet implemented)");
+
+        // Cleanup
+        authClient.Dispose();
     }
 }

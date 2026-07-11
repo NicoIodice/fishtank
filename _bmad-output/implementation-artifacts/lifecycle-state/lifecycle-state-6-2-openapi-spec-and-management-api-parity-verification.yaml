@@ -1,6 +1,6 @@
 story_key: "6-2-openapi-spec-and-management-api-parity-verification"
 epic_id: "6"
-current_phase: dev-story
+current_phase: test-automate
 status: active
 blocked_reason: ""
 test_design_retries: 0
@@ -8,10 +8,10 @@ test_design_auto_created: false
 atdd_retries: 0
 validate_retries: 0
 dev_retries: 0
-code_review_retries: 0
+code_review_retries: 1
 nfr_retries: 0
 trace_retries: 0
-quickdev_cycle: 0
+quickdev_cycle: 1
 last_updated: "2026-07-11"
 phases_completed:
   - preflight-framework
@@ -19,3 +19,5 @@ phases_completed:
   - create-story
   - validate
   - atdd
+  - dev-story
+  - code-review
