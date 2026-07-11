@@ -17,40 +17,50 @@ public static class AuthEndpoints
 
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/auth");
+        var group = app.MapGroup("/api/auth")
+            .WithTags("Auth");
 
         // POST /api/auth/setup — creates the one-and-only admin account
-        group.MapPost("/setup", SetupHandler);
+        group.MapPost("/setup", SetupHandler)
+            .WithSummary("Create the initial admin account (one-time setup)");
 
         // GET /api/auth/me — returns current user info; used by ProtectedRoute
         // No RequireAuthorization() — the handler checks ctx.User manually so it
         // can return our standard JSON envelope on 401 (bare framework 401 has no body)
-        group.MapGet("/me", MeHandler);
+        group.MapGet("/me", MeHandler)
+            .WithSummary("Get current authenticated user info");
 
         // POST /api/auth/login — rate limited (AC-7)
         group.MapPost("/login", LoginHandler)
-             .RequireRateLimiting("login");
+             .RequireRateLimiting("login")
+             .WithSummary("Authenticate user and issue JWT token");
 
         // POST /api/auth/logout — requires authentication
         group.MapPost("/logout", LogoutHandler)
-             .RequireAuthorization();
+             .RequireAuthorization()
+             .WithSummary("Log out the current user");
 
         // PUT /api/auth/change-password — requires authentication
         group.MapPut("/change-password", ChangePasswordHandler)
-             .RequireAuthorization();
+             .RequireAuthorization()
+             .WithSummary("Change password for the current user");
 
         // GET /api/setup/status — returns needsSetup flag; permitted before first-run
         app.MapGet("/api/setup/status", async (FishtankDbContext db) =>
         {
             var needsSetup = !await db.Users.AnyAsync();
             return Results.Json(new { success = true, data = new { needsSetup } });
-        });
+        })
+        .WithTags("Auth")
+        .WithSummary("Check if initial setup is required");
 
         // GET /api/auth/registration-status — PUBLIC, no auth required (AC-11)
-        group.MapGet("/registration-status", GetRegistrationStatusHandler);
+        group.MapGet("/registration-status", GetRegistrationStatusHandler)
+            .WithSummary("Check if user self-registration is enabled");
 
         // POST /api/auth/register — PUBLIC, gated by auto_registration toggle (AC-10)
-        group.MapPost("/register", RegisterHandler);
+        group.MapPost("/register", RegisterHandler)
+            .WithSummary("Register a new user account (if self-registration is enabled)");
     }
 
     private static async Task<IResult> SetupHandler(

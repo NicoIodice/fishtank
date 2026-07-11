@@ -6,8 +6,14 @@ public static class SettingsEndpoints
 {
     public static void MapSettingsEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/settings", GetSettingsAsync).RequireAuthorization();
-        app.MapPut("/api/settings/capture-headers", PutCaptureHeadersAsync).RequireAuthorization();
+        app.MapGet("/api/settings", GetSettingsAsync)
+            .RequireAuthorization()
+            .WithTags("Settings")
+            .WithSummary("Get runtime configuration settings");
+        app.MapPut("/api/settings/capture-headers", PutCaptureHeadersAsync)
+            .RequireAuthorization()
+            .WithTags("Settings")
+            .WithSummary("Update header capture setting");
     }
 
     private static async Task<IResult> GetSettingsAsync(

@@ -7,9 +7,18 @@ public static class CacheEndpoints
 {
     public static void MapCacheEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/cache", GetCachesAsync).RequireAuthorization();
-        app.MapDelete("/api/cache/{id:guid}", ClearCacheAsync).RequireAuthorization();
-        app.MapDelete("/api/cache", ClearAllCachesAsync).RequireAuthorization();
+        app.MapGet("/api/cache", GetCachesAsync)
+            .RequireAuthorization()
+            .WithTags("Cache")
+            .WithSummary("List all service caches");
+        app.MapDelete("/api/cache/{id:guid}", ClearCacheAsync)
+            .RequireAuthorization()
+            .WithTags("Cache")
+            .WithSummary("Clear cache for a specific service");
+        app.MapDelete("/api/cache", ClearAllCachesAsync)
+            .RequireAuthorization()
+            .WithTags("Cache")
+            .WithSummary("Clear all service caches");
     }
 
     private static async Task<IResult> GetCachesAsync(ICacheService cacheService, CancellationToken ct)

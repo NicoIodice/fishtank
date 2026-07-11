@@ -108,7 +108,7 @@ public class Story2_1_ServicesTests : IntegrationTestBase
     // ─────────────────────────────────────────────────────────────────────────
     // AC-2: Port binding failure → status=stopped + SystemEvent written
     // RED: /api/services returns 404
-    // GREEN: Returns 201 with status=stopped, GET /api/system-events shows error event
+    // GREEN: Returns 201 with status=stopped, GET /api/events shows error event
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact(DisplayName = "AC-2: Port already bound → service created with status=stopped, SystemEvent written")]
@@ -157,10 +157,10 @@ public class Story2_1_ServicesTests : IntegrationTestBase
             "port binding failure must result in stopped status");
 
         // A SystemEvent with severity=error must exist.
-        // Story 2.4 changed GET /api/system-events to a paginated, severity-filtered
+        // Story 2.4 changed GET /api/events to a paginated, severity-filtered
         // envelope { items, total, hasMore }; error events live in the warnings-errors group.
         var eventsResponse = await client.GetAsync(
-            "/api/system-events?severity=warnings-errors&skip=0&take=100");
+            "/api/events?severity=warnings-errors&skip=0&take=100");
         eventsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var eventsBody = await eventsResponse.Content.ReadFromJsonAsync<JsonElement>();
         eventsBody.GetProperty("success").GetBoolean().Should().BeTrue();
@@ -608,7 +608,7 @@ public class Story2_1_ServicesTests : IntegrationTestBase
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // [test-automate] /api/system-events requires authentication
+    // [test-automate] /api/events requires authentication
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact(DisplayName = "SystemEvents API requires authentication — unauthenticated GET returns 401")]
@@ -618,11 +618,11 @@ public class Story2_1_ServicesTests : IntegrationTestBase
             new { username = "admin", password = "adminpassword123" });
 
         var unauthClient = Factory.CreateClient(new() { AllowAutoRedirect = false });
-        var response = await unauthClient.GetAsync("/api/system-events");
+        var response = await unauthClient.GetAsync("/api/events");
 
         response.StatusCode.Should().Be(
             HttpStatusCode.Unauthorized,
-            "/api/system-events must require valid JWT cookie (NFR-8)");
+            "/api/events must require valid JWT cookie (NFR-8)");
     }
 
     // ─────────────────────────────────────────────────────────────────────────

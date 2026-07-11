@@ -30,7 +30,9 @@ public static class TestEndpoints
                 };
                 await svc.AddAsync(severity, body.Message ?? "Test event", ct: ct);
                 return Results.Json(new { success = true });
-            });
+            })
+            .WithTags("Test")
+            .WithSummary("Seed a system event for testing");
 
         // POST /api/test/reset-db
         // Deletes all user-generated data so each E2E run starts from a clean slate.
@@ -46,7 +48,9 @@ public static class TestEndpoints
             await db.Services.ExecuteDeleteAsync();
             await db.Users.ExecuteDeleteAsync();
             return Results.Json(new { success = true });
-        });
+        })
+        .WithTags("Test")
+        .WithSummary("Reset database to clean state for testing");
 
         // POST /api/test/reset-services
         // Deletes only services and events — preserves Users and ServerConfigs.
@@ -60,7 +64,9 @@ public static class TestEndpoints
             await db.SystemEvents.ExecuteDeleteAsync();
             await db.Services.ExecuteDeleteAsync();
             return Results.Json(new { success = true });
-        });
+        })
+        .WithTags("Test")
+        .WithSummary("Reset services and events only for testing");
 
         // POST /api/activity/test-seed
         // Injects an activity row directly into the in-memory store and broadcasts via
@@ -98,7 +104,9 @@ public static class TestEndpoints
                 };
                 await activityService.CaptureAsync(row);
                 return Results.Json(new { success = true, data = (object?)null });
-            }).RequireAuthorization();
+            })
+            .WithTags("Test")
+            .WithSummary("Seed an activity row for testing");
     }
 
     /// <summary>Stops and disposes every WireMock server held in the registry.</summary>

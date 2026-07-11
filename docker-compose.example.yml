@@ -45,6 +45,16 @@ services:
       # - FISHTANK_LOG_PATH=/data/logs
       # Optional — number of daily log files to retain before the oldest is deleted (default: 7)
       # - FISHTANK_LOG_RETENTION_DAYS=7
+      # Optional — automatically register default admin user on first startup (default: false)
+      # - FISHTANK_AUTO_REGISTER=false
+      # Optional — capture full HTTP headers in activity logs (default: false for privacy)
+      # - FISHTANK_CAPTURE_FULL_HEADERS=false
+      # Optional — API key for /api/admin/reset endpoint (CI/test pipelines only)
+      # - FISHTANK_PIPELINE_RESET_KEY=
+      # Optional — feature toggle overrides (e.g., FISHTANK_TOGGLE_FEATURE_NAME=true)
+      # - FISHTANK_TOGGLE_RECORDING=
+      # Optional — expose full exception details in error responses (development only, default: false)
+      # - FISHTANK_DEBUG_ERRORS=false
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
       interval: 10s

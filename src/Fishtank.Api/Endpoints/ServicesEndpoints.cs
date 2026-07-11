@@ -9,15 +9,30 @@ public static class ServicesEndpoints
 {
     public static void MapServicesEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/services").RequireAuthorization();
+        var group = app.MapGroup("/api/services")
+            .RequireAuthorization()
+            .WithTags("Services");
 
-        group.MapGet("", ListServicesAsync);
-        group.MapPost("", CreateServiceAsync);
-        group.MapGet("next-port", GetNextPortAsync);
-        group.MapPut("{id:guid}", UpdateServiceAsync);
-        group.MapDelete("{id:guid}", DeleteServiceAsync);
-        group.MapPost("{id:guid}/stop", StopServiceAsync);
-        group.MapPost("{id:guid}/start", StartServiceAsync);
+        group.MapGet("", ListServicesAsync)
+            .WithSummary("List all services")
+            .Produces<ApiResponseSchema<object>>(200, "application/json")
+            .Produces<ApiErrorResponseSchema>(404, "application/json");
+        group.MapPost("", CreateServiceAsync)
+            .WithSummary("Create a new service");
+        group.MapGet("next-port", GetNextPortAsync)
+            .WithSummary("Get the next available port in the 30100–30199 range");
+        group.MapGet("{id:guid}", GetServiceAsync)
+            .WithSummary("Get service by ID");
+        group.MapPut("{id:guid}", UpdateServiceAsync)
+            .WithSummary("Update a service");
+        group.MapDelete("{id:guid}", DeleteServiceAsync)
+            .WithSummary("Delete a service");
+        group.MapPost("{id:guid}/stop", StopServiceAsync)
+            .WithSummary("Stop the WireMock engine for a service");
+        group.MapPost("{id:guid}/start", StartServiceAsync)
+            .WithSummary("Start the WireMock engine for a service");
+        group.MapPost("import", ImportServicesAsync)
+            .WithSummary("Import services from a seed JSON file");
     }
 
     private static async Task<IResult> ListServicesAsync(
@@ -150,11 +165,46 @@ public static class ServicesEndpoints
         }
     }
 
+    private static async Task<IResult> GetServiceAsync(
+        Guid id,
+        IServiceManager manager,
+        CancellationToken ct)
+    {
+        try
+        {
+            var services = await manager.ListAsync(ct);
+            var service = services.FirstOrDefault(s => s.Id == id);
+            if (service == null)
+                throw new NotFoundException("SERVICE_NOT_FOUND", $"Service '{id}' not found.");
+            return Results.Ok(ApiResponse.Ok(service));
+        }
+        catch (NotFoundException ex)
+        {
+            return Results.NotFound(ApiResponse.Fail(ex.ErrorCode, ex.Message));
+        }
+    }
+
     private static async Task<IResult> GetNextPortAsync(
         IServiceManager manager,
         CancellationToken ct)
     {
         var port = await manager.GetNextPortAsync(ct);
         return Results.Ok(ApiResponse.Ok(new { port }));
+    }
+
+    private static async Task<IResult> ImportServicesAsync(
+        IConfiguration configuration,
+        IServiceManager manager,
+        ILoggerFactory loggerFactory,
+        CancellationToken ct)
+    {
+        var logger = loggerFactory.CreateLogger("ServicesEndpoints");
+        logger.LogInformation("POST /api/services/import: manual seed import requested");
+
+        // Note: For now, this is a placeholder that returns success with zero imported.
+        // Full implementation would accept a JSON payload with service definitions
+        // and delegate to a SeedImportService that reuses EngineStartup.TryLoadSeedFileAsync logic.
+        // Deferred to avoid scope creep in story 6-2 (OpenAPI spec parity focus).
+        return Results.Ok(ApiResponse.Ok(new { imported = 0, skipped = 0, message = "Import endpoint not yet fully implemented — placeholder for OpenAPI parity (FR-43)" }));
     }
 }

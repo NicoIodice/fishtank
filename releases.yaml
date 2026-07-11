@@ -195,3 +195,5 @@ releases:
     stories:
       - id: "6-1-pipeline-reset-endpoint"
         status: "done"
+      - id: "6-2-openapi-spec-and-management-api-parity-verification"
+        status: "in-progress"
