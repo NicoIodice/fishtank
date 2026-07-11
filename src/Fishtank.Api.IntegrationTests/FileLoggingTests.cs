@@ -202,43 +202,83 @@ public class Story5_4_FileLoggingTests : IAsyncLifetime
     // ─────────────────────────────────────────────────────────────────────────
     // AC-3 — Default log path /data/logs when FISHTANK_LOG_PATH env var absent
     //
-    // RED:   No file sink → no log file created anywhere.
-    // GREEN: Log file appears at /data/logs/fishtank-{date}.log.
-    // Note:  This test validates the production default; /data/logs must be
-    //        writable (e.g., Docker volume mount). On bare Windows hosts the
-    //        file assertion will fail — verified in Docker integration instead.
+    // RED:   No file sink → no log file created, default path never attempted.
+    // GREEN (writable host):   Log file appears at /data/logs/fishtank-{date}.log.
+    // GREEN (non-writable host): Graceful degradation warning references '/data/logs',
+    //        proving the default was attempted (same pattern as AC-5b).
     // ─────────────────────────────────────────────────────────────────────────
 
     [Fact(DisplayName = "AC-3: Default log path /data/logs used when FISHTANK_LOG_PATH is not set")]
     public async Task DefaultLogPath_IsDataLogs_WhenEnvVarNotSet()
     {
-        // Given a fresh factory with NO FISHTANK_LOG_PATH configured
-        using var noPathFactory = new FishtankWebApplicationFactory();
-        using var noPathClient = noPathFactory.CreateClient(
-            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+        var defaultLogDir = Path.Combine(
+            Path.DirectorySeparatorChar.ToString(), "data", "logs");
 
-        // Verify the env var is indeed absent in this factory's configuration
-        using var scope = noPathFactory.Services.CreateScope();
-        var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-        config["FISHTANK_LOG_PATH"].Should().BeNull(
-            "This test must run without FISHTANK_LOG_PATH configured to exercise the default path.");
+        // Probe whether /data/logs is writable on this host (Docker volume vs. bare CI runner).
+        bool defaultPathWritable;
+        try
+        {
+            Directory.CreateDirectory(defaultLogDir);
+            var probe = Path.Combine(defaultLogDir, ".write-probe-ac3");
+            File.WriteAllText(probe, "");
+            File.Delete(probe);
+            defaultPathWritable = true;
+        }
+        catch
+        {
+            defaultPathWritable = false;
+        }
 
-        // When requests are made (triggers Serilog log output)
-        await noPathClient.GetAsync("/health");
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        // Capture Console.Out so we can inspect the graceful-degradation warning
+        // emitted by Program.cs when /data/logs is not writable.
+        // Console.SetOut must be set BEFORE CreateClient() — the factory builds
+        // the WebApplication (and runs UseSerilog) lazily on the first CreateClient call.
+        var originalOut = Console.Out;
+        using var capturedOut = new StringWriter();
+        Console.SetOut(capturedOut);
 
-        // Then a log file must appear in the documented default: /data/logs
+        try
+        {
+            // Given a fresh factory with NO FISHTANK_LOG_PATH configured
+            using var noPathFactory = new FishtankWebApplicationFactory();
+            using var noPathClient = noPathFactory.CreateClient(
+                new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            // Verify the env var is indeed absent in this factory's configuration
+            using var scope = noPathFactory.Services.CreateScope();
+            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            config["FISHTANK_LOG_PATH"].Should().BeNull(
+                "This test must run without FISHTANK_LOG_PATH configured to exercise the default path.");
+
+            // When requests are made (triggers Serilog log output)
+            await noPathClient.GetAsync("/health");
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+        }
+
         var today = DateTime.UtcNow.ToString("yyyyMMdd");
-        var expectedLogFile = Path.Combine(
-            Path.DirectorySeparatorChar.ToString(), "data", "logs",
-            $"fishtank-{today}.log");
+        var expectedLogFile = Path.Combine(defaultLogDir, $"fishtank-{today}.log");
 
-        // RED: No file sink → file not created; also fails on bare Windows host.
-        // GREEN: Requires writable /data/logs directory (Docker volume mount).
-        File.Exists(expectedLogFile).Should().BeTrue(
-            $"When FISHTANK_LOG_PATH is absent, Serilog must write to the default path " +
-            $"'/data/logs'. Expected file: '{expectedLogFile}'. " +
-            "Ensure /data/logs is writable (Docker volume mount required for this AC). (AC-3, FR-39)");
+        if (defaultPathWritable)
+        {
+            // /data/logs is writable (Docker volume mount) → log file must appear.
+            File.Exists(expectedLogFile).Should().BeTrue(
+                $"When FISHTANK_LOG_PATH is absent and /data/logs is writable, " +
+                $"Serilog must write to '{expectedLogFile}'. (AC-3, FR-39)");
+        }
+        else
+        {
+            // /data/logs is not writable (bare CI runner) → graceful degradation must
+            // reference '/data/logs' in the warning, proving the default was attempted.
+            var captured = capturedOut.ToString();
+            captured.Should().Contain("/data/logs",
+                "When FISHTANK_LOG_PATH is absent and /data/logs is not writable, " +
+                "Program.cs must emit a graceful-degradation warning that references " +
+                "the attempted default path '/data/logs'. (AC-3, FR-39)");
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
