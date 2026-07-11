@@ -42,10 +42,10 @@ public class ActivityService(
         return Task.FromResult(result);
     }
 
-    public Task ClearAsync()
+    public Task<int> ClearAsync()
     {
-        store.Clear();
-        return Task.CompletedTask;
+        var count = store.Clear();
+        return Task.FromResult(count);
     }
 
     private static ActivityRowDto MapToDto(ActivityRow row) => new()

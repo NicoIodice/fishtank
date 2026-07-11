@@ -21,19 +21,18 @@ public class PipelineResetService(
         logger.LogInformation("Pipeline reset initiated");
 
         // Clear in-memory activity log (request/response capture data)
-        await activityService.ClearAsync();
+        var activityCleared = await activityService.ClearAsync();
         
         // Clear persisted SystemEvents (infrastructure/audit events)
-        await systemEventService.ClearAllAsync(SystemEventGroup.WarningsErrors, ct);
-        await systemEventService.ClearAllAsync(SystemEventGroup.Info, ct);
+        var warningsErrorsCleared = await systemEventService.ClearAllAsync(SystemEventGroup.WarningsErrors, ct);
+        var infoCleared = await systemEventService.ClearAllAsync(SystemEventGroup.Info, ct);
         
         // Reload all mappings from disk
         var resyncResult = await resyncService.ResyncAsync(ct);
         var mappingsReloaded = resyncResult.MappingsLoaded + resyncResult.ResponsesLoaded;
 
-        // For entriesCleared, we return 0 for now since ClearAsync doesn't return a count
-        // The actual count is verified in tests by checking the database before/after
-        var entriesCleared = 0;
+        // Sum all cleared entries: activity log + warnings/errors + info events
+        var entriesCleared = activityCleared + warningsErrorsCleared + infoCleared;
 
         logger.LogInformation(
             "Pipeline reset complete: {EntriesCleared} entries cleared, {MappingsReloaded} mappings reloaded",

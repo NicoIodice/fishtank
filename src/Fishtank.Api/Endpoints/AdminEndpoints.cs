@@ -1,6 +1,7 @@
 using Fishtank.Api.Exceptions;
 using Fishtank.Api.Services;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Fishtank.Api.Data;
 using Fishtank.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -205,7 +206,12 @@ public static class AdminEndpoints
 
         // AC-2: If provided key doesn't match configured key, return 401
         // AC-2: Never log the API key value
-        if (!string.Equals(providedKey, configuredKey, StringComparison.Ordinal))
+        // Use constant-time comparison to prevent timing attacks
+        var providedKeyBytes = System.Text.Encoding.UTF8.GetBytes(providedKey!);
+        var configuredKeyBytes = System.Text.Encoding.UTF8.GetBytes(configuredKey);
+        
+        if (providedKeyBytes.Length != configuredKeyBytes.Length ||
+            !CryptographicOperations.FixedTimeEquals(providedKeyBytes, configuredKeyBytes))
         {
             logger.LogWarning("Pipeline reset attempt with invalid key");
             return Results.Json(

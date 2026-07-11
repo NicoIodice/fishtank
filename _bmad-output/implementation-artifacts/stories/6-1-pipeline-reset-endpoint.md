@@ -2,7 +2,7 @@
 story_key: 6-1-pipeline-reset-endpoint
 epic_id: epic-6
 title: Pipeline Reset Endpoint
-status: ready-for-dev
+status: done
 created: 2026-07-11
 frs: [FR-45, FR-36]
 nfrs: [NFR-14]

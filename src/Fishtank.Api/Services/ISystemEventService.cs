@@ -22,5 +22,5 @@ public interface ISystemEventService
     Task<bool> MarkReadAsync(Guid id, CancellationToken ct = default);
     Task<int> MarkAllReadAsync(CancellationToken ct = default);   // warnings+errors only
     Task<int> GetUnreadCountAsync(CancellationToken ct = default); // warnings+errors only
-    Task ClearAllAsync(SystemEventGroup group, CancellationToken ct = default);
+    Task<int> ClearAllAsync(SystemEventGroup group, CancellationToken ct = default);
 }
