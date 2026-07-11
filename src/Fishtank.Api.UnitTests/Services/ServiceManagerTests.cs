@@ -48,7 +48,8 @@ public class ServiceManagerTests : IDisposable
     }
 
     private ServiceManager BuildSut() =>
-        new(_db, _registry, _events, _config, _wireMockFactory, _servicesHub);
+        new(_db, _registry, _events, _config, _wireMockFactory, _servicesHub,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ServiceManager>.Instance);
 
     public void Dispose() => _db.Dispose();
 

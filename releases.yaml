@@ -170,6 +170,8 @@ releases:
         status: "done"
       - id: "5-3-health-dashboard-audit-log-and-auto-registration-toggle"
         status: "done"
+      - id: "5-4-structured-file-logging-rolling-daily-files"
+        status: "in-progress"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v1.0.0 — Release Polish & Distribution (Epic 6)
