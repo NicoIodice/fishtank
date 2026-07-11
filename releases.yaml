@@ -161,7 +161,7 @@ releases:
     status: "in-progress"
     branch: "release/v0.5.0"
     started: "2026-07-09"
-    completed: null
+    completed: "2026-07-11"
     released: null
     stories:
       - id: "5-1-feature-toggles-runtime-control-and-signalr-broadcast"
@@ -171,7 +171,7 @@ releases:
       - id: "5-3-health-dashboard-audit-log-and-auto-registration-toggle"
         status: "done"
       - id: "5-4-structured-file-logging-rolling-daily-files"
-        status: "in-progress"
+        status: "done"
 
   # ───────────────────────────────────────────────────────────────────────────
   # v1.0.0 — Release Polish & Distribution (Epic 6)

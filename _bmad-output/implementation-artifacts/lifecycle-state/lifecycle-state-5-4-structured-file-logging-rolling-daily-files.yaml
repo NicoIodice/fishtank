@@ -1,6 +1,6 @@
 story_key: "5-4-structured-file-logging-rolling-daily-files"
 epic_id: "5"
-current_phase: dev-story
+current_phase: done
 status: active
 blocked_reason: ""
 test_design_retries: 0
@@ -19,3 +19,9 @@ phases_completed:
   - create-story
   - validate
   - atdd
+  - dev-story
+  - code-review
+  - test-automate
+  - test-review
+  - nfr
+  - trace

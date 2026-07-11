@@ -522,4 +522,151 @@ public class Story5_4_FileLoggingTests : IAsyncLifetime
             "Log file must contain a resync outcome entry referencing mappings or responses " +
             "(AC-9, NFR-17). Expected: mappings loaded count, responses loaded count, duration.");
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-4 Edge Cases — Invalid / boundary FISHTANK_LOG_RETENTION_DAYS values
+    //
+    // These exercise the int.TryParse graceful-fallback in Program.cs:
+    //
+    //   var retentionDays = 7;
+    //   if (int.TryParse(config["FISHTANK_LOG_RETENTION_DAYS"], out var parsedRetention))
+    //       retentionDays = parsedRetention;
+    //
+    // Non-numeric → TryParse returns false → default 7 applies → no crash.
+    // Zero         → TryParse succeeds → retainedFileCount=0 → app starts.
+    // Negative     → TryParse succeeds → CleanupOldFiles catch-all prevents crash.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-4 Edge: Non-numeric FISHTANK_LOG_RETENTION_DAYS falls back to default 7 — app starts and log file is created")]
+    public async Task RetentionDays_NonNumericValue_FallsBackToDefault_LogFileCreated()
+    {
+        var logDir = Path.Combine(Path.GetTempPath(), $"fishtank-badval-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(logDir);
+        try
+        {
+            using var factory = _factory.WithWebHostBuilder(b =>
+            {
+                b.UseSetting("FISHTANK_LOG_PATH", logDir);
+                b.UseSetting("FISHTANK_LOG_RETENTION_DAYS", "notanumber");
+            });
+            using var client = factory.CreateClient(
+                new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            // int.TryParse("notanumber") → false → retentionDays stays at 7 → no crash
+            var response = await client.GetAsync("/health");
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                "Non-numeric FISHTANK_LOG_RETENTION_DAYS must be silently ignored via TryParse fallback; " +
+                "the app must start and serve requests using the default 7-day retention.");
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+
+            var today = DateTime.UtcNow.ToString("yyyyMMdd");
+            var logFile = Path.Combine(logDir, $"fishtank-{today}.log");
+            File.Exists(logFile).Should().BeTrue(
+                "With a non-numeric FISHTANK_LOG_RETENTION_DAYS, the default 7-day retention must apply " +
+                "and log files must still be written (AC-4, FR-39).");
+        }
+        finally
+        {
+            if (Directory.Exists(logDir)) Directory.Delete(logDir, recursive: true);
+        }
+    }
+
+    [Fact(DisplayName = "AC-4 Edge: FISHTANK_LOG_RETENTION_DAYS=0 is accepted — app starts and log file is created")]
+    public async Task RetentionDays_Zero_AppStartsAndLogFileCreated()
+    {
+        var logDir = Path.Combine(Path.GetTempPath(), $"fishtank-zero-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(logDir);
+        try
+        {
+            using var factory = _factory.WithWebHostBuilder(b =>
+            {
+                b.UseSetting("FISHTANK_LOG_PATH", logDir);
+                b.UseSetting("FISHTANK_LOG_RETENTION_DAYS", "0");
+            });
+            using var client = factory.CreateClient(
+                new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            var response = await client.GetAsync("/health");
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                "FISHTANK_LOG_RETENTION_DAYS=0 must be accepted without crashing the app (AC-4).");
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+
+            // retainedFileCount=0 → cutoff = today → files with fileDate < today are deleted.
+            // Today's file has fileDate == today (not <), so it survives.
+            var today = DateTime.UtcNow.ToString("yyyyMMdd");
+            var logFile = Path.Combine(logDir, $"fishtank-{today}.log");
+            File.Exists(logFile).Should().BeTrue(
+                "FISHTANK_LOG_RETENTION_DAYS=0 must not crash — today's log file must be written. " +
+                "Cleanup only deletes files where fileDate < today (AC-4).");
+        }
+        finally
+        {
+            if (Directory.Exists(logDir)) Directory.Delete(logDir, recursive: true);
+        }
+    }
+
+    [Fact(DisplayName = "AC-4 Edge: Negative FISHTANK_LOG_RETENTION_DAYS is accepted — app starts and /health returns 200")]
+    public async Task RetentionDays_Negative_AppStartsWithoutCrashing()
+    {
+        var logDir = Path.Combine(Path.GetTempPath(), $"fishtank-neg-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(logDir);
+        try
+        {
+            using var factory = _factory.WithWebHostBuilder(b =>
+            {
+                b.UseSetting("FISHTANK_LOG_PATH", logDir);
+                b.UseSetting("FISHTANK_LOG_RETENTION_DAYS", "-5");
+            });
+            using var client = factory.CreateClient(
+                new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            // retainedFileCount=-5 → CleanupOldFiles catch-all prevents any exception bubble
+            var response = await client.GetAsync("/health");
+            response.StatusCode.Should().Be(HttpStatusCode.OK,
+                "FISHTANK_LOG_RETENTION_DAYS=-5 must be accepted without crashing the app. " +
+                "The CleanupOldFiles catch-all in AppendOnlyRollingFileSink protects against errors (AC-4).");
+        }
+        finally
+        {
+            if (Directory.Exists(logDir)) Directory.Delete(logDir, recursive: true);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AC-2 Boundary — FISHTANK_LOG_PATH with trailing path separator
+    //
+    // Path.Combine handles a trailing directory separator gracefully on both
+    // Windows and Linux. This test verifies no crash occurs and log files
+    // are still written to the resolved directory.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    [Fact(DisplayName = "AC-2 Boundary: FISHTANK_LOG_PATH with trailing directory separator — log file is created")]
+    public async Task LogPath_WithTrailingDirectorySeparator_LogFileCreated()
+    {
+        var baseDir = Path.Combine(Path.GetTempPath(), $"fishtank-trailsep-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(baseDir);
+        var logDirWithSeparator = baseDir + Path.DirectorySeparatorChar;
+        try
+        {
+            using var factory = _factory.WithWebHostBuilder(b =>
+                b.UseSetting("FISHTANK_LOG_PATH", logDirWithSeparator));
+            using var client = factory.CreateClient(
+                new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            await client.GetAsync("/health");
+            await Task.Delay(TimeSpan.FromSeconds(2));
+
+            // Path.Combine normalises the trailing separator; log files land in baseDir
+            var files = Directory.GetFiles(baseDir, "fishtank-*.log");
+            files.Should().NotBeEmpty(
+                $"FISHTANK_LOG_PATH ending with '{Path.DirectorySeparatorChar}' must be accepted. " +
+                $"Path.Combine normalises the trailing separator and log files must appear in '{baseDir}' (AC-2).");
+        }
+        finally
+        {
+            if (Directory.Exists(baseDir)) Directory.Delete(baseDir, recursive: true);
+        }
+    }
 }

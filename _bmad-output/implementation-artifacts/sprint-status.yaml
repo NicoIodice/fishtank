@@ -124,11 +124,11 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 5: Admin Console & User Management
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-5: in-progress
+  epic-5: done
   5-1-feature-toggles-runtime-control-and-signalr-broadcast: done
   5-2-user-management-create-view-and-deactivate: done
   5-3-health-dashboard-audit-log-and-auto-registration-toggle: done
-  5-4-structured-file-logging-rolling-daily-files: in-progress
+  5-4-structured-file-logging-rolling-daily-files: done
   epic-5-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────

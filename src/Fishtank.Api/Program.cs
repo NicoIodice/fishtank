@@ -395,10 +395,10 @@ internal sealed class AppendOnlyRollingFileSink : Serilog.Core.ILogEventSink
             foreach (var file in Directory.GetFiles(_logDirectory, "fishtank-*.log"))
             {
                 var name = Path.GetFileNameWithoutExtension(file);
-                // Expected pattern: fishtank-yyyyMMdd  (length 16)
-                if (name.Length == 16
+                // Expected pattern: fishtank-yyyyMMdd  (length 17: 8 + '-' + 8)
+                if (name.Length == 17
                     && DateOnly.TryParseExact(
-                        name.AsSpan(8), "yyyyMMdd",
+                        name.AsSpan(9), "yyyyMMdd",
                         System.Globalization.CultureInfo.InvariantCulture,
                         System.Globalization.DateTimeStyles.None,
                         out var fileDate)
