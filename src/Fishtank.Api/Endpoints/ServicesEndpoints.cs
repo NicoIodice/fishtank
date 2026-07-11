@@ -201,10 +201,10 @@ public static class ServicesEndpoints
         var logger = loggerFactory.CreateLogger("ServicesEndpoints");
         logger.LogInformation("POST /api/services/import: manual seed import requested");
 
-        // Note: For now, this is a placeholder that returns success with zero imported.
+        // Note: For now, this is a placeholder that returns 501 Not Implemented.
         // Full implementation would accept a JSON payload with service definitions
         // and delegate to a SeedImportService that reuses EngineStartup.TryLoadSeedFileAsync logic.
         // Deferred to avoid scope creep in story 6-2 (OpenAPI spec parity focus).
-        return Results.Ok(ApiResponse.Ok(new { imported = 0, skipped = 0, message = "Import endpoint not yet fully implemented — placeholder for OpenAPI parity (FR-43)" }));
+        return Results.StatusCode(501);
     }
 }

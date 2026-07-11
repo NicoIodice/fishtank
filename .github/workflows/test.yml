@@ -103,6 +103,32 @@ jobs:
             --logger "trx;LogFileName=test-results.trx" \
             --logger "console;verbosity=normal"
 
+      - name: Validate OpenAPI spec parity
+        if: matrix.suite.name == 'Integration Tests'
+        run: |
+          # Start API in background
+          ASPNETCORE_ENVIRONMENT=Testing \
+            FISHTANK_JWT_SECRET=test-secret-for-openapi-check-32chars!! \
+            FISHTANK_DB_PATH=/tmp/fishtank-openapi.db \
+            FISHTANK_MOCKS_ROOT=/tmp/fishtank-mocks \
+            FISHTANK_MOCKS_HOST_PATH=/tmp/fishtank-mocks \
+            dotnet run --project src/Fishtank.Api --no-build &
+          APP_PID=$!
+          
+          # Wait for startup
+          sleep 10
+          
+          # Download served spec
+          curl --fail --silent http://localhost:5000/openapi/v1.json -o /tmp/served-openapi.json || \
+            (echo "❌ Failed to download spec — app did not start" && kill $APP_PID && exit 1)
+          
+          # Compare to committed spec
+          diff <(jq --sort-keys . docs/openapi.json) <(jq --sort-keys . /tmp/served-openapi.json) || \
+            (echo "❌ OpenAPI spec drift detected. Run: curl http://localhost:5000/openapi/v1.json | jq . > docs/openapi.json && git commit docs/openapi.json" && kill $APP_PID && exit 1)
+          
+          kill $APP_PID
+          echo "✅ OpenAPI spec is in sync with docs/openapi.json"
+
       - name: Upload TRX results
         if: always()
         uses: actions/upload-artifact@v6

@@ -105,6 +105,7 @@ public static class TestEndpoints
                 await activityService.CaptureAsync(row);
                 return Results.Json(new { success = true, data = (object?)null });
             })
+            .RequireAuthorization()
             .WithTags("Test")
             .WithSummary("Seed an activity row for testing");
     }
