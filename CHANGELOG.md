@@ -10,6 +10,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — v1.0.0 (Release Polish & Distribution)
+
+_Theme: Production-ready, cross-platform, documented, community-ready._
+
+---
+
 ## [v0.5.0] — 2026-07-11 (Admin Console)
 
 _Theme: Manage users, control feature availability, and review the audit trail._

@@ -180,9 +180,9 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v1.0.0"
     epic: "epic-6"
-    status: "pending"
+    status: "in-progress"
     branch: "release/v1.0.0"
-    started: null
+    started: "2026-07-11"
     completed: null
     released: null
     pre_ship_gates:
