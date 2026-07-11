@@ -194,4 +194,4 @@ releases:
         cleared: false
     stories:
       - id: "6-1-pipeline-reset-endpoint"
-        status: "in-progress"
+        status: "done"

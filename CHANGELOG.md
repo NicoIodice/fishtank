@@ -14,6 +14,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 _Theme: Production-ready, cross-platform, documented, community-ready._
 
+### Added
+
+- **Pipeline reset endpoint** — `POST /api/admin/reset` clears the activity log and reloads all WireMock mappings from disk; authenticated via `X-Pipeline-Key` header (configured through `FISHTANK_PIPELINE_RESET_KEY` env var); returns entry and mapping counts; designed for CI/CD pipeline use (`feature/6-1-pipeline-reset-endpoint`)
+
 ---
 
 ## [v0.5.0] — 2026-07-11 (Admin Console)
