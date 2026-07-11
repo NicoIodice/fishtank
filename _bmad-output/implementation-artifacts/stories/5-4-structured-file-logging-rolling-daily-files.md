@@ -3,7 +3,7 @@ story_id: "5.4"
 story_key: "5-4-structured-file-logging-rolling-daily-files"
 epic: 5
 story_title: "Structured File Logging — Rolling Daily Files"
-status: ready-for-dev
+status: done
 version: v0.5.0
 priority: medium
 created: 2026-07-11
@@ -34,7 +34,7 @@ test_design_ref: "_bmad-output/test-artifacts/test-design/test-design-epic-5.md"
 
 ## Status
 
-ready-for-dev
+done
 
 ---
 
