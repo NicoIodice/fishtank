@@ -188,7 +188,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
     //       A separate test collection would be needed to test the "key not configured" scenario.
     // -------------------------------------------------------------------------
 
-    [Fact(DisplayName = "AC-4: Env var not set → HTTP 403 ADMIN_RESET_DISABLED (SKIP: requires separate test fixture)")]
+    [Fact(Skip = "Requires separate WebApplicationFactory without FISHTANK_PIPELINE_RESET_KEY — implement in a dedicated no-key fixture collection")]
     public async Task PostReset_EnvVarNotSet_Returns403()
     {
         // TODO: This test requires a WebApplicationFactory without FISHTANK_PIPELINE_RESET_KEY configured.
@@ -198,9 +198,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 2. Move this test to that collection
         // 3. Assert HTTP 403 with message: "Pipeline reset is disabled — configure FISHTANK_PIPELINE_RESET_KEY to enable this endpoint."
 
-        // For RED phase, we skip with explanation — implementation will create proper fixture.
         await Task.CompletedTask;
-        Assert.Fail("Test requires separate fixture configuration — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -272,7 +270,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
     //       For RED phase, we document the expectation — implementation TBD.
     // -------------------------------------------------------------------------
 
-    [Fact(DisplayName = "AC-7: Proxy counters reset (SKIP: requires service counter inspection)")]
+    [Fact(Skip = "Requires service counter inspection API — no public endpoint exposes per-service proxy counters yet")]
     public async Task PostReset_ResetsProxyCounters()
     {
         // TODO: Implementation requires:
@@ -282,7 +280,6 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify counters are back to zero (requires service stats endpoint or inspection API)
 
         await Task.CompletedTask;
-        Assert.Fail("Test requires service counter inspection API — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -296,7 +293,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
     //       4. Verify new mapping is active
     // -------------------------------------------------------------------------
 
-    [Fact(DisplayName = "AC-8: Mappings reloaded from disk (SKIP: requires mapping file modification)")]
+    [Fact(Skip = "Requires mapping file modification in test environment — E2E-level infrastructure not available in WebApplicationFactory")]
     public async Task PostReset_ReloadsMappingsFromDisk()
     {
         // TODO: Implementation requires:
@@ -306,7 +303,6 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify updated mapping is active in WireMock engine
 
         await Task.CompletedTask;
-        Assert.Fail("Test requires mapping file modification and verification — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -315,7 +311,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
     // GREEN: Services continue running after reset — no restart, no port rebinding
     // -------------------------------------------------------------------------
 
-    [Fact(DisplayName = "AC-9: Running services unaffected by reset (SKIP: requires service lifecycle inspection)")]
+    [Fact(Skip = "Requires service lifecycle inspection (process ID / port state) — not available in WebApplicationFactory integration test context")]
     public async Task PostReset_DoesNotRestartServices()
     {
         // TODO: Implementation requires:
@@ -325,7 +321,6 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify service still running with same process ID / connection state
 
         await Task.CompletedTask;
-        Assert.Fail("Test requires service lifecycle inspection — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------

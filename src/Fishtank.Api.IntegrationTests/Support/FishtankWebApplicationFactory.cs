@@ -46,6 +46,10 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         // Configure pipeline reset API key (Story 6.1)
         builder.UseSetting("FISHTANK_PIPELINE_RESET_KEY", "test-reset-key-32chars-minimum!!");
 
+        // Disable login rate limiting in tests — the default 5/60s limit is
+        // exhausted by the many authentication calls across the test suite.
+        builder.UseSetting("FISHTANK_LOGIN_RATE_LIMIT", "10000");
+
         builder.ConfigureServices(services =>
         {
             // Replace real SQLite with in-memory SQLite.
