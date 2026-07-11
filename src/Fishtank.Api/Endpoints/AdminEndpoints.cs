@@ -209,7 +209,7 @@ public static class AdminEndpoints
         // Use constant-time comparison to prevent timing attacks
         var providedKeyBytes = System.Text.Encoding.UTF8.GetBytes(providedKey!);
         var configuredKeyBytes = System.Text.Encoding.UTF8.GetBytes(configuredKey);
-        
+
         if (providedKeyBytes.Length != configuredKeyBytes.Length ||
             !CryptographicOperations.FixedTimeEquals(providedKeyBytes, configuredKeyBytes))
         {

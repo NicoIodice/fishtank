@@ -22,11 +22,11 @@ public class PipelineResetService(
 
         // Clear in-memory activity log (request/response capture data)
         var activityCleared = await activityService.ClearAsync();
-        
+
         // Clear persisted SystemEvents (infrastructure/audit events)
         var warningsErrorsCleared = await systemEventService.ClearAllAsync(SystemEventGroup.WarningsErrors, ct);
         var infoCleared = await systemEventService.ClearAllAsync(SystemEventGroup.Info, ct);
-        
+
         // Reload all mappings from disk
         var resyncResult = await resyncService.ResyncAsync(ct);
         var mappingsReloaded = resyncResult.MappingsLoaded + resyncResult.ResponsesLoaded;

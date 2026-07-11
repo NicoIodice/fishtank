@@ -27,10 +27,10 @@ public class AdminEndpointsApiKeyTests
     {
         var providedKeyBytes = Encoding.UTF8.GetBytes(providedKey);
         var configuredKeyBytes = Encoding.UTF8.GetBytes(configuredKey);
-        
+
         if (providedKeyBytes.Length != configuredKeyBytes.Length)
             return false;
-            
+
         return CryptographicOperations.FixedTimeEquals(providedKeyBytes, configuredKeyBytes);
     }
 
@@ -133,7 +133,7 @@ public class AdminEndpointsApiKeyTests
         // Assert
         resultPrefix.Should().BeFalse("Key with wrong length should fail");
         resultWrong.Should().BeFalse("Completely different key should fail");
-        
+
         // Note: We cannot easily measure timing in a unit test, but by using
         // CryptographicOperations.FixedTimeEquals, we ensure constant-time comparison
         // for keys of equal length, which prevents timing attacks.
