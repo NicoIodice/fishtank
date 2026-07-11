@@ -43,6 +43,9 @@ public class FishtankWebApplicationFactory : WebApplicationFactory<Program>
         Directory.CreateDirectory(_testMocksRoot);
         builder.UseSetting("FISHTANK_MOCKS_ROOT", _testMocksRoot);
 
+        // Configure pipeline reset API key (Story 6.1)
+        builder.UseSetting("FISHTANK_PIPELINE_RESET_KEY", "test-reset-key-32chars-minimum!!");
+
         builder.ConfigureServices(services =>
         {
             // Replace real SQLite with in-memory SQLite.

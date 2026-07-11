@@ -192,4 +192,6 @@ releases:
       - id: "PSG-2"
         description: "WCAG 2.1 AA audit — full contrast audit across all 4 themes; must be scheduled after Epic 4 closes"
         cleared: false
-    stories: []
+    stories:
+      - id: "6-1-pipeline-reset-endpoint"
+        status: "in-progress"
