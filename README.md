@@ -107,7 +107,7 @@ curl http://localhost:5000/health   # → Healthy
 | Frontend | React 19 · TypeScript · Vite 8 · Tailwind CSS v4 · shadcn/ui |
 | Mock engine | WireMock.NET |
 | Auth | JWT in httpOnly cookies |
-| Logging | Serilog → JSON stdout |
+| Logging | Serilog → JSON stdout + rolling daily log files |
 
 ## Repository structure
 
@@ -184,6 +184,23 @@ docker compose up --build
 ```
 
 The container serves both the API and the compiled SPA on port `8080`.
+
+## Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FISHTANK_JWT_SECRET` | _(required)_ | JWT signing key — minimum 32 characters. App exits on startup if missing or too short. |
+| `FISHTANK_DB_PATH` | `/data/fishtank.db` | SQLite database file path. |
+| `FISHTANK_MOCKS_ROOT` | `/mocks` | Root directory for WireMock mapping files inside the container. |
+| `FISHTANK_MOCKS_HOST_PATH` | `mocks` | Host-side mocks path shown in the UI (display only). |
+| `FISHTANK_MANAGEMENT_PORT` | `5000` | Port for the management UI. |
+| `FISHTANK_JWT_EXPIRY_HOURS` | _(unset)_ | JWT expiry in hours. If unset, tokens are invalidated on container restart. |
+| `FISHTANK_ADMIN_PASSWORD` | _(unset)_ | Pre-set admin password. If unset, first login forces a password change. |
+| `FISHTANK_ALLOWED_ORIGINS` | _(unset)_ | Comma-separated additional CORS origins. |
+| `FISHTANK_LOGIN_RATE_LIMIT` | `5` | Max login attempts per rate window. |
+| `FISHTANK_LOGIN_RATE_WINDOW` | `60` | Login rate window in seconds. |
+| `FISHTANK_LOG_PATH` | `/data/logs` | Directory for rolling daily log files. Must be writable by the container user. |
+| `FISHTANK_LOG_RETENTION_DAYS` | `7` | Number of days to retain log files. Older files are deleted automatically. |
 
 ## Notes
 

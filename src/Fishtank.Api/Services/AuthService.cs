@@ -56,8 +56,12 @@ public class AuthService(
         var hashToVerify = user?.PasswordHash ?? DummyHash;
         var valid = hasher.Verify(password, hashToVerify);
 
-        if (!valid || user is null || !user.IsActive)
+        if (!valid || user is null)
             return new LoginResult(LoginStatus.InvalidCredentials);
+
+        // AC-8: Deactivated users cannot log in
+        if (!user.IsActive)
+            return new LoginResult(LoginStatus.AccountDeactivated);
 
         return new LoginResult(LoginStatus.Success, user);
     }

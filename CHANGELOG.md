@@ -10,6 +10,35 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.5.0] — 2026-07-11 (Admin Console)
+
+_Theme: Manage users, control feature availability, and review the audit trail._
+
+### Added
+
+- **Admin Console page** — new `/admin` route with a tabbed shell (Feature Toggles / **Users** / Health / Audit Log); accessible to Admin-role users only; Standard Users are redirected to `/services` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Admin Console nav item** — collapsible sidebar nav item with `bi-shield-lock` icon, rendered below a visual divider; only visible to Admin-role users (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Feature toggles runtime control** — `GET /api/admin/toggles` and `PUT /api/admin/toggles/{name}` endpoints; 5 toggles seeded at startup (Network Activity, Mappings Editor, Record Mode, System Events, Services Management); all default to enabled (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Environment variable override** — `FISHTANK_TOGGLE_{NAME}` environment variables take precedence over database state; locked toggles display an "Overridden by env var" badge and reject PUT with HTTP 409 `ADMIN_TOGGLE_ENV_LOCKED` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Real-time toggle broadcast** — `TogglesHub` at `/hubs/toggles` broadcasts `FeatureToggleChanged` events to all connected sessions on every state change; `HUB_INVALIDATION_MAP` updated with `FeatureToggleChanged → ["toggles"]` (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **Disable confirmation dialog** — disabling an enabled toggle shows a confirmation dialog; enabling requires no confirmation (`feature/5-1-feature-toggles-runtime-control-and-signalr-broadcast`)
+- **User Management tab** — Users tab in Admin Console listing all accounts (Username, Role, Status, Created date) sorted alphabetically; Active users show a green badge, deactivated users show a slate badge with 50% row opacity (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Create User** — `POST /api/users` creates Standard User accounts with `ForcePasswordChange: true`; dialog validates username uniqueness and password ≥ 12 characters with match confirmation; returns HTTP 409 `AUTH_USERNAME_EXISTS` on duplicate (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Deactivate User with JWT invalidation** — `PUT /api/users/{id}/deactivate` sets `IsActive = false` and increments `TokenVersion`, immediately invalidating all existing JWTs for that user; guarded by last-admin check (HTTP 409 `ADMIN_LAST_ADMIN_DEACTIVATE`) and self-deactivation prevention in the UI (`feature/5-2-user-management-create-view-and-deactivate`)
+- **User management role enforcement** — `GET /api/users`, `POST /api/users`, and `PUT /api/users/{id}/deactivate` require Admin role; Standard Users receive HTTP 403 `ADMIN_FORBIDDEN` (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Deactivated account login guard** — `POST /api/auth/login` returns HTTP 401 `AUTH_ACCOUNT_DEACTIVATED` when a deactivated user attempts sign-in (`feature/5-2-user-management-create-view-and-deactivate`)
+- **Health Dashboard** — new Health tab in Admin Console displaying Active Services count, Total Requests, Database status (Accessible/Inaccessible), and container Uptime; auto-refreshes every 30 seconds with manual refresh button; backed by `GET /api/admin/health` (Admin-only) (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Audit Log** — new Audit Log tab in Admin Console showing paginated entries (newest-first, 20 per page) with Action, Actor, Resource, and Timestamp columns; `GET /api/admin/audit` endpoint (Admin-only); all user-initiated actions (toggle changes, user creates, user deactivations) are automatically recorded (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **AuditLog entity** — new `AuditLogs` table with `Id`, `Action`, `ActorId` (FK → Users), `ResourceType`, `ResourceId`, `Details` (JSON), `CreatedAt`; indexed on `CreatedAt` for query performance (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Auto-Registration toggle** — new `auto_registration` feature toggle (default OFF) in the Feature Toggles section; controls whether `POST /api/auth/register` accepts self-registration requests; overridable via `FISHTANK_AUTO_REGISTRATION` environment variable (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Self-registration endpoint** — `POST /api/auth/register` (public) creates Standard User accounts when `auto_registration` is enabled; new users are logged in immediately (JWT cookie set); returns HTTP 403 `AUTH_REGISTRATION_DISABLED` when toggle is OFF (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Registration status public endpoint** — `GET /api/auth/registration-status` (no auth required) returns current auto-registration state; used by the Login page to conditionally show the "Create account" link (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Conditional register link** — Login page conditionally shows "Create account" link based on auto-registration toggle state; link navigates to `/register` (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Register page** — new `/register` route renders a registration form (username, password, confirm password) when auto-registration is ON; displays "Self-registration is not available" when OFF (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Rolling daily log files** — Serilog now writes structured JSON log files alongside stdout output; log path configurable via `FISHTANK_LOG_PATH` (default `/data/logs`), retention configurable via `FISHTANK_LOG_RETENTION_DAYS` (default `7`); file logging degrades gracefully — a warning is emitted to stdout and the app continues if the path is unwritable (`feature/5-4-structured-file-logging-rolling-daily-files`)
+
+---
+
 ## [v0.4.0] — 2026-07-09 (Mappings & Mock Capture)
 
 _Theme: Edit mock files in the browser and record real traffic into permanent stubs._

@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ProtectedRoute } from "@/components/router/ProtectedRoute";
 import { FirstRunGate } from "@/components/router/FirstRunGate";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import { SetupPage } from "@/features/auth/pages/SetupPage";
 import { ChangePasswordPage } from "@/features/auth/pages/ChangePasswordPage";
 import { ServicesPage } from "@/features/services/pages/ServicesPage";
@@ -18,6 +19,14 @@ export const router = createBrowserRouter([
     element: (
       <FirstRunGate>
         <LoginPage />
+      </FirstRunGate>
+    ),
+  },
+  {
+    path: "/register",
+    element: (
+      <FirstRunGate>
+        <RegisterPage />
       </FirstRunGate>
     ),
   },

@@ -36,6 +36,9 @@ vi.mock("@/features/auth/hooks/useChangePassword", () => ({
     isPending: false,
   })),
 }));
+vi.mock("@/features/auth/hooks/useRegistrationStatus", () => ({
+  useRegistrationStatus: vi.fn(() => ({ data: { enabled: false } })),
+}));
 
 // ─── Wrapper ──────────────────────────────────────────────────────────────────
 

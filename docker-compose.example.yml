@@ -41,6 +41,10 @@ services:
       # Optional — login rate limit (default: 5 requests per 60-second window)
       # - FISHTANK_LOGIN_RATE_LIMIT=5
       # - FISHTANK_LOGIN_RATE_WINDOW=60
+      # Optional — path inside the container where rolling JSON log files are written (default: /data/logs)
+      # - FISHTANK_LOG_PATH=/data/logs
+      # Optional — number of daily log files to retain before the oldest is deleted (default: 7)
+      # - FISHTANK_LOG_RETENTION_DAYS=7
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
       interval: 10s

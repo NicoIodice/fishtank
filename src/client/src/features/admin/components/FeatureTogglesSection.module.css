@@ -1,0 +1,177 @@
+.section {
+  padding: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table thead {
+  border-bottom: 2px solid var(--border);
+}
+
+.table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--content-muted);
+}
+
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.stateCol {
+  width: 80px;
+  text-align: center;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.displayName {
+  font-weight: 500;
+}
+
+.lockedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: var(--warning-bg, #fef3c7);
+  color: var(--warning-text, #92400e);
+  white-space: nowrap;
+}
+
+/* Toggle switch (32×20px track per DESIGN.md) */
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggleTrack {
+  position: absolute;
+  inset: 0;
+  background: var(--content-muted, #94a3b8);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.toggle input:checked ~ .toggleTrack {
+  background: var(--accent, #3b82f6);
+}
+
+.toggleThumb {
+  position: absolute;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle input:checked ~ .toggleThumb {
+  transform: translateX(12px);
+}
+
+/* Disabled state (env-var-locked toggles) */
+.toggleDisabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggleDisabled .toggleTrack,
+.toggleDisabled .toggleThumb {
+  cursor: not-allowed;
+}
+
+/* Confirmation Dialog */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  padding: 1.5rem;
+}
+
+.dialogHeader {
+  margin-bottom: 1rem;
+}
+
+.dialogTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dialogBody {
+  margin: 0 0 1.5rem 0;
+  color: var(--content-muted);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--content);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.cancelBtn:hover {
+  background: var(--surface);
+}
+
+.disableBtn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--destructive, #ef4444);
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.disableBtn:hover {
+  background: var(--destructive-hover, #dc2626);
+}

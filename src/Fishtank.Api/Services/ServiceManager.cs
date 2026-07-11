@@ -7,6 +7,7 @@ using Fishtank.Api.Hubs;
 using Fishtank.Api.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using WireMock.Handlers;
 using WireMock.Server;
@@ -20,7 +21,8 @@ public partial class ServiceManager(
     ISystemEventService systemEvents,
     IConfiguration configuration,
     IWireMockServerFactory wireMockFactory,
-    IHubContext<ServicesHub> servicesHub) : IServiceManager
+    IHubContext<ServicesHub> servicesHub,
+    ILogger<ServiceManager> logger) : IServiceManager
 {
     private const int PortMin = 30100;
     private const int PortMax = 30199;
@@ -64,10 +66,13 @@ public partial class ServiceManager(
                 server.Stop();
                 server.Dispose();
             }
+            Log.Information("Service {ServiceName} created and started on port {Port}", service.Name, service.Port);
+            logger.LogInformation("Service {ServiceName} created and started on port {Port}", service.Name, service.Port);
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "WireMock failed to start for service {ServiceName} on port {Port}", service.Name, service.Port);
+            logger.LogWarning(ex, "WireMock failed to start for service {ServiceName} on port {Port}", service.Name, service.Port);
             service.Status = ServiceStatus.Stopped;
             await db.SaveChangesAsync(ct);
             await systemEvents.AddAsync(

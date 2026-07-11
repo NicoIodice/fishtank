@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useBreakpoint } from "@/lib/useBreakpoint";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import styles from "./Sidebar.module.css";
 
 const STORAGE_KEY = "fishtank-sidebar-collapsed";
@@ -53,6 +54,7 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const { mobile, mid } = useBreakpoint();
+  const { user } = useAuth();
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (mid) return true; // default collapsed on mid-size tablet
@@ -125,6 +127,30 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 </NavLink>
               </li>
             ))}
+
+            {/* Admin Console - Admin role only (AC-2) */}
+            {user?.role === "Admin" && (
+              <>
+                <li className={styles.divider} />
+                <li>
+                  <NavLink
+                    to="/admin"
+                    className={({ isActive }) =>
+                      `${styles.navItem} ${isActive ? styles.active : ""}`
+                    }
+                    data-testid="nav-admin-console"
+                    onClick={onMobileClose}
+                  >
+                    {() => (
+                      <>
+                        <i className="bi bi-shield-lock" aria-hidden="true" />
+                        <span className={styles.label}>Admin Console</span>
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       </>
@@ -160,6 +186,32 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             </NavLink>
           </li>
         ))}
+
+        {/* Admin Console - Admin role only (AC-2) */}
+        {user?.role === "Admin" && (
+          <>
+            <li className={styles.divider} />
+            <li>
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.active : ""}`
+                }
+                data-testid="nav-admin-console"
+                title={collapsed ? "Admin Console" : undefined}
+              >
+                {() => (
+                  <>
+                    <i className="bi bi-shield-lock" aria-hidden="true" />
+                    {!collapsed && (
+                      <span className={styles.label}>Admin Console</span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            </li>
+          </>
+        )}
       </ul>
 
       <div className={styles.collapseWrapper}>

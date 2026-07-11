@@ -78,4 +78,28 @@ public static class SignalRTestHelper
         await hubConnection.StartAsync();
         return hubConnection;
     }
+
+    /// <summary>
+    /// Creates and starts a SignalR connection to the TogglesHub.
+    /// </summary>
+    public static async Task<HubConnection> ConnectToTogglesHubAsync(
+        FishtankWebApplicationFactory factory,
+        string? accessToken = null)
+    {
+        var hubConnection = new HubConnectionBuilder()
+            .WithUrl(
+                factory.Server.BaseAddress + "hubs/toggles",
+                options =>
+                {
+                    options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(accessToken);
+                    }
+                })
+            .Build();
+
+        await hubConnection.StartAsync();
+        return hubConnection;
+    }
 }
