@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v0.5.0 (Admin Console)
+## [v0.5.0] — 2026-07-11 (Admin Console)
 
 _Theme: Manage users, control feature availability, and review the audit trail._
 
@@ -35,6 +35,7 @@ _Theme: Manage users, control feature availability, and review the audit trail._
 - **Registration status public endpoint** — `GET /api/auth/registration-status` (no auth required) returns current auto-registration state; used by the Login page to conditionally show the "Create account" link (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
 - **Conditional register link** — Login page conditionally shows "Create account" link based on auto-registration toggle state; link navigates to `/register` (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
 - **Register page** — new `/register` route renders a registration form (username, password, confirm password) when auto-registration is ON; displays "Self-registration is not available" when OFF (`feature/5-3-health-dashboard-audit-log-and-auto-registration-toggle`)
+- **Rolling daily log files** — Serilog now writes structured JSON log files alongside stdout output; log path configurable via `FISHTANK_LOG_PATH` (default `/data/logs`), retention configurable via `FISHTANK_LOG_RETENTION_DAYS` (default `7`); file logging degrades gracefully — a warning is emitted to stdout and the app continues if the path is unwritable (`feature/5-4-structured-file-logging-rolling-daily-files`)
 
 ---
 

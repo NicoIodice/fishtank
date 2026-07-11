@@ -23,10 +23,35 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ─── 1. Serilog ─────────────────────────────────────────────────────────────
 // Must come first — needs to capture DB migration failures.
+var logPath = builder.Configuration["FISHTANK_LOG_PATH"] ?? "/data/logs";
+var retentionDays = 7;
+if (int.TryParse(builder.Configuration["FISHTANK_LOG_RETENTION_DAYS"], out var parsedRetention))
+{
+    retentionDays = parsedRetention;
+}
+
 builder.Host.UseSerilog((ctx, cfg) =>
+{
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .Enrich.FromLogContext()
-       .WriteTo.Console(new CompactJsonFormatter()));
+       .WriteTo.Console(new CompactJsonFormatter());
+
+    // File sink — optional, graceful degradation if directory is unwritable
+    try
+    {
+        Directory.CreateDirectory(logPath);
+        var testFile = Path.Combine(logPath, ".write-test");
+        File.WriteAllText(testFile, "");
+        File.Delete(testFile);
+
+        cfg.WriteTo.Sink(new AppendOnlyRollingFileSink(logPath, new CompactJsonFormatter(), retainedFileCount: retentionDays));
+    }
+    catch (Exception)
+    {
+        Console.WriteLine(
+            $"[WRN] Unable to write to log directory '{logPath}' — file logging disabled. Stdout logging continues.");
+    }
+});
 
 // ─── 2. CORS ─────────────────────────────────────────────────────────────────
 var managementPort = builder.Configuration["FISHTANK_MANAGEMENT_PORT"] ?? "5000";
@@ -304,3 +329,88 @@ app.Run();
 
 // Exposes Program for WebApplicationFactory<Program> in integration tests.
 public partial class Program;
+
+/// <summary>
+/// Serilog sink that writes rolling daily JSON log files using an open-write-close
+/// pattern on each log event. This avoids Windows exclusive file locks that prevent
+/// concurrent readers (e.g., integration tests, log-tail utilities) from reading
+/// the log file while the application is running.
+/// </summary>
+internal sealed class AppendOnlyRollingFileSink : Serilog.Core.ILogEventSink
+{
+    private readonly string _logDirectory;
+    private readonly Serilog.Formatting.ITextFormatter _formatter;
+    private readonly int _retainedFileCount;
+    private readonly object _sync = new();
+    private DateOnly _lastCleanupDate = DateOnly.MinValue;
+
+    public AppendOnlyRollingFileSink(
+        string logDirectory,
+        Serilog.Formatting.ITextFormatter formatter,
+        int retainedFileCount)
+    {
+        _logDirectory = logDirectory;
+        _formatter = formatter;
+        _retainedFileCount = retainedFileCount;
+    }
+
+    public void Emit(Serilog.Events.LogEvent logEvent)
+    {
+        var eventDate = DateOnly.FromDateTime(logEvent.Timestamp.UtcDateTime);
+        var filename = Path.Combine(_logDirectory, $"fishtank-{eventDate:yyyyMMdd}.log");
+
+        using var sw = new StringWriter();
+        _formatter.Format(logEvent, sw);
+        var entry = System.Text.Encoding.UTF8.GetBytes(sw.ToString());
+
+        lock (_sync)
+        {
+            // Open-write-close: file is not held open between writes, so concurrent
+            // readers using FileShare.Read can access the file between log events.
+            // FileShare.ReadWrite allows readers to open the file even during a write.
+            using (var fs = new FileStream(
+                filename,
+                FileMode.Append,
+                FileAccess.Write,
+                FileShare.ReadWrite))
+            {
+                fs.Write(entry);
+                fs.Flush();
+            }
+
+            // Retention cleanup on day rollover (best-effort)
+            if (eventDate > _lastCleanupDate)
+            {
+                _lastCleanupDate = eventDate;
+                CleanupOldFiles(eventDate);
+            }
+        }
+    }
+
+    private void CleanupOldFiles(DateOnly currentDate)
+    {
+        try
+        {
+            var cutoffDate = currentDate.AddDays(-_retainedFileCount);
+            foreach (var file in Directory.GetFiles(_logDirectory, "fishtank-*.log"))
+            {
+                var name = Path.GetFileNameWithoutExtension(file);
+                // Expected pattern: fishtank-yyyyMMdd  (length 17: 8 + '-' + 8)
+                if (name.Length == 17
+                    && DateOnly.TryParseExact(
+                        name.AsSpan(9), "yyyyMMdd",
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None,
+                        out var fileDate)
+                    && fileDate < cutoffDate)
+                {
+                    File.Delete(file);
+                }
+            }
+        }
+        catch
+        {
+            // Retention cleanup is best-effort; never crash logging
+        }
+    }
+}

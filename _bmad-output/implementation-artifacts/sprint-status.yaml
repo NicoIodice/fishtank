@@ -56,7 +56,7 @@
 # - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
 
 generated: 2026-06-20
-last_updated: 2026-07-09
+last_updated: 2026-07-11
 project: Fishtank
 project_key: NOKEY
 tracking_system: file-system
@@ -124,11 +124,11 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 5: Admin Console & User Management
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-5: in-progress
+  epic-5: done
   5-1-feature-toggles-runtime-control-and-signalr-broadcast: done
   5-2-user-management-create-view-and-deactivate: done
   5-3-health-dashboard-audit-log-and-auto-registration-toggle: done
-  5-4-structured-file-logging-rolling-daily-files: backlog
+  5-4-structured-file-logging-rolling-daily-files: done
   epic-5-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────
