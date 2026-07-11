@@ -42,7 +42,9 @@ public class FileLoggingTestFixture : FishtankWebApplicationFactory
 }
 
 /// <summary>Isolated xUnit collection for file logging tests.</summary>
-[CollectionDefinition("FileLogging")]
+/// DisableParallelization ensures this collection does not run at the same time
+/// as the main Integration collection, preventing Serilog flush-timing races.
+[CollectionDefinition("FileLogging", DisableParallelization = true)]
 public class FileLoggingCollection : ICollectionFixture<FileLoggingTestFixture>;
 
 /// <summary>

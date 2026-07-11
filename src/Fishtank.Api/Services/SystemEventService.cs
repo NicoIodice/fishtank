@@ -116,14 +116,16 @@ public class SystemEventService(
     public Task<int> GetUnreadCountAsync(CancellationToken ct = default) =>
         db.SystemEvents.CountAsync(e => WarnErr.Contains(e.Severity) && !e.IsRead, ct);
 
-    public async Task ClearAllAsync(SystemEventGroup group, CancellationToken ct = default)
+    public async Task<int> ClearAllAsync(SystemEventGroup group, CancellationToken ct = default)
     {
         var severities = SeveritiesFor(group);
         var toRemove = await db.SystemEvents
             .Where(e => severities.Contains(e.Severity)).ToListAsync(ct);
+        var count = toRemove.Count;
         db.SystemEvents.RemoveRange(toRemove);
         await db.SaveChangesAsync(ct);
         if (group == SystemEventGroup.WarningsErrors) await BroadcastUnreadCountAsync(ct);
+        return count;
     }
 
     private async Task BroadcastUnreadCountAsync(CancellationToken ct)

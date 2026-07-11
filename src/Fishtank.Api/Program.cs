@@ -215,6 +215,12 @@ builder.Services.AddScoped<IFeatureToggleService, FeatureToggleService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 // ─── 6g. Audit log (Story 5.3) ─────────────────────────────────────────────
 builder.Services.AddScoped<IAuditService, AuditService>();
+// ─── 6h. Pipeline reset (Story 6.1) ────────────────────────────────────────
+builder.Services.AddScoped<IPipelineResetService, PipelineResetService>();
+builder.Services.Configure<Fishtank.Api.Configuration.PipelineResetOptions>(options =>
+{
+    options.ApiKey = builder.Configuration["FISHTANK_PIPELINE_RESET_KEY"];
+});
 // ─── 7. OpenAPI + Health ──────────────────────────────────────────────────────
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();

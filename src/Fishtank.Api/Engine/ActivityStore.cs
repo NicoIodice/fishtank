@@ -52,9 +52,14 @@ public sealed class ActivityStore : IActivityStore
             .AsReadOnly();
     }
 
-    public void Clear()
+    public int Clear()
     {
+        var count = 0;
         foreach (var queue in _queues.Values)
-            while (queue.TryDequeue(out _)) { }
+        {
+            while (queue.TryDequeue(out _))
+                count++;
+        }
+        return count;
     }
 }

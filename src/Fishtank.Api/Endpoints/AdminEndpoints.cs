@@ -1,12 +1,15 @@
 using Fishtank.Api.Exceptions;
 using Fishtank.Api.Services;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Fishtank.Api.Data;
 using Fishtank.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Fishtank.Api.Engine;
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Fishtank.Api.Configuration;
 
 namespace Fishtank.Api.Endpoints;
 
@@ -22,6 +25,18 @@ public static class AdminEndpoints
         group.MapPut("toggles/{name}", SetToggleAsync);
         group.MapGet("health", GetHealthAsync);
         group.MapGet("audit", GetAuditAsync);
+
+        // Pipeline reset endpoint — does NOT use [Authorize] attribute
+        // Authentication is handled inline via X-Pipeline-Key header
+        app.MapPost("/api/admin/reset", ResetHandler)
+            .AllowAnonymous()
+            .WithName("PipelineReset")
+            .WithSummary("Clears activity log and reloads all mappings from disk")
+            .WithDescription("Requires API key authentication via X-Pipeline-Key header. JWT auth is not accepted.")
+            .Produces<object>(StatusCodes.Status200OK)
+            .Produces<object>(StatusCodes.Status401Unauthorized)
+            .Produces<object>(StatusCodes.Status403Forbidden)
+            .WithTags("Admin");
     }
 
     private static async Task<IResult> GetTogglesAsync(
@@ -150,5 +165,66 @@ public static class AdminEndpoints
             PageSize: pageSize);
 
         return Results.Ok(ApiResponse.Ok(auditPage));
+    }
+
+    /// <summary>
+    /// AC-1 to AC-13: POST /api/admin/reset — Pipeline reset endpoint
+    /// Clears activity log and reloads all WireMock mappings from disk.
+    /// Requires API key authentication via X-Pipeline-Key header.
+    /// </summary>
+    private static async Task<IResult> ResetHandler(
+        HttpContext httpContext,
+        IOptions<PipelineResetOptions> options,
+        IPipelineResetService resetService,
+        ILogger<IPipelineResetService> logger,
+        CancellationToken ct)
+    {
+        var configuredKey = options.Value.ApiKey;
+
+        // AC-4: If API key is not configured, return 403
+        if (string.IsNullOrWhiteSpace(configuredKey))
+        {
+            logger.LogWarning("Pipeline reset attempt rejected: API key not configured");
+            return Results.Json(
+                ApiResponse.Fail(
+                    "ADMIN_RESET_DISABLED",
+                    "Pipeline reset is disabled — configure FISHTANK_PIPELINE_RESET_KEY to enable this endpoint."),
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        // AC-3: If X-Pipeline-Key header is missing, return 401
+        if (!httpContext.Request.Headers.TryGetValue("X-Pipeline-Key", out var providedKey)
+            || string.IsNullOrWhiteSpace(providedKey))
+        {
+            logger.LogWarning("Pipeline reset attempt rejected: X-Pipeline-Key header missing");
+            return Results.Json(
+                ApiResponse.Fail(
+                    "ADMIN_RESET_KEY_MISSING",
+                    "X-Pipeline-Key header is required."),
+                statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        // AC-2: If provided key doesn't match configured key, return 401
+        // AC-2: Never log the API key value
+        // Use constant-time comparison to prevent timing attacks
+        var providedKeyBytes = System.Text.Encoding.UTF8.GetBytes(providedKey!);
+        var configuredKeyBytes = System.Text.Encoding.UTF8.GetBytes(configuredKey);
+
+        if (providedKeyBytes.Length != configuredKeyBytes.Length ||
+            !CryptographicOperations.FixedTimeEquals(providedKeyBytes, configuredKeyBytes))
+        {
+            logger.LogWarning("Pipeline reset attempt with invalid key");
+            return Results.Json(
+                ApiResponse.Fail(
+                    "ADMIN_RESET_INVALID_KEY",
+                    "Invalid API key."),
+                statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        // AC-1, AC-6 to AC-13: Execute reset
+        var result = await resetService.ResetAsync(ct);
+        var response = new ResetResponse(result.EntriesCleared, result.MappingsReloaded);
+
+        return Results.Ok(ApiResponse.Ok(response));
     }
 }
