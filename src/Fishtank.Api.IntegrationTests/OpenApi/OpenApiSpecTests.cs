@@ -198,9 +198,7 @@ public class OpenApiSpecTests : IntegrationTestBase
             
             // Health
             "/health",
-            
-            // OpenAPI (self-reference)
-            "/openapi/v1.json",
+            // Note: /openapi/v1.json is intentionally excluded — MapOpenApi() does not self-document in the paths object
         };
 
         // Act & Assert
