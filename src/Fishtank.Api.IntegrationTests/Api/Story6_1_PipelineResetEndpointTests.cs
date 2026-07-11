@@ -200,7 +200,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
 
         // For RED phase, we skip with explanation — implementation will create proper fixture.
         await Task.CompletedTask;
-        Assert.True(false, "Test requires separate fixture configuration — implement during GREEN phase");
+        Assert.Fail("Test requires separate fixture configuration — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -282,7 +282,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify counters are back to zero (requires service stats endpoint or inspection API)
 
         await Task.CompletedTask;
-        Assert.True(false, "Test requires service counter inspection API — implement during GREEN phase");
+        Assert.Fail("Test requires service counter inspection API — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -306,7 +306,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify updated mapping is active in WireMock engine
 
         await Task.CompletedTask;
-        Assert.True(false, "Test requires mapping file modification and verification — implement during GREEN phase");
+        Assert.Fail("Test requires mapping file modification and verification — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
@@ -325,7 +325,7 @@ public class Story6_1_PipelineResetEndpointTests : IntegrationTestBase
         // 4. Verify service still running with same process ID / connection state
 
         await Task.CompletedTask;
-        Assert.True(false, "Test requires service lifecycle inspection — implement during GREEN phase");
+        Assert.Fail("Test requires service lifecycle inspection — implement during GREEN phase");
     }
 
     // -------------------------------------------------------------------------
