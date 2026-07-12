@@ -108,6 +108,7 @@ jobs:
         run: |
           # Start API in background
           ASPNETCORE_ENVIRONMENT=Testing \
+            ASPNETCORE_URLS=http://localhost:5000 \
             FISHTANK_JWT_SECRET=test-secret-for-openapi-check-32chars!! \
             FISHTANK_DB_PATH=/tmp/fishtank-openapi.db \
             FISHTANK_MOCKS_ROOT=/tmp/fishtank-mocks \
