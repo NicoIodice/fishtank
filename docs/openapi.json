@@ -59,6 +59,19 @@
         }
       }
     },
+    "/api/test/reset-activity": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Clear in-memory activity store only (preserves services and users)",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/activity/test-seed": {
       "post": {
         "tags": [
