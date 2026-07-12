@@ -62,24 +62,43 @@ async function seedService(
   overrides: Partial<{ name: string; externalUrl: string; port: number }> = {},
 ): Promise<CreatedService> {
   const name = overrides.name ?? uniqueName("cache-svc");
-  // Ask the API for the next available port so we never hit SERVICE_PORT_CONFLICT
-  // (hardcoded ranges can collide when other tests in the same shard have already
-  // allocated ports via next-port) and never hit SERVICE_PORT_OUT_OF_RANGE
-  // (the API only accepts 30100–30199).
-  // Note: next-port returns { port: number }, not a bare number.
-  const port =
-    overrides.port ??
-    (await apiFetch<{ port: number }>(request, "/api/services/next-port")).port;
-  return apiFetch<CreatedService>(request, "/api/services", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: JSON.stringify({
-      name,
-      externalUrl: overrides.externalUrl ?? "http://example.com",
-      port,
-      tags: [],
-    }),
-  });
+  // Retry up to 3 times on SERVICE_PORT_CONFLICT — two parallel workers can race
+  // on next-port and receive the same value before either has posted the service.
+  // If a caller supplies an explicit port, skip retry (their responsibility).
+  if (overrides.port !== undefined) {
+    return apiFetch<CreatedService>(request, "/api/services", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify({
+        name,
+        externalUrl: overrides.externalUrl ?? "http://example.com",
+        port: overrides.port,
+        tags: [],
+      }),
+    });
+  }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const port = (
+      await apiFetch<{ port: number }>(request, "/api/services/next-port")
+    ).port;
+    try {
+      return await apiFetch<CreatedService>(request, "/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify({
+          name,
+          externalUrl: overrides.externalUrl ?? "http://example.com",
+          port,
+          tags: [],
+        }),
+      });
+    } catch (e) {
+      if (attempt < 2 && e instanceof Error && e.message.includes("SERVICE_PORT_CONFLICT"))
+        continue;
+      throw e;
+    }
+  }
+  throw new Error("seedService: exhausted retries on SERVICE_PORT_CONFLICT");
 }
 
 // ─── P0 — AC-1: Cache list shows configured services with stats ───────────────

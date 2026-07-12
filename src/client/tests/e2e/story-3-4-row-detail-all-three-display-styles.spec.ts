@@ -73,16 +73,26 @@ async function seedService(
   name: string,
   externalUrl = "https://httpbin.org",
 ): Promise<CreatedService> {
-  const { port } = await apiFetch<{ port: number }>(
-    request,
-    "/api/services/next-port",
-  );
-
-  return apiFetch<CreatedService>(request, "/api/services", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: JSON.stringify({ name, externalUrl, port, tags: [] }),
-  });
+  // Retry up to 3 times on SERVICE_PORT_CONFLICT — two parallel workers can race
+  // on next-port and receive the same value before either has posted the service.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { port } = await apiFetch<{ port: number }>(
+      request,
+      "/api/services/next-port",
+    );
+    try {
+      return await apiFetch<CreatedService>(request, "/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify({ name, externalUrl, port, tags: [] }),
+      });
+    } catch (e) {
+      if (attempt < 2 && e instanceof Error && e.message.includes("SERVICE_PORT_CONFLICT"))
+        continue;
+      throw e;
+    }
+  }
+  throw new Error("seedService: exhausted retries on SERVICE_PORT_CONFLICT");
 }
 
 /** Seed a single activity row via the test-only capture endpoint. */
@@ -144,9 +154,11 @@ async function setRowDetailStyle(
   await page.click(`[data-testid="settings-appearance-row-detail-${style}"]`);
 }
 
-// Reset services + activity store before each test.
+// Clear activity store before each test.
+// Use reset-activity (not reset-services) so we do NOT wipe services that
+// other parallel workers (e.g. story-2-5) may have seeded concurrently.
 test.beforeEach(async ({ request }) => {
-  await apiFetch<null>(request, "/api/test/reset-services", { method: "POST" });
+  await apiFetch<null>(request, "/api/test/reset-activity", { method: "POST" });
 });
 
 // Clear appearance localStorage preference before each test so styles don't bleed between tests.

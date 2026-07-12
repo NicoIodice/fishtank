@@ -65,21 +65,31 @@ async function seedService(
   request: Request,
   name: string,
 ): Promise<CreatedService> {
-  const { port } = await apiFetch<{ port: number }>(
-    request,
-    "/api/services/next-port",
-  );
-
-  return apiFetch<CreatedService>(request, "/api/services", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: JSON.stringify({
-      name,
-      externalUrl: "https://httpbin.org",
-      port,
-      tags: [],
-    }),
-  });
+  // Retry up to 3 times on SERVICE_PORT_CONFLICT — two parallel workers can race
+  // on next-port and receive the same value before either has posted the service.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { port } = await apiFetch<{ port: number }>(
+      request,
+      "/api/services/next-port",
+    );
+    try {
+      return await apiFetch<CreatedService>(request, "/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify({
+          name,
+          externalUrl: "https://httpbin.org",
+          port,
+          tags: [],
+        }),
+      });
+    } catch (e) {
+      if (attempt < 2 && e instanceof Error && e.message.includes("SERVICE_PORT_CONFLICT"))
+        continue;
+      throw e;
+    }
+  }
+  throw new Error("seedService: exhausted retries on SERVICE_PORT_CONFLICT");
 }
 
 /** Create a mapping file via the API. */

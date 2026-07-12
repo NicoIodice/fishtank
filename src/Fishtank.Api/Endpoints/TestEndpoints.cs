@@ -68,6 +68,18 @@ public static class TestEndpoints
         .WithTags("Test")
         .WithSummary("Reset services and events only for testing");
 
+        // POST /api/test/reset-activity
+        // Clears ONLY the in-memory activity store — services, users, and system events are
+        // preserved. Use in beforeEach hooks for activity-log tests that need a clean row
+        // count without wiping services concurrently seeded by other test workers.
+        app.MapPost("/api/test/reset-activity", (IActivityStore activityStore) =>
+        {
+            activityStore.Clear();
+            return Results.Json(new { success = true });
+        })
+        .WithTags("Test")
+        .WithSummary("Clear in-memory activity store only (preserves services and users)");
+
         // POST /api/activity/test-seed
         // Injects an activity row directly into the in-memory store and broadcasts via
         // SignalR. Allows E2E tests to seed activity rows without real WireMock traffic.
