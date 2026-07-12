@@ -123,8 +123,8 @@ jobs:
           curl --fail --silent http://localhost:5000/openapi/v1.json -o /tmp/served-openapi.json || \
             (echo "❌ Failed to download spec — app did not start" && kill $APP_PID && exit 1)
 
-          # Compare to committed spec
-          diff <(jq --sort-keys . docs/openapi.json) <(jq --sort-keys . /tmp/served-openapi.json) || \
+          # Compare to committed spec (exclude servers — URL is environment-dependent)
+          diff <(jq --sort-keys 'del(.servers)' docs/openapi.json) <(jq --sort-keys 'del(.servers)' /tmp/served-openapi.json) || \
             (echo "❌ OpenAPI spec drift detected. Run: curl http://localhost:5000/openapi/v1.json | jq . > docs/openapi.json && git commit docs/openapi.json" && kill $APP_PID && exit 1)
 
           kill $APP_PID
