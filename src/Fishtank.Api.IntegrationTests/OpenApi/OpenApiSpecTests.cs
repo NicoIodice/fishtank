@@ -122,7 +122,7 @@ public class OpenApiSpecTests : IntegrationTestBase
         // Assert
         spec.TryGetProperty("openapi", out var versionProperty).Should().BeTrue(
             "OpenAPI spec must contain 'openapi' version field (AC-1)");
-        
+
         var version = versionProperty.GetString();
         version.Should().NotBeNullOrEmpty();
         version.Should().StartWith("3.", "OpenAPI spec must be version 3.x");
@@ -144,7 +144,7 @@ public class OpenApiSpecTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
         var spec = JsonDocument.Parse(content).RootElement;
-        
+
         spec.TryGetProperty("paths", out var pathsProperty).Should().BeTrue(
             "OpenAPI spec must contain 'paths' object");
 
@@ -178,7 +178,7 @@ public class OpenApiSpecTests : IntegrationTestBase
             "/api/resync",
             
             // Events
-            "/api/events",
+            "/api/system-events",
             
             // Users
             "/api/users",
@@ -230,7 +230,7 @@ public class OpenApiSpecTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
         var spec = JsonDocument.Parse(content).RootElement;
-        
+
         spec.TryGetProperty("paths", out var pathsProperty).Should().BeTrue();
 
         // Act & Assert
@@ -243,7 +243,7 @@ public class OpenApiSpecTests : IntegrationTestBase
             foreach (var operation in operations)
             {
                 var operationName = operation.Name;
-                var hasTag = operation.Value.TryGetProperty("tags", out var tagsProperty) 
+                var hasTag = operation.Value.TryGetProperty("tags", out var tagsProperty)
                     && tagsProperty.GetArrayLength() > 0;
 
                 hasTag.Should().BeTrue(
@@ -268,7 +268,7 @@ public class OpenApiSpecTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
         var spec = JsonDocument.Parse(content).RootElement;
-        
+
         spec.TryGetProperty("paths", out var pathsProperty).Should().BeTrue();
 
         // Act & Assert
@@ -281,7 +281,7 @@ public class OpenApiSpecTests : IntegrationTestBase
             foreach (var operation in operations)
             {
                 var operationName = operation.Name;
-                var hasSummary = operation.Value.TryGetProperty("summary", out var summaryProperty) 
+                var hasSummary = operation.Value.TryGetProperty("summary", out var summaryProperty)
                     && !string.IsNullOrWhiteSpace(summaryProperty.GetString());
 
                 hasSummary.Should().BeTrue(
@@ -305,18 +305,18 @@ public class OpenApiSpecTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
         var spec = JsonDocument.Parse(content).RootElement;
-        
+
         // Act & Assert
         spec.TryGetProperty("components", out var componentsProperty).Should().BeTrue(
             "OpenAPI spec must contain 'components' section (AC-3)");
-        
+
         componentsProperty.TryGetProperty("schemas", out var schemasProperty).Should().BeTrue(
             "OpenAPI spec must contain component schemas (AC-3)");
 
         // Look for ApiResponse or similar envelope schemas
         var schemaNames = schemasProperty.EnumerateObject().Select(s => s.Name).ToList();
-        
-        var hasResponseEnvelope = schemaNames.Any(name => 
+
+        var hasResponseEnvelope = schemaNames.Any(name =>
             name.Contains("ApiResponse", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("Response", StringComparison.OrdinalIgnoreCase));
 
@@ -340,18 +340,18 @@ public class OpenApiSpecTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
         var spec = JsonDocument.Parse(content).RootElement;
-        
+
         // Act & Assert
         spec.TryGetProperty("components", out var componentsProperty).Should().BeTrue(
             "OpenAPI spec must contain 'components' section (AC-4)");
-        
+
         componentsProperty.TryGetProperty("schemas", out var schemasProperty).Should().BeTrue(
             "OpenAPI spec must contain component schemas (AC-4)");
 
         // Look for error response schemas
         var schemaNames = schemasProperty.EnumerateObject().Select(s => s.Name).ToList();
-        
-        var hasErrorSchema = schemaNames.Any(name => 
+
+        var hasErrorSchema = schemaNames.Any(name =>
             name.Contains("Error", StringComparison.OrdinalIgnoreCase));
 
         hasErrorSchema.Should().BeTrue(

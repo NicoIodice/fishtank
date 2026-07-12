@@ -20,7 +20,7 @@ namespace Fishtank.Api.IntegrationTests.Api;
 ///
 /// ACs covered (HTTP surface + hub auth; the SignalR push/badge real-time path
 /// is validated end-to-end in Playwright, mirroring the Story 2.3 split):
-///   AC-1: GET /api/events paginated, severity-filtered, newest-first.
+///   AC-1: GET /api/system-events paginated, severity-filtered, newest-first.
 ///   AC-3: /hubs/events authenticated negotiate (broadcast wiring regression).
 ///   AC-3/8: GET /api/events/unread-count counts only unread warn+err.
 ///   AC-5: POST /api/events/{id}/read marks one read; unread-count drops.
@@ -116,7 +116,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         await SeedEventAsync(SystemEventSeverity.Info, "info-should-be-excluded");
 
         var res = await client.GetAsync(
-            "/api/events?severity=warnings-errors&skip=0&take=20");
+            "/api/system-events?severity=warnings-errors&skip=0&take=20");
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
         var data = (await res.Content.ReadFromJsonAsync<JsonElement>())
@@ -136,7 +136,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         await SeedEventAsync(SystemEventSeverity.Error, "e1");
 
         var res = await client.GetAsync(
-            "/api/events?severity=info&skip=0&take=20");
+            "/api/system-events?severity=info&skip=0&take=20");
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
         var data = (await res.Content.ReadFromJsonAsync<JsonElement>())
@@ -161,7 +161,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
             SystemEventSeverity.Warning, "newest", baseTime);
 
         var res = await client.GetAsync(
-            "/api/events?severity=warnings-errors&skip=0&take=20");
+            "/api/system-events?severity=warnings-errors&skip=0&take=20");
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
         var items = (await res.Content.ReadFromJsonAsync<JsonElement>())
@@ -182,7 +182,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         await SeedEventAsync(SystemEventSeverity.Error, "e1");
         await SeedEventAsync(SystemEventSeverity.Info, "i1"); // excluded
 
-        var res = await client.GetAsync("/api/events/unread-count");
+        var res = await client.GetAsync("/api/system-events/unread-count");
 
         res.StatusCode.Should().Be(HttpStatusCode.OK);
         var data = (await res.Content.ReadFromJsonAsync<JsonElement>())
@@ -203,16 +203,16 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
 
         // Find an id via the list endpoint.
         var listRes = await client.GetAsync(
-            "/api/events?severity=warnings-errors&skip=0&take=20");
+            "/api/system-events?severity=warnings-errors&skip=0&take=20");
         listRes.StatusCode.Should().Be(HttpStatusCode.OK);
         var items = (await listRes.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("data").GetProperty("items");
         var id = items[0].GetProperty("id").GetString();
 
-        var readRes = await client.PostAsync($"/api/events/{id}/read", null);
+        var readRes = await client.PostAsync($"/api/system-events/{id}/read", null);
         readRes.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var countData = (await (await client.GetAsync("/api/events/unread-count"))
+        var countData = (await (await client.GetAsync("/api/system-events/unread-count"))
             .Content.ReadFromJsonAsync<JsonElement>()).GetProperty("data");
         countData.GetProperty("count").GetInt32().Should().Be(1);
     }
@@ -223,7 +223,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         var client = await GetAuthenticatedClientAsync();
 
         var res = await client.PostAsync(
-            $"/api/events/{Guid.NewGuid()}/read", null);
+            $"/api/system-events/{Guid.NewGuid()}/read", null);
 
         // Returns a 404 with ApiResponse.Fail(SYSTEM_EVENT_NOT_FOUND).
         res.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -244,10 +244,10 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         await SeedEventAsync(SystemEventSeverity.Error, "e1");
         await SeedEventAsync(SystemEventSeverity.Error, "e2");
 
-        var readAll = await client.PostAsync("/api/events/read-all", null);
+        var readAll = await client.PostAsync("/api/system-events/read-all", null);
         readAll.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var countData = (await (await client.GetAsync("/api/events/unread-count"))
+        var countData = (await (await client.GetAsync("/api/system-events/unread-count"))
             .Content.ReadFromJsonAsync<JsonElement>()).GetProperty("data");
         countData.GetProperty("count").GetInt32().Should().Be(0);
     }
@@ -259,11 +259,11 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
         await SeedEventAsync(SystemEventSeverity.Warning, "w1");
         await SeedEventAsync(SystemEventSeverity.Info, "i1");
 
-        (await client.PostAsync("/api/events/read-all", null))
+        (await client.PostAsync("/api/system-events/read-all", null))
             .StatusCode.Should().Be(HttpStatusCode.OK);
 
         var infoRes = await client.GetAsync(
-            "/api/events?severity=info&skip=0&take=20");
+            "/api/system-events?severity=info&skip=0&take=20");
         var infoData = (await infoRes.Content.ReadFromJsonAsync<JsonElement>())
             .GetProperty("data");
         infoData.GetProperty("total").GetInt32().Should().Be(1);
@@ -278,7 +278,7 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
     public async Task List_Unauthenticated_Returns401()
     {
         var res = await Client.GetAsync(
-            "/api/events?severity=warnings-errors&skip=0&take=20");
+            "/api/system-events?severity=warnings-errors&skip=0&take=20");
         res.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

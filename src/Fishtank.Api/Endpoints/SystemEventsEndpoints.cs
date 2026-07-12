@@ -6,7 +6,7 @@ public static class SystemEventsEndpoints
 {
     public static void MapSystemEventsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/events")
+        var group = app.MapGroup("/api/system-events")
             .RequireAuthorization()
             .WithTags("Events");
 

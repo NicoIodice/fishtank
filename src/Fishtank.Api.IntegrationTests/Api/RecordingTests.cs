@@ -238,7 +238,7 @@ public class RecordingTests : IntegrationTestBase
 
         // Then — verify System Event was created with gap duration
         // RED phase: System Event creation not implemented
-        var eventsResponse = await Client.GetAsync("/api/events?severity=info");
+        var eventsResponse = await Client.GetAsync("/api/system-events?severity=info");
         eventsResponse.EnsureSuccessStatusCode();
 
         var events = await eventsResponse.Content.ReadFromJsonAsync<ApiResponse<SystemEventDto[]>>();

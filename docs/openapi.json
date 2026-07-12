@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000/"
+      "url": "http://127.0.0.1:5000/"
     }
   ],
   "paths": {
@@ -797,7 +797,7 @@
         }
       }
     },
-    "/api/events": {
+    "/api/system-events": {
       "get": {
         "tags": [
           "Events"
@@ -863,7 +863,7 @@
         }
       }
     },
-    "/api/events/unread-count": {
+    "/api/system-events/unread-count": {
       "get": {
         "tags": [
           "Events"
@@ -876,7 +876,7 @@
         }
       }
     },
-    "/api/events/{id}/read": {
+    "/api/system-events/{id}/read": {
       "post": {
         "tags": [
           "Events"
@@ -900,7 +900,7 @@
         }
       }
     },
-    "/api/events/read-all": {
+    "/api/system-events/read-all": {
       "post": {
         "tags": [
           "Events"

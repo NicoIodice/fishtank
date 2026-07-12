@@ -160,7 +160,7 @@ public class Story2_1_ServicesTests : IntegrationTestBase
         // Story 2.4 changed GET /api/events to a paginated, severity-filtered
         // envelope { items, total, hasMore }; error events live in the warnings-errors group.
         var eventsResponse = await client.GetAsync(
-            "/api/events?severity=warnings-errors&skip=0&take=100");
+            "/api/system-events?severity=warnings-errors&skip=0&take=100");
         eventsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         var eventsBody = await eventsResponse.Content.ReadFromJsonAsync<JsonElement>();
         eventsBody.GetProperty("success").GetBoolean().Should().BeTrue();
@@ -618,11 +618,11 @@ public class Story2_1_ServicesTests : IntegrationTestBase
             new { username = "admin", password = "adminpassword123" });
 
         var unauthClient = Factory.CreateClient(new() { AllowAutoRedirect = false });
-        var response = await unauthClient.GetAsync("/api/events");
+        var response = await unauthClient.GetAsync("/api/system-events");
 
         response.StatusCode.Should().Be(
             HttpStatusCode.Unauthorized,
-            "/api/events must require valid JWT cookie (NFR-8)");
+            "/api/system-events must require valid JWT cookie (NFR-8)");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
