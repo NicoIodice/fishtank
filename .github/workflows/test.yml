@@ -204,14 +204,21 @@ jobs:
           FISHTANK_JWT_SECRET: "fishtank-ci-test-only-not-for-production-use-xk9"
           FISHTANK_DB_PATH: "/tmp/fishtank-ci.db"
           FISHTANK_MOCKS_ROOT: "/tmp/fishtank-mocks"
-        run: dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
+          # Raise login rate limit so parallel workers don't hit 429 during the test run.
+          # Default is 5/60s — far too low for 2 workers each authenticating per test.
+          FISHTANK_LOGIN_RATE_LIMIT: "100"
+          FISHTANK_LOGIN_RATE_WINDOW: "60"
+        run: |
+          mkdir -p /tmp/fishtank-mocks
+          dotnet src/Fishtank.Api/bin/Release/net10.0/Fishtank.Api.dll > /tmp/api.log 2>&1 &
 
       - name: Wait for .NET API
         run: |
           echo "Waiting for .NET API at http://localhost:5000..."
           for i in $(seq 1 30); do
             if curl -sfL http://localhost:5000/health > /dev/null 2>&1; then
-              echo "✅ .NET API ready"
+              echo "✅ .NET API ready — waiting 3s for full initialisation"
+              sleep 3
               exit 0
             fi
             echo "  attempt $i/30 — retrying in 2s"
