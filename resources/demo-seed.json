@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Weather API",
+    "externalUrl": "http://external-weather-api.example.com",
+    "port": 30100,
+    "description": "Demo weather forecast service for evaluating Fishtank",
+    "tags": ["demo", "weather"]
+  },
+  {
+    "name": "Payments Gateway",
+    "externalUrl": "http://external-payments.example.com",
+    "port": 30101,
+    "description": "Demo payment processing service for evaluating Fishtank",
+    "tags": ["demo", "payments"]
+  },
+  {
+    "name": "User Profile Service",
+    "externalUrl": "http://external-user-api.example.com",
+    "port": 30102,
+    "description": "Demo user profile service for evaluating Fishtank",
+    "tags": ["demo", "users"]
+  }
+]

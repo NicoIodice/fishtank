@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/users/me"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "user_id": "usr_demo_001",
+      "username": "demo_user",
+      "email": "demo@example.com",
+      "full_name": "Demo User",
+      "created_at": "2026-01-01T00:00:00Z",
+      "preferences": {
+        "theme": "light",
+        "notifications": true
+      }
+    }
+  }
+}

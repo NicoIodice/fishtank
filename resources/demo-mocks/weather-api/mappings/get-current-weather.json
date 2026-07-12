@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/weather/current"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "city": "Seattle",
+      "temp_c": 18,
+      "temp_f": 64,
+      "condition": "Partly cloudy",
+      "humidity": 72,
+      "wind_kph": 12
+    }
+  }
+}
