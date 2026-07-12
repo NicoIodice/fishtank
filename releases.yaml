@@ -199,3 +199,5 @@ releases:
         status: "done"
       - id: "6-3-fishtank-demo-pre-seeded-docker-image"
         status: "done"
+      - id: "6-4-automated-release-pipeline-k8s-manifest-and-community-resources"
+        status: "in-progress"

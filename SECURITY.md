@@ -1,5 +1,14 @@
 # Security Policy
 
+## Supported Versions
+
+Fishtank follows semantic versioning. We provide security updates for the latest major version only.
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.x     | :white_check_mark: |
+| < 1.0   | :x:                |
+
 ## Reporting a Vulnerability
 
 Please report security vulnerabilities **privately** via [GitHub Security Advisories](https://github.com/NicoIodice/fishtank/security/advisories/new).
@@ -13,23 +22,26 @@ Please report security vulnerabilities **privately** via [GitHub Security Adviso
 - Affected versions / configurations
 - Any suggested mitigations you are aware of
 
-### Response timeline
+### Response Timeline
 
 | Milestone | Target |
 |---|---|
-| Initial acknowledgement | Within 72 hours |
+| Initial acknowledgement | Within 48 hours |
 | Severity assessment | Within 7 days |
-| Fix published | Within 14 days of confirmation |
+| Fix Timeline | Depends on severity:<br>• Critical: 7 days<br>• High: 14 days<br>• Medium: 30 days<br>• Low: Next release |
 | Public disclosure | After fix is released |
 
 We appreciate responsible disclosure and will credit reporters in the release notes (unless you prefer anonymity).
 
-## Supported Versions
+## Responsible Disclosure Policy
 
-| Version | Supported |
-|---------|-----------|
-| Latest (`main`) | ✅ Active support |
-| Older releases | ❌ Please upgrade |
+We follow a responsible disclosure process with clear steps:
+
+1. **Reporter notifies maintainer privately** — using GitHub Security Advisories or secure communication
+2. **Maintainer confirms and assesses impact** — severity classification within 7 days
+3. **Fix is developed and tested** — timeline based on severity (see above)
+4. **Fix is released with security advisory** — versioned release with CVE reference if applicable
+5. **Public disclosure after patch is available** — coordinated announcement once users can upgrade
 
 ## Security Design Decisions
 

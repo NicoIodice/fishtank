@@ -1,6 +1,13 @@
 # Fishtank
 
+[![Docker Hub](https://img.shields.io/docker/v/nicoiodice/fishtank?label=docker%20hub&logo=docker)](https://hub.docker.com/r/nicoiodice/fishtank)
+[![License](https://img.shields.io/github/license/NicoIodice/fishtank)](LICENSE)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+
 A Docker-native WireMock.NET management tool. Run mock services locally, record and replay traffic, manage mappings, and observe live network activity — all from a single container.
+
+<!-- TODO: Add demo GIF at resources/demo.gif before v1.0.0 launch -->
 
 ## Quick Demo
 
@@ -25,14 +32,33 @@ The demo includes three pre-seeded example services:
 
 ## Quick start
 
+Run Fishtank with persistent storage for database and mock mappings:
+
 ```bash
-docker run -p 5000:5000 \
-  -e FISHTANK_JWT_SECRET=your-secret-min-32-chars \
-  -v ./mocks:/mocks \
+# Minimal command (interactive mode)
+docker run -p 9090:5000 -v fishtank-data:/data nicoiodice/fishtank
+
+# Recommended: Detached mode with all volumes and secrets
+docker run -d -p 9090:5000 \
+  -v fishtank-data:/data \
+  -v $(pwd)/mocks:/mocks \
+  -e FISHTANK_JWT_SECRET=your-secret-key-32-chars-minimum \
   nicoiodice/fishtank:latest
 ```
 
-Then open **http://localhost:5000** in your browser.
+Then open **http://localhost:9090** in your browser.
+
+> **Required:** `FISHTANK_JWT_SECRET` must be ≥ 32 characters. Generate a secure secret with:
+> ```bash
+> # PowerShell
+> [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Max 256 }))
+> 
+> # WSL / Linux / macOS
+> openssl rand -base64 32
+> 
+> # Python (cross-platform)
+> python -c "import secrets; print(secrets.token_urlsafe(32))"
+> ```
 
 See [`docker-compose.example.yml`](docker-compose.example.yml) for a full deployment reference including persistent storage and all configurable environment variables.
 
@@ -236,4 +262,26 @@ The container serves both the API and the compiled SPA on port `8080`.
 - No service deletion in v1 (soft-delete is in the schema; UI is not exposed)
 - SQLite is the v1 datastore — single-instance only; Postgres is the post-v1 substitution path
 - All JWT tokens are invalidated on container restart (boot-epoch mechanism)
+
+## Documentation
+
+- **API Reference:** [OpenAPI Specification](/openapi/v1.json) — `/openapi/v1.json` when running locally
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) — architecture, dev setup, PR workflow, commit conventions
+- **Security:** [SECURITY.md](SECURITY.md) — vulnerability reporting, responsible disclosure, supported versions
+
+## Linux Host Configuration
+
+If running many services (50+), you may need to increase the inotify watch limit to prevent file system monitoring errors:
+
+```bash
+# Temporary (until reboot)
+sudo sysctl fs.inotify.max_user_watches=65536
+
+# Permanent (persists across reboots)
+echo "fs.inotify.max_user_watches=65536" | sudo tee /etc/sysctl.d/99-fishtank.conf
+sudo sysctl --system
+```
+
+This is a Linux kernel parameter that limits the number of files that can be watched by `inotify`. WireMock.NET and the Fishtank activity monitor use file system watchers, and the default limit (8192 on most distributions) may be insufficient for large-scale deployments.
+
 

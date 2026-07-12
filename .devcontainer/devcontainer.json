@@ -17,6 +17,7 @@
       ]
     }
   },
-  "postCreateCommand": "cd src/client && npm ci",
-  "forwardPorts": [5000, 5173]
+  "postCreateCommand": "cd src/client && npm install && cd ../.. && dotnet restore src/Fishtank.slnx",
+  "forwardPorts": [5000, 5173],
+  "remoteUser": "vscode"
 }

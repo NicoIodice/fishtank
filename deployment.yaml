@@ -1,0 +1,192 @@
+# Fishtank Kubernetes Deployment
+#
+# This manifest deploys Fishtank to a Kubernetes cluster with:
+# - 1 replica (scale as needed)
+# - Persistent volumes for SQLite database and WireMock mappings
+# - Health checks on /health endpoint
+# - ClusterIP service on port 80 → container port 5000
+#
+# Prerequisites:
+# 1. Create a Kubernetes Secret with your JWT secret:
+#    kubectl create secret generic fishtank-secrets \
+#      --from-literal=jwt-secret=your-secret-key-min-32-chars
+#
+# 2. Create PersistentVolumeClaims for data and mocks:
+#    kubectl apply -f - <<EOF
+#    apiVersion: v1
+#    kind: PersistentVolumeClaim
+#    metadata:
+#      name: fishtank-data-pvc
+#    spec:
+#      accessModes:
+#        - ReadWriteOnce
+#      resources:
+#        requests:
+#          storage: 1Gi
+#    ---
+#    apiVersion: v1
+#    kind: PersistentVolumeClaim
+#    metadata:
+#      name: fishtank-mocks-pvc
+#    spec:
+#      accessModes:
+#        - ReadWriteOnce
+#      resources:
+#        requests:
+#          storage: 500Mi
+#    EOF
+#
+# 3. Apply this manifest:
+#    kubectl apply -f deployment.yaml
+#
+# Optional: Expose via Ingress (example at bottom of this file)
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fishtank
+  labels:
+    app: fishtank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fishtank
+  template:
+    metadata:
+      labels:
+        app: fishtank
+    spec:
+      containers:
+        - name: fishtank
+          # UPDATE VERSION TAG — Replace with your desired version
+          # Example: nicoiodice/fishtank:v1.0.0
+          image: nicoiodice/fishtank:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          env:
+            # JWT Secret — loaded from Kubernetes Secret
+            - name: FISHTANK_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fishtank-secrets
+                  key: jwt-secret
+            # SQLite database path
+            - name: FISHTANK_DB_PATH
+              value: /data/fishtank.db
+            # WireMock mappings root directory
+            - name: FISHTANK_MOCKS_ROOT
+              value: /mocks
+            # WireMock mappings host path (same as MOCKS_ROOT in container)
+            - name: FISHTANK_MOCKS_HOST_PATH
+              value: /mocks
+            # Optional: Login rate limit (requests/minute)
+            # - name: FISHTANK_LOGIN_RATE_LIMIT
+            #   value: "5"
+            # Optional: Allowed CORS origins (comma-separated)
+            # - name: FISHTANK_ALLOWED_ORIGINS
+            #   value: "https://fishtank.example.com"
+          volumeMounts:
+            # SQLite database persistent storage
+            - name: data
+              mountPath: /data
+            # WireMock mappings persistent storage
+            - name: mocks
+              mountPath: /mocks
+          # Readiness probe — checks if container is ready to serve traffic
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          # Liveness probe — checks if container is still alive
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          # Resource limits and requests
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        # SQLite database volume — must be backed by a PVC
+        - name: data
+          persistentVolumeClaim:
+            claimName: fishtank-data-pvc
+        # WireMock mappings volume — must be backed by a PVC
+        - name: mocks
+          persistentVolumeClaim:
+            claimName: fishtank-mocks-pvc
+      # Security context — run as non-root user
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fishtank
+  labels:
+    app: fishtank
+spec:
+  type: ClusterIP
+  selector:
+    app: fishtank
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Optional: Ingress Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# Uncomment and customize the Ingress resource below to expose Fishtank
+# via an Ingress controller (e.g., NGINX, Traefik, or cloud provider ingress).
+#
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: fishtank-ingress
+#   annotations:
+#     # Example: NGINX Ingress annotations
+#     # nginx.ingress.kubernetes.io/rewrite-target: /
+#     # cert-manager.io/cluster-issuer: letsencrypt-prod
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: fishtank.example.com
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: fishtank
+#                 port:
+#                   number: 80
+#   # Optional: TLS configuration
+#   # tls:
+#   #   - hosts:
+#   #       - fishtank.example.com
+#   #     secretName: fishtank-tls
