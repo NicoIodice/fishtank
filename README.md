@@ -2,6 +2,27 @@
 
 A Docker-native WireMock.NET management tool. Run mock services locally, record and replay traffic, manage mappings, and observe live network activity — all from a single container.
 
+## Quick Demo
+
+Try Fishtank instantly with our pre-seeded demo image — no configuration needed:
+
+```bash
+docker run -p 9090:5000 nicoiodice/fishtank:demo
+```
+
+Open **http://localhost:9090** and log in with:
+- **Username:** `admin`
+- **Password:** `demofishtank1`
+
+> ⚠️ **Demo credentials** — for evaluation environments only. Do not use in production.
+
+The demo includes three pre-seeded example services:
+| Service | Port | Description |
+|---------|------|-------------|
+| Weather API | 30100 | Mock weather forecasts |
+| Payments Gateway | 30101 | Mock payment processing |
+| User Profile Service | 30102 | Mock user data |
+
 ## Quick start
 
 ```bash

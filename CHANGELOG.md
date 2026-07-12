@@ -19,6 +19,7 @@ _Theme: Production-ready, cross-platform, documented, community-ready._
 - **Pipeline reset endpoint** — `POST /api/admin/reset` clears the activity log and reloads all WireMock mappings from disk; authenticated via `X-Pipeline-Key` header (configured through `FISHTANK_PIPELINE_RESET_KEY` env var); returns entry and mapping counts; designed for CI/CD pipeline use (`feature/6-1-pipeline-reset-endpoint`)
 - **OpenAPI specification** — `GET /openapi/v1.json` now served in all environments including Production (previously guarded to dev/test only); unauthenticated; full Management API parity across all 34 REST endpoints with tags, summaries, and response envelope schemas (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
 - **Committed OpenAPI spec** — `docs/openapi.json` added to repository as the canonical OpenAPI v3.1.1 spec; kept in sync with the served spec via a new CI parity check step (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
+- **Demo Docker image** — `nicoiodice/fishtank:demo` pre-seeded with three realistic example services (Weather API on port 30100, Payments Gateway on port 30101, User Profile Service on port 30102) and functional WireMock stubs; zero configuration required — `docker run -p 9090:5000 nicoiodice/fishtank:demo` opens a fully operational Fishtank instance (`feature/6-3-fishtank-demo-pre-seeded-docker-image`)
 
 ### Changed
 

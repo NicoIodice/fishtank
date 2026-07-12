@@ -1,0 +1,47 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/weather/forecast"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "city": "Seattle",
+      "forecast": [
+        {
+          "date": "2026-07-13",
+          "temp_c": 20,
+          "temp_f": 68,
+          "condition": "Sunny"
+        },
+        {
+          "date": "2026-07-14",
+          "temp_c": 19,
+          "temp_f": 66,
+          "condition": "Partly cloudy"
+        },
+        {
+          "date": "2026-07-15",
+          "temp_c": 17,
+          "temp_f": 63,
+          "condition": "Cloudy"
+        },
+        {
+          "date": "2026-07-16",
+          "temp_c": 16,
+          "temp_f": 61,
+          "condition": "Rain"
+        },
+        {
+          "date": "2026-07-17",
+          "temp_c": 18,
+          "temp_f": 64,
+          "condition": "Partly cloudy"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/payments/refund"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "refund_id": "ref_demo_001",
+      "status": "processed",
+      "amount": 99.99,
+      "currency": "USD",
+      "original_transaction_id": "txn_demo_001",
+      "timestamp": "2026-07-12T10:30:00Z"
+    }
+  }
+}

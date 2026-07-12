@@ -159,3 +159,48 @@ jobs:
             |-----|-------------|
             | `nicoiodice/fishtank:${{ steps.version.outputs.VERSION }}` | This release |
             | `nicoiodice/fishtank:latest` | Latest stable release |
+
+  publish-demo:
+    name: Publish Demo Image
+    runs-on: ubuntu-latest
+    needs: [publish]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main' &&
+      (
+        startsWith(github.event.pull_request.head.ref, 'release/v') ||
+        startsWith(github.event.pull_request.head.ref, 'hotfix/v')
+      )
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract version from branch name
+        id: version
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release/}"
+          VERSION="${VERSION#hotfix/}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing demo image with base version: $VERSION"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push demo image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: demo.Dockerfile
+          push: true
+          tags: nicoiodice/fishtank:demo
+          build-args: |
+            VERSION=${{ steps.version.outputs.VERSION }}

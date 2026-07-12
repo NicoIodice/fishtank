@@ -133,11 +133,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.4.0"
     epic: "epic-4"
-    status: "in-progress"
+    status: "released"
     branch: "release/v0.4.0"
     started: "2026-06-28"
     completed: "2026-07-09"
-    released: null
+    released: "2026-07-09"
     stories:
       - id: "4-1-mappings-file-backend-crud-ifilewatcher-and-resync-engine"
         status: "done"
@@ -158,11 +158,11 @@ releases:
   # ───────────────────────────────────────────────────────────────────────────
   - version: "v0.5.0"
     epic: "epic-5"
-    status: "in-progress"
+    status: "released"
     branch: "release/v0.5.0"
     started: "2026-07-09"
     completed: "2026-07-11"
-    released: null
+    released: "2026-07-11"
     stories:
       - id: "5-1-feature-toggles-runtime-control-and-signalr-broadcast"
         status: "done"
@@ -196,4 +196,6 @@ releases:
       - id: "6-1-pipeline-reset-endpoint"
         status: "done"
       - id: "6-2-openapi-spec-and-management-api-parity-verification"
+        status: "done"
+      - id: "6-3-fishtank-demo-pre-seeded-docker-image"
         status: "done"
