@@ -6,13 +6,20 @@ public static class SystemEventsEndpoints
 {
     public static void MapSystemEventsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/system-events").RequireAuthorization();
+        var group = app.MapGroup("/api/system-events")
+            .RequireAuthorization()
+            .WithTags("Events");
 
-        group.MapGet("", ListAsync);                       // ?severity=warnings-errors|info&skip=&take=
-        group.MapGet("unread-count", UnreadCountAsync);    // { count }
-        group.MapPost("{id:guid}/read", MarkReadAsync);
-        group.MapPost("read-all", MarkAllReadAsync);
-        group.MapDelete("", ClearAllAsync);                // ?severity=warnings-errors|info
+        group.MapGet("", ListAsync)
+            .WithSummary("List system events with optional severity filter");
+        group.MapGet("unread-count", UnreadCountAsync)
+            .WithSummary("Get count of unread system events");
+        group.MapPost("{id:guid}/read", MarkReadAsync)
+            .WithSummary("Mark a system event as read");
+        group.MapPost("read-all", MarkAllReadAsync)
+            .WithSummary("Mark all system events as read");
+        group.MapDelete("", ClearAllAsync)
+            .WithSummary("Clear all system events with optional severity filter");
     }
 
     private static SystemEventGroup ParseGroup(string? severity) =>

@@ -21,10 +21,14 @@ public static class AdminEndpoints
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .WithTags("Admin");
 
-        group.MapGet("toggles", GetTogglesAsync);
-        group.MapPut("toggles/{name}", SetToggleAsync);
-        group.MapGet("health", GetHealthAsync);
-        group.MapGet("audit", GetAuditAsync);
+        group.MapGet("toggles", GetTogglesAsync)
+            .WithSummary("List all feature toggles");
+        group.MapPut("toggles/{name}", SetToggleAsync)
+            .WithSummary("Update a feature toggle state");
+        group.MapGet("health", GetHealthAsync)
+            .WithSummary("Get system health dashboard metrics");
+        group.MapGet("audit", GetAuditAsync)
+            .WithSummary("Query audit log with pagination");
 
         // Pipeline reset endpoint — does NOT use [Authorize] attribute
         // Authentication is handled inline via X-Pipeline-Key header

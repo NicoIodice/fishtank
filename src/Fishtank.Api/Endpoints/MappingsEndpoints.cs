@@ -8,16 +8,26 @@ public static class MappingsEndpoints
 {
     public static void MapMappingsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/mappings").RequireAuthorization();
+        var group = app.MapGroup("/api/mappings")
+            .RequireAuthorization()
+            .WithTags("Mappings");
 
-        group.MapGet("", GetFolderTreeAsync);
-        group.MapGet("{**path}", GetFileContentAsync);
-        group.MapPost("", CreateMappingAsync);
-        group.MapPut("{**path}", UpdateMappingAsync);
-        group.MapDelete("{**path}", DeleteMappingAsync);
+        group.MapGet("", GetFolderTreeAsync)
+            .WithSummary("Get the WireMock mappings folder tree");
+        group.MapGet("{**path}", GetFileContentAsync)
+            .WithSummary("Read a mapping or response file");
+        group.MapPost("", CreateMappingAsync)
+            .WithSummary("Create a new mapping or response file");
+        group.MapPut("{**path}", UpdateMappingAsync)
+            .WithSummary("Update an existing mapping or response file");
+        group.MapDelete("{**path}", DeleteMappingAsync)
+            .WithSummary("Delete a mapping or response file");
 
         // Resync endpoint
-        app.MapPost("/api/resync", ResyncAsync).RequireAuthorization();
+        app.MapPost("/api/resync", ResyncAsync)
+            .RequireAuthorization()
+            .WithTags("Mappings")
+            .WithSummary("Reload all mappings from disk and sync to WireMock engines");
     }
 
     private static async Task<IResult> GetFolderTreeAsync(

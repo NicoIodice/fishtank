@@ -136,7 +136,7 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   epic-6: in-progress
   6-1-pipeline-reset-endpoint: done
-  6-2-openapi-spec-and-management-api-parity-verification: backlog
+  6-2-openapi-spec-and-management-api-parity-verification: done
   6-3-fishtank-demo-pre-seeded-docker-image: backlog
   6-4-automated-release-pipeline-k8s-manifest-and-community-resources: backlog
   epic-6-retrospective: optional

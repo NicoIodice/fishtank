@@ -201,6 +201,13 @@ The container serves both the API and the compiled SPA on port `8080`.
 | `FISHTANK_LOGIN_RATE_WINDOW` | `60` | Login rate window in seconds. |
 | `FISHTANK_LOG_PATH` | `/data/logs` | Directory for rolling daily log files. Must be writable by the container user. |
 | `FISHTANK_LOG_RETENTION_DAYS` | `7` | Number of days to retain log files. Older files are deleted automatically. |
+| `FISHTANK_SERVICES_ROOT` | `/mocks` | Root directory for service instance directories (WireMock processes). |
+| `FISHTANK_ACTIVITY_MAX_ENTRIES` | `10000` | Maximum number of activity log entries to retain in memory. |
+| `FISHTANK_AUTO_REGISTER` | `false` | Automatically register default admin user on first startup. |
+| `FISHTANK_CAPTURE_FULL_HEADERS` | `false` | Capture full HTTP headers in activity logs (false for privacy by default). |
+| `FISHTANK_PIPELINE_RESET_KEY` | _(unset)_ | API key for `/api/admin/reset` endpoint (CI/test pipelines only). |
+| `FISHTANK_TOGGLE_{NAME}` | _(varies)_ | Feature toggle overrides (e.g., `FISHTANK_TOGGLE_RECORDING=true`). |
+| `FISHTANK_DEBUG_ERRORS` | `false` | Expose full exception details in error responses (development only). |
 
 ## Notes
 

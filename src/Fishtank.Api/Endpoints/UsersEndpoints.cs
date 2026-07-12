@@ -13,9 +13,12 @@ public static class UsersEndpoints
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .WithTags("Users");
 
-        group.MapGet("/", GetAllUsersAsync);
-        group.MapPost("/", CreateUserAsync);
-        group.MapPut("/{id:guid}/deactivate", DeactivateUserAsync);
+        group.MapGet("/", GetAllUsersAsync)
+            .WithSummary("List all users (Admin only)");
+        group.MapPost("/", CreateUserAsync)
+            .WithSummary("Create a new user (Admin only)");
+        group.MapPut("/{id:guid}/deactivate", DeactivateUserAsync)
+            .WithSummary("Deactivate a user account (Admin only)");
     }
 
     private static async Task<IResult> GetAllUsersAsync(

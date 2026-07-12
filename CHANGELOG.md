@@ -17,6 +17,12 @@ _Theme: Production-ready, cross-platform, documented, community-ready._
 ### Added
 
 - **Pipeline reset endpoint** — `POST /api/admin/reset` clears the activity log and reloads all WireMock mappings from disk; authenticated via `X-Pipeline-Key` header (configured through `FISHTANK_PIPELINE_RESET_KEY` env var); returns entry and mapping counts; designed for CI/CD pipeline use (`feature/6-1-pipeline-reset-endpoint`)
+- **OpenAPI specification** — `GET /openapi/v1.json` now served in all environments including Production (previously guarded to dev/test only); unauthenticated; full Management API parity across all 34 REST endpoints with tags, summaries, and response envelope schemas (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
+- **Committed OpenAPI spec** — `docs/openapi.json` added to repository as the canonical OpenAPI v3.1.1 spec; kept in sync with the served spec via a new CI parity check step (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
+
+### Changed
+
+- **Environment variable documentation** — `docker-compose.example.yml` and `README.md` updated to document all 17 `FISHTANK_*` runtime variables including previously undocumented `FISHTANK_AUTO_REGISTER`, `FISHTANK_CAPTURE_FULL_HEADERS`, `FISHTANK_PIPELINE_RESET_KEY`, `FISHTANK_TOGGLE_{NAME}`, and `FISHTANK_DEBUG_ERRORS` (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
 
 ---
 

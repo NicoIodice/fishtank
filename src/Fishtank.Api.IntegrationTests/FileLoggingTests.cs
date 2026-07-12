@@ -515,7 +515,7 @@ public class Story5_4_FileLoggingTests : IAsyncLifetime
         var adminClient = await GetAdminClientAsync();
 
         // Trigger actions known to generate System Events (port checks, service starts)
-        await adminClient.GetAsync("/api/events");
+        await adminClient.GetAsync("/api/system-events");
         await _client.GetAsync("/health");
         await Task.Delay(TimeSpan.FromSeconds(2));
 

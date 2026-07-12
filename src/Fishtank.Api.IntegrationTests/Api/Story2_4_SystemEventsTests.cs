@@ -22,9 +22,9 @@ namespace Fishtank.Api.IntegrationTests.Api;
 /// is validated end-to-end in Playwright, mirroring the Story 2.3 split):
 ///   AC-1: GET /api/system-events paginated, severity-filtered, newest-first.
 ///   AC-3: /hubs/events authenticated negotiate (broadcast wiring regression).
-///   AC-3/8: GET /api/system-events/unread-count counts only unread warn+err.
-///   AC-5: POST /api/system-events/{id}/read marks one read; unread-count drops.
-///   AC-6: POST /api/system-events/read-all zeroes unread warn+err.
+///   AC-3/8: GET /api/events/unread-count counts only unread warn+err.
+///   AC-5: POST /api/events/{id}/read marks one read; unread-count drops.
+///   AC-6: POST /api/events/read-all zeroes unread warn+err.
 ///
 /// Seeding strategy: to create warning/error events deterministically without a
 /// live WireMock failure, resolve <see cref="ISystemEventService"/> from a DI
@@ -271,10 +271,10 @@ public class Story2_4_SystemEventsTests : IntegrationTestBase
 
     // ─────────────────────────────────────────────────────────────────────
     // Auth regression: the list endpoint requires authentication
-    // (GET /api/system-events already RequireAuthorization).
+    // (GET /api/events already RequireAuthorization).
     // ─────────────────────────────────────────────────────────────────────
 
-    [Fact(DisplayName = "GET /api/system-events without auth → 401 (regression guard)")]
+    [Fact(DisplayName = "GET /api/events without auth → 401 (regression guard)")]
     public async Task List_Unauthenticated_Returns401()
     {
         var res = await Client.GetAsync(

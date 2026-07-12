@@ -9,8 +9,14 @@ public static class ActivityEndpoints
 {
     public static void MapActivityEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/activity", GetActivityAsync).RequireAuthorization();
-        app.MapDelete("/api/activity", DeleteActivityAsync).RequireAuthorization();
+        app.MapGet("/api/activity", GetActivityAsync)
+            .RequireAuthorization()
+            .WithTags("Activity")
+            .WithSummary("Query activity log with optional filters");
+        app.MapDelete("/api/activity", DeleteActivityAsync)
+            .RequireAuthorization()
+            .WithTags("Activity")
+            .WithSummary("Clear the activity log");
     }
 
     private static async Task<IResult> GetActivityAsync(

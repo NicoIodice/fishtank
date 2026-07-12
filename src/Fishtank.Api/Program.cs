@@ -281,13 +281,27 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // ─── 10. Endpoints ───────────────────────────────────────────────────────────
+// OpenAPI spec served in all environments (FR-44)
+app.MapOpenApi();
+
+// Test endpoints only in dev/test
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
-    app.MapOpenApi();
     app.MapTestEndpoints();
 }
 
-app.MapHealthChecks("/health");
+// Health check endpoint with OpenAPI metadata
+app.MapGet("/health", async (Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService healthCheckService, CancellationToken ct) =>
+{
+    var report = await healthCheckService.CheckHealthAsync(ct);
+    return report.Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy
+        ? Results.Ok(new { status = "Healthy", checks = report.Entries.Select(e => new { name = e.Key, status = e.Value.Status.ToString(), duration = e.Value.Duration.TotalMilliseconds }) })
+        : Results.StatusCode(503);
+})
+.WithTags("Health")
+.WithSummary("Health check endpoint")
+.AllowAnonymous();
+
 app.MapAuthEndpoints();
 app.MapServicesEndpoints();
 app.MapMappingsEndpoints();

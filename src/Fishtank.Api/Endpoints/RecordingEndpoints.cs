@@ -8,11 +8,16 @@ public static class RecordingEndpoints
 {
     public static void MapRecordingEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/recording").RequireAuthorization();
+        var group = app.MapGroup("/api/recording")
+            .RequireAuthorization()
+            .WithTags("Recording");
 
-        group.MapPost("/start", StartRecordingAsync);
-        group.MapPost("/stop", StopRecordingAsync);
-        group.MapGet("/status", GetRecordingStatusAsync);
+        group.MapPost("/start", StartRecordingAsync)
+            .WithSummary("Start recording mode for all services");
+        group.MapPost("/stop", StopRecordingAsync)
+            .WithSummary("Stop recording mode and generate mappings from captured traffic");
+        group.MapGet("/status", GetRecordingStatusAsync)
+            .WithSummary("Get current recording status");
     }
 
     private static async Task<IResult> StartRecordingAsync(
