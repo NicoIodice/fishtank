@@ -1,6 +1,7 @@
 import { test, expect } from "../support/fixtures";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
 
 /**
  * RED-PHASE ATDD acceptance test scaffolds for Story 6.4:
@@ -21,6 +22,9 @@ import * as path from "path";
  *
  * Test Design Reference: _bmad-output/test-artifacts/test-design/test-design-epic-6.md (Story 6-4 section)
  */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ─── P2: DevContainer Configuration (AC-15) ───────────────────────────────
 
@@ -54,7 +58,7 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
     // Assert — Node.js 22 feature is present
     // RED: Node.js feature does not exist yet
     const hasNodeFeature =
-      config.features &&
+      !!(config.features &&
       (config.features["ghcr.io/devcontainers/features/node:1"] ||
         Object.keys(config.features).some((key) =>
           key.includes("node") && (
@@ -62,7 +66,7 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
             config.features[key]?.version === "lts/iron" ||
             config.features[key] === "22"
           )
-        ));
+        )));
 
     expect(hasNodeFeature).toBe(true);
   });
@@ -114,10 +118,10 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
     // Assert — Docker CLI feature is present
     // RED: Docker CLI feature does not exist yet
     const hasDockerFeature =
-      config.features &&
+      !!(config.features &&
       (config.features["ghcr.io/devcontainers/features/docker-in-docker:2"] ||
         config.features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] ||
-        Object.keys(config.features).some((key) => key.includes("docker")));
+        Object.keys(config.features).some((key) => key.includes("docker"))));
 
     expect(hasDockerFeature).toBe(true);
   });
