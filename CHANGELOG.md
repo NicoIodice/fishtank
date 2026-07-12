@@ -10,7 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — v1.0.0 (Release Polish & Distribution)
+## [v1.0.0] — 2026-07-12 (Release Polish & Distribution)
 
 _Theme: Production-ready, cross-platform, documented, community-ready._
 
@@ -20,10 +20,15 @@ _Theme: Production-ready, cross-platform, documented, community-ready._
 - **OpenAPI specification** — `GET /openapi/v1.json` now served in all environments including Production (previously guarded to dev/test only); unauthenticated; full Management API parity across all 34 REST endpoints with tags, summaries, and response envelope schemas (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
 - **Committed OpenAPI spec** — `docs/openapi.json` added to repository as the canonical OpenAPI v3.1.1 spec; kept in sync with the served spec via a new CI parity check step (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
 - **Demo Docker image** — `nicoiodice/fishtank:demo` pre-seeded with three realistic example services (Weather API on port 30100, Payments Gateway on port 30101, User Profile Service on port 30102) and functional WireMock stubs; zero configuration required — `docker run -p 9090:5000 nicoiodice/fishtank:demo` opens a fully operational Fishtank instance (`feature/6-3-fishtank-demo-pre-seeded-docker-image`)
+- **Automated release pipeline** — `.github/workflows/release.yml` triggers on `v*.*.*` git tags; builds and tests the full stack (backend unit + integration, frontend unit); builds a multi-arch Docker image (linux/amd64 + linux/arm64); runs cross-platform smoke tests on Linux, macOS Apple Silicon, macOS Intel, and Windows runners; publishes versioned and `latest` tags to `nicoiodice/fishtank` on Docker Hub (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`)
+- **Kubernetes deployment manifest** — `deployment.yaml` in repository root provides a production-ready Kubernetes Deployment + Service reference manifest; includes readiness and liveness probes on `GET /health`, volume mounts for `/data` (SQLite) and `/mocks` (WireMock mappings), and environment variable configuration via Kubernetes Secrets (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`)
+- **DevContainer configuration** — `.devcontainer/devcontainer.json` allows contributors to work in a pre-configured VS Code Dev Container with Node.js 22, .NET SDK 10, and Docker CLI; `postCreateCommand` auto-installs all dependencies (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`)
 
 ### Changed
 
-- **Environment variable documentation** — `docker-compose.example.yml` and `README.md` updated to document all 17 `FISHTANK_*` runtime variables including previously undocumented `FISHTANK_AUTO_REGISTER`, `FISHTANK_CAPTURE_FULL_HEADERS`, `FISHTANK_PIPELINE_RESET_KEY`, `FISHTANK_TOGGLE_{NAME}`, and `FISHTANK_DEBUG_ERRORS` (`feature/6-2-openapi-spec-and-management-api-parity-verification`)
+- **Environment variable documentation** — `docker-compose.example.yml` and `README.md` updated to document all 17 `FISHTANK_*` runtime variables including previously undocumented `FISHTANK_AUTO_REGISTER`, `FISHTANK_CAPTURE_FULL_HEADERS`, `FISHTANK_PIPELINE_RESET_KEY`, `FISHTANK_TOGGLE_{NAME}`, and `FISHTANK_DEBUG_ERRORS`; also added quick-start `docker run` command, Linux inotify configuration note, and links to contributing and security docs (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`, `feature/6-2-openapi-spec-and-management-api-parity-verification`)
+- **CONTRIBUTING.md** — comprehensive contributor guide including architecture overview, tech stack description (.NET 10, React 19, TypeScript, Vite, Tailwind CSS, WireMock.NET), project structure walkthrough, local dev setup (DevContainer + manual), PR workflow, and SECURITY.md link (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`)
+- **SECURITY.md** — vulnerability reporting process via GitHub Security Advisories, responsible disclosure policy with severity-based response timelines, and supported versions table (`feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources`)
 
 ---
 

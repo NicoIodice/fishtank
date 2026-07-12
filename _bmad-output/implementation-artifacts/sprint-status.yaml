@@ -56,7 +56,7 @@
 # - pre-ship-gate-1 and pre-ship-gate-2 block the v1 release tag
 
 generated: 2026-06-20
-last_updated: 2026-07-11
+last_updated: 2026-07-12
 project: Fishtank
 project_key: NOKEY
 tracking_system: file-system
@@ -134,11 +134,11 @@ development_status:
   # ─────────────────────────────────────────────────────────────────────────────
   # EPIC 6: Release Polish & Distribution
   # ─────────────────────────────────────────────────────────────────────────────
-  epic-6: in-progress
+  epic-6: done
   6-1-pipeline-reset-endpoint: done
   6-2-openapi-spec-and-management-api-parity-verification: done
   6-3-fishtank-demo-pre-seeded-docker-image: done
-  6-4-automated-release-pipeline-k8s-manifest-and-community-resources: backlog
+  6-4-automated-release-pipeline-k8s-manifest-and-community-resources: done
   epic-6-retrospective: optional
 
   # ─────────────────────────────────────────────────────────────────────────────

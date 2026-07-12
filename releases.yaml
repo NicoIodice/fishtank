@@ -183,7 +183,7 @@ releases:
     status: "in-progress"
     branch: "release/v1.0.0"
     started: "2026-07-11"
-    completed: null
+    completed: "2026-07-12"
     released: null
     pre_ship_gates:
       - id: "PSG-1"
@@ -198,4 +198,6 @@ releases:
       - id: "6-2-openapi-spec-and-management-api-parity-verification"
         status: "done"
       - id: "6-3-fishtank-demo-pre-seeded-docker-image"
+        status: "done"
+      - id: "6-4-automated-release-pipeline-k8s-manifest-and-community-resources"
         status: "done"

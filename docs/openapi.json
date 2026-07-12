@@ -12,9 +12,7 @@
   "paths": {
     "/api/test/seed-event": {
       "post": {
-        "tags": [
-          "Test"
-        ],
+        "tags": ["Test"],
         "summary": "Seed a system event for testing",
         "requestBody": {
           "content": {
@@ -35,9 +33,7 @@
     },
     "/api/test/reset-db": {
       "post": {
-        "tags": [
-          "Test"
-        ],
+        "tags": ["Test"],
         "summary": "Reset database to clean state for testing",
         "responses": {
           "200": {
@@ -48,10 +44,19 @@
     },
     "/api/test/reset-services": {
       "post": {
-        "tags": [
-          "Test"
-        ],
+        "tags": ["Test"],
         "summary": "Reset services and events only for testing",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/test/reset-activity": {
+      "post": {
+        "tags": ["Test"],
+        "summary": "Clear in-memory activity store only (preserves services and users)",
         "responses": {
           "200": {
             "description": "OK"
@@ -61,9 +66,7 @@
     },
     "/api/activity/test-seed": {
       "post": {
-        "tags": [
-          "Test"
-        ],
+        "tags": ["Test"],
         "summary": "Seed an activity row for testing",
         "requestBody": {
           "content": {
@@ -84,9 +87,7 @@
     },
     "/health": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Health check endpoint",
         "responses": {
           "200": {
@@ -97,9 +98,7 @@
     },
     "/api/setup/status": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Check if initial setup is required",
         "responses": {
           "200": {
@@ -110,9 +109,7 @@
     },
     "/api/resync": {
       "post": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Reload all mappings from disk and sync to WireMock engines",
         "responses": {
           "200": {
@@ -123,9 +120,7 @@
     },
     "/api/settings": {
       "get": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Get runtime configuration settings",
         "responses": {
           "200": {
@@ -136,9 +131,7 @@
     },
     "/api/settings/capture-headers": {
       "put": {
-        "tags": [
-          "Settings"
-        ],
+        "tags": ["Settings"],
         "summary": "Update header capture setting",
         "requestBody": {
           "content": {
@@ -159,9 +152,7 @@
     },
     "/api/cache": {
       "get": {
-        "tags": [
-          "Cache"
-        ],
+        "tags": ["Cache"],
         "summary": "List all service caches",
         "responses": {
           "200": {
@@ -170,9 +161,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Cache"
-        ],
+        "tags": ["Cache"],
         "summary": "Clear all service caches",
         "responses": {
           "200": {
@@ -183,9 +172,7 @@
     },
     "/api/cache/{id}": {
       "delete": {
-        "tags": [
-          "Cache"
-        ],
+        "tags": ["Cache"],
         "summary": "Clear cache for a specific service",
         "parameters": [
           {
@@ -207,9 +194,7 @@
     },
     "/api/activity": {
       "get": {
-        "tags": [
-          "Activity"
-        ],
+        "tags": ["Activity"],
         "summary": "Query activity log with optional filters",
         "parameters": [
           {
@@ -239,10 +224,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32",
               "default": 0
             }
@@ -252,10 +234,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32",
               "default": 50
             }
@@ -268,9 +247,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Activity"
-        ],
+        "tags": ["Activity"],
         "summary": "Clear the activity log",
         "responses": {
           "200": {
@@ -281,9 +258,7 @@
     },
     "/api/admin/reset": {
       "post": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Clears activity log and reloads all mappings from disk",
         "description": "Requires API key authentication via X-Pipeline-Key header. JWT auth is not accepted.",
         "operationId": "PipelineReset",
@@ -292,7 +267,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": { }
+                "schema": {}
               }
             }
           },
@@ -300,7 +275,7 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
-                "schema": { }
+                "schema": {}
               }
             }
           },
@@ -308,7 +283,7 @@
             "description": "Forbidden",
             "content": {
               "application/json": {
-                "schema": { }
+                "schema": {}
               }
             }
           }
@@ -317,9 +292,7 @@
     },
     "/api/auth/setup": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Create the initial admin account (one-time setup)",
         "requestBody": {
           "content": {
@@ -340,9 +313,7 @@
     },
     "/api/auth/me": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Get current authenticated user info",
         "responses": {
           "200": {
@@ -353,9 +324,7 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Authenticate user and issue JWT token",
         "requestBody": {
           "content": {
@@ -376,9 +345,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Log out the current user",
         "responses": {
           "200": {
@@ -389,9 +356,7 @@
     },
     "/api/auth/change-password": {
       "put": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Change password for the current user",
         "requestBody": {
           "content": {
@@ -412,9 +377,7 @@
     },
     "/api/auth/registration-status": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Check if user self-registration is enabled",
         "responses": {
           "200": {
@@ -425,9 +388,7 @@
     },
     "/api/auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register a new user account (if self-registration is enabled)",
         "requestBody": {
           "content": {
@@ -448,9 +409,7 @@
     },
     "/api/services": {
       "get": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "List all services",
         "responses": {
           "200": {
@@ -476,9 +435,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Create a new service",
         "requestBody": {
           "content": {
@@ -499,9 +456,7 @@
     },
     "/api/services/next-port": {
       "get": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Get the next available port in the 30100–30199 range",
         "responses": {
           "200": {
@@ -512,9 +467,7 @@
     },
     "/api/services/{id}": {
       "get": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Get service by ID",
         "parameters": [
           {
@@ -534,9 +487,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Update a service",
         "parameters": [
           {
@@ -566,9 +517,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Delete a service",
         "parameters": [
           {
@@ -590,9 +539,7 @@
     },
     "/api/services/{id}/stop": {
       "post": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Stop the WireMock engine for a service",
         "parameters": [
           {
@@ -614,9 +561,7 @@
     },
     "/api/services/{id}/start": {
       "post": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Start the WireMock engine for a service",
         "parameters": [
           {
@@ -638,9 +583,7 @@
     },
     "/api/services/import": {
       "post": {
-        "tags": [
-          "Services"
-        ],
+        "tags": ["Services"],
         "summary": "Import services from a seed JSON file",
         "responses": {
           "200": {
@@ -651,9 +594,7 @@
     },
     "/api/mappings": {
       "get": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Get the WireMock mappings folder tree",
         "responses": {
           "200": {
@@ -662,9 +603,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Create a new mapping or response file",
         "requestBody": {
           "content": {
@@ -685,9 +624,7 @@
     },
     "/api/mappings/{path}": {
       "get": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Read a mapping or response file",
         "parameters": [
           {
@@ -706,9 +643,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Update an existing mapping or response file",
         "parameters": [
           {
@@ -737,9 +672,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Mappings"
-        ],
+        "tags": ["Mappings"],
         "summary": "Delete a mapping or response file",
         "parameters": [
           {
@@ -760,9 +693,7 @@
     },
     "/api/recording/start": {
       "post": {
-        "tags": [
-          "Recording"
-        ],
+        "tags": ["Recording"],
         "summary": "Start recording mode for all services",
         "responses": {
           "200": {
@@ -773,9 +704,7 @@
     },
     "/api/recording/stop": {
       "post": {
-        "tags": [
-          "Recording"
-        ],
+        "tags": ["Recording"],
         "summary": "Stop recording mode and generate mappings from captured traffic",
         "responses": {
           "200": {
@@ -786,9 +715,7 @@
     },
     "/api/recording/status": {
       "get": {
-        "tags": [
-          "Recording"
-        ],
+        "tags": ["Recording"],
         "summary": "Get current recording status",
         "responses": {
           "200": {
@@ -799,9 +726,7 @@
     },
     "/api/system-events": {
       "get": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "List system events with optional severity filter",
         "parameters": [
           {
@@ -816,10 +741,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -828,10 +750,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -843,9 +762,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Clear all system events with optional severity filter",
         "parameters": [
           {
@@ -865,9 +782,7 @@
     },
     "/api/system-events/unread-count": {
       "get": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Get count of unread system events",
         "responses": {
           "200": {
@@ -878,9 +793,7 @@
     },
     "/api/system-events/{id}/read": {
       "post": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Mark a system event as read",
         "parameters": [
           {
@@ -902,9 +815,7 @@
     },
     "/api/system-events/read-all": {
       "post": {
-        "tags": [
-          "Events"
-        ],
+        "tags": ["Events"],
         "summary": "Mark all system events as read",
         "responses": {
           "200": {
@@ -915,9 +826,7 @@
     },
     "/api/admin/toggles": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "List all feature toggles",
         "responses": {
           "200": {
@@ -928,9 +837,7 @@
     },
     "/api/admin/toggles/{name}": {
       "put": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Update a feature toggle state",
         "parameters": [
           {
@@ -961,9 +868,7 @@
     },
     "/api/admin/health": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Get system health dashboard metrics",
         "responses": {
           "200": {
@@ -974,9 +879,7 @@
     },
     "/api/admin/audit": {
       "get": {
-        "tags": [
-          "Admin"
-        ],
+        "tags": ["Admin"],
         "summary": "Query audit log with pagination",
         "responses": {
           "200": {
@@ -987,9 +890,7 @@
     },
     "/api/users": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "List all users (Admin only)",
         "responses": {
           "200": {
@@ -998,9 +899,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Create a new user (Admin only)",
         "requestBody": {
           "content": {
@@ -1021,9 +920,7 @@
     },
     "/api/users/{id}/deactivate": {
       "put": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Deactivate a user account (Admin only)",
         "parameters": [
           {
@@ -1047,10 +944,7 @@
   "components": {
     "schemas": {
       "ApiErrorDetail": {
-        "required": [
-          "code",
-          "message"
-        ],
+        "required": ["code", "message"],
         "type": "object",
         "properties": {
           "code": {
@@ -1060,18 +954,12 @@
             "type": "string"
           },
           "details": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "ApiErrorResponseSchema": {
-        "required": [
-          "success",
-          "error"
-        ],
+        "required": ["success", "error"],
         "type": "object",
         "properties": {
           "success": {
@@ -1083,22 +971,17 @@
         }
       },
       "ApiResponseSchemaOfObject": {
-        "required": [
-          "success",
-          "data"
-        ],
+        "required": ["success", "data"],
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean"
           },
-          "data": { }
+          "data": {}
         }
       },
       "CaptureHeadersRequest": {
-        "required": [
-          "enabled"
-        ],
+        "required": ["enabled"],
         "type": "object",
         "properties": {
           "enabled": {
@@ -1107,24 +990,16 @@
         }
       },
       "ChangePasswordRequest": {
-        "required": [
-          "newPassword"
-        ],
+        "required": ["newPassword"],
         "type": "object",
         "properties": {
           "newPassword": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateMappingRequest": {
-        "required": [
-          "path",
-          "content"
-        ],
+        "required": ["path", "content"],
         "type": "object",
         "properties": {
           "path": {
@@ -1136,40 +1011,25 @@
         }
       },
       "CreateServiceRequest": {
-        "required": [
-          "name",
-          "description",
-          "externalUrl",
-          "port",
-          "tags"
-        ],
+        "required": ["name", "description", "externalUrl", "port", "tags"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "externalUrl": {
             "type": "string"
           },
           "port": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "tags": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string"
             }
@@ -1177,10 +1037,7 @@
         }
       },
       "CreateUserRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
@@ -1192,44 +1049,26 @@
         }
       },
       "LoginRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "password": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "RegisterRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "password": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -1250,10 +1089,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "serviceId": {
@@ -1261,96 +1097,58 @@
             "format": "uuid"
           },
           "urlPath": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "method": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "statusCode": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "type": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "durationMs": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "requestHeaders": {
-            "type": [
-              "null",
-              "object"
-            ],
+            "type": ["null", "object"],
             "additionalProperties": {
               "type": "string"
             }
           },
           "requestBody": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "responseHeaders": {
-            "type": [
-              "null",
-              "object"
-            ],
+            "type": ["null", "object"],
             "additionalProperties": {
               "type": "string"
             }
           },
           "responseBody": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "SeedEventRequest": {
-        "required": [
-          "severity",
-          "message"
-        ],
+        "required": ["severity", "message"],
         "type": "object",
         "properties": {
           "severity": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "message": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "SetToggleRequest": {
-        "required": [
-          "enabled"
-        ],
+        "required": ["enabled"],
         "type": "object",
         "properties": {
           "enabled": {
@@ -1359,79 +1157,50 @@
         }
       },
       "SetupRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "password": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "UpdateMappingRequest": {
-        "required": [
-          "content"
-        ],
+        "required": ["content"],
         "type": "object",
         "properties": {
           "content": {
             "type": "string"
           },
           "lastKnownModified": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date-time"
           }
         }
       },
       "UpdateServiceRequest": {
-        "required": [
-          "name",
-          "description",
-          "externalUrl",
-          "port",
-          "tags"
-        ],
+        "required": ["name", "description", "externalUrl", "port", "tags"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "externalUrl": {
             "type": "string"
           },
           "port": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "tags": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string"
             }

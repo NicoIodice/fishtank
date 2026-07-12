@@ -65,21 +65,35 @@ async function seedService(
   request: Request,
   name: string,
 ): Promise<CreatedService> {
-  const { port } = await apiFetch<{ port: number }>(
-    request,
-    "/api/services/next-port",
-  );
-
-  return apiFetch<CreatedService>(request, "/api/services", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: JSON.stringify({
-      name,
-      externalUrl: "https://httpbin.org",
-      port,
-      tags: [],
-    }),
-  });
+  // Retry up to 3 times on SERVICE_PORT_CONFLICT — two parallel workers can race
+  // on next-port and receive the same value before either has posted the service.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { port } = await apiFetch<{ port: number }>(
+      request,
+      "/api/services/next-port",
+    );
+    try {
+      return await apiFetch<CreatedService>(request, "/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        data: JSON.stringify({
+          name,
+          externalUrl: "https://httpbin.org",
+          port,
+          tags: [],
+        }),
+      });
+    } catch (e) {
+      if (
+        attempt < 2 &&
+        e instanceof Error &&
+        e.message.includes("SERVICE_PORT_CONFLICT")
+      )
+        continue;
+      throw e;
+    }
+  }
+  throw new Error("seedService: exhausted retries on SERVICE_PORT_CONFLICT");
 }
 
 /** Create a mapping file via the API. */
@@ -229,7 +243,9 @@ test.describe("Story 4.2 — P1: Edit and save mapping file", () => {
     await page.getByTestId("mappings-btn-save").click();
 
     // Success toast or cleared unsaved indicator
-    await expect(page.locator("[role='status'], [role='alert']").first()).toBeVisible({
+    await expect(
+      page.locator("[role='status'], [role='alert']").first(),
+    ).toBeVisible({
       timeout: 5_000,
     });
 
@@ -273,9 +289,7 @@ test.describe("Story 4.2 — P1: Delete mapping file", () => {
 
     // Confirmation dialog with exact copy
     await expect(
-      page.getByText(
-        "Delete this mapping? This removes the file from disk.",
-      ),
+      page.getByText("Delete this mapping? This removes the file from disk."),
     ).toBeVisible({ timeout: 3_000 });
 
     // Confirm deletion
@@ -391,72 +405,71 @@ test.describe("Story 4.2 — P2: Duplicate mapping file", () => {
 // NOTE: This test uses page.route() ONLY for fault-injection (permitted per policy).
 
 test.describe("Story 4.2 — P1: Write failure error toast", () => {
-  test("P1-4 (AC-16, R-E4-004): save failure shows error toast with actionable message",
+  test(
+    "P1-4 (AC-16, R-E4-004): save failure shows error toast with actionable message",
     // The PUT → 500 response is intentional fault-injection; skip the network-error
     // monitor for this test only so the harness does not fail on the expected 5xx.
     { annotation: [{ type: "skipNetworkMonitoring" }] },
-    async ({
-    page,
-    request,
-  }) => {
-    // RED: error toast not wired to save action
+    async ({ page, request }) => {
+      // RED: error toast not wired to save action
 
-    const svcName = uniqueSlug();
-    const svc = await seedService(request, svcName);
-    const filename = `get_${uniqueSlug()}.json`;
-    await seedMappingFile(request, svc.slug, filename);
+      const svcName = uniqueSlug();
+      const svc = await seedService(request, svcName);
+      const filename = `get_${uniqueSlug()}.json`;
+      await seedMappingFile(request, svc.slug, filename);
 
-    // Fault-injection: intercept PUT to return 500 MAPPING_WRITE_FAILED
-    await page.route("**/api/mappings/**", async (route) => {
-      if (route.request().method() === "PUT") {
-        await route.fulfill({
-          status: 500,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: false,
-            error: {
-              code: "MAPPING_WRITE_FAILED",
-              message: "Disk write failed: permission denied",
-            },
-          }),
-        });
-      } else {
-        await route.continue();
-      }
-    });
+      // Fault-injection: intercept PUT to return 500 MAPPING_WRITE_FAILED
+      await page.route("**/api/mappings/**", async (route) => {
+        if (route.request().method() === "PUT") {
+          await route.fulfill({
+            status: 500,
+            contentType: "application/json",
+            body: JSON.stringify({
+              success: false,
+              error: {
+                code: "MAPPING_WRITE_FAILED",
+                message: "Disk write failed: permission denied",
+              },
+            }),
+          });
+        } else {
+          await route.continue();
+        }
+      });
 
-    await page.goto("/mappings");
+      await page.goto("/mappings");
 
-    const fileNode = page.getByTestId(
-      `mappings-tree-node-${svc.slug}-${filename}`,
-    );
-    await expect(fileNode).toBeVisible({ timeout: 10_000 });
-    await fileNode.click();
+      const fileNode = page.getByTestId(
+        `mappings-tree-node-${svc.slug}-${filename}`,
+      );
+      await expect(fileNode).toBeVisible({ timeout: 10_000 });
+      await fileNode.click();
 
-    await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
-      timeout: 5_000,
-    });
+      await expect(page.getByTestId("mappings-breadcrumb-editor")).toBeVisible({
+        timeout: 5_000,
+      });
 
-    // Make an edit and try to save
-    await page.getByTestId("mappings-tab-form").click();
-    const statusInput = page.getByLabel(/status/i);
-    await statusInput.fill("418");
+      // Make an edit and try to save
+      await page.getByTestId("mappings-tab-form").click();
+      const statusInput = page.getByLabel(/status/i);
+      await statusInput.fill("418");
 
-    await expect(page.getByTestId("mappings-btn-save")).toBeEnabled({
-      timeout: 3_000,
-    });
-    await page.getByTestId("mappings-btn-save").click();
+      await expect(page.getByTestId("mappings-btn-save")).toBeEnabled({
+        timeout: 3_000,
+      });
+      await page.getByTestId("mappings-btn-save").click();
 
-    // Error toast must appear with actionable message
-    await expect(
-      page.locator("[role='alert'], [role='status']").filter({
-        hasText: /failed.*save|permission denied|write failed/i,
-      }),
-    ).toBeVisible({ timeout: 5_000 });
+      // Error toast must appear with actionable message
+      await expect(
+        page.locator("[role='alert'], [role='status']").filter({
+          hasText: /failed.*save|permission denied|write failed/i,
+        }),
+      ).toBeVisible({ timeout: 5_000 });
 
-    // Unsaved indicator must remain (state not mutated)
-    await expect(fileNode).toContainText("●");
-  });
+      // Unsaved indicator must remain (state not mutated)
+      await expect(fileNode).toContainText("●");
+    },
+  );
 });
 
 // ─── P1: Keyboard navigation (AC-20) ────────────────────────────────────────

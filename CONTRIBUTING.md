@@ -17,6 +17,14 @@ Fishtank is a Docker-native WireMock.NET management UI. The high-level architect
 
 Full architectural decisions are documented in [`_bmad-output/planning-artifacts/architecture.md`](_bmad-output/planning-artifacts/architecture.md).
 
+## Tech Stack
+
+See the Architecture Overview table above for the complete technology stack. Key technologies:
+- **Backend:** .NET 10 LTS, ASP.NET Core, SignalR, EF Core, SQLite
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS v4, shadcn/ui
+- **Mock Engine:** WireMock.NET 2.x for HTTP service mocking
+- **Testing:** xUnit (backend), Playwright (E2E)
+
 ## Project Structure
 
 ```
@@ -35,7 +43,7 @@ fishtank/
     └── docker.yml                         # CI: Docker build + smoke test + publish
 ```
 
-## Local Dev Setup
+## Local Development Setup
 
 ### Option 1: DevContainer (recommended)
 
@@ -186,3 +194,12 @@ security(auth): enforce rate limiting on POST /api/auth/login
 New contributors should look for issues labelled [`good first issue`](https://github.com/NicoIodice/fishtank/labels/good%20first%20issue) in the issue tracker. These are scoped, well-defined tasks suitable for first contributions.
 
 > **Note to maintainers:** After repository creation, manually add `good first issue`, `bug`, `enhancement`, `documentation`, and `security` labels via GitHub's label editor.
+
+## Security and Vulnerability Reporting
+
+If you discover a security vulnerability, **do not** open a public GitHub issue. Please report it responsibly following the process documented in [SECURITY.md](SECURITY.md).
+
+We appreciate responsible disclosure and work to fix security issues quickly. See [SECURITY.md](SECURITY.md) for:
+- How to report vulnerabilities privately
+- Response timelines
+- Our responsible disclosure policy
