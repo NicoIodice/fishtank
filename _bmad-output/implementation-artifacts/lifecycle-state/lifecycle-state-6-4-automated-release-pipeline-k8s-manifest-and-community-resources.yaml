@@ -1,17 +1,17 @@
 story_key: "6-4-automated-release-pipeline-k8s-manifest-and-community-resources"
 epic_id: "6"
-current_phase: dev-story
-status: active
+current_phase: done
+status: done
 blocked_reason: ""
 test_design_retries: 0
 test_design_auto_created: false
 atdd_retries: 0
 validate_retries: 0
 dev_retries: 0
-code_review_retries: 0
+code_review_retries: 1
 nfr_retries: 0
 trace_retries: 0
-quickdev_cycle: 0
+quickdev_cycle: 1
 last_updated: "2026-07-12"
 phases_completed:
   - preflight-framework
@@ -19,3 +19,10 @@ phases_completed:
   - create-story
   - validate
   - atdd
+  - dev-story
+  - code-review
+  - test-automate
+  - test-review
+  - nfr
+  - trace
+  - done

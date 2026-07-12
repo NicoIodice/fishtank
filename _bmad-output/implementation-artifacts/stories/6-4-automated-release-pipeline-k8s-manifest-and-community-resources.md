@@ -2,7 +2,7 @@
 story_key: 6-4-automated-release-pipeline-k8s-manifest-and-community-resources
 epic_id: epic-6
 title: Automated Release Pipeline, K8s Manifest & Community Resources
-status: review
+status: done
 created: 2026-07-12
 release: v1.0.0
 branch: feature/6-4-automated-release-pipeline-k8s-manifest-and-community-resources
