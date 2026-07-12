@@ -30,7 +30,11 @@ const __dirname = path.dirname(__filename);
 
 test.describe("P2 — AC-15: DevContainer configuration", () => {
   const projectRoot = path.resolve(__dirname, "../../../..");
-  const devcontainerPath = path.join(projectRoot, ".devcontainer", "devcontainer.json");
+  const devcontainerPath = path.join(
+    projectRoot,
+    ".devcontainer",
+    "devcontainer.json",
+  );
 
   /**
    * RED: .devcontainer/devcontainer.json does not exist yet
@@ -57,16 +61,17 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
 
     // Assert — Node.js 22 feature is present
     // RED: Node.js feature does not exist yet
-    const hasNodeFeature =
-      !!(config.features &&
+    const hasNodeFeature = !!(
+      config.features &&
       (config.features["ghcr.io/devcontainers/features/node:1"] ||
-        Object.keys(config.features).some((key) =>
-          key.includes("node") && (
-            config.features[key]?.version === "22" ||
-            config.features[key]?.version === "lts/iron" ||
-            config.features[key] === "22"
-          )
-        )));
+        Object.keys(config.features).some(
+          (key) =>
+            key.includes("node") &&
+            (config.features[key]?.version === "22" ||
+              config.features[key]?.version === "lts/iron" ||
+              config.features[key] === "22"),
+        ))
+    );
 
     expect(hasNodeFeature).toBe(true);
   });
@@ -88,17 +93,18 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
     const hasDotNetFeature =
       config.features &&
       (config.features["ghcr.io/devcontainers/features/dotnet:2"] ||
-        Object.keys(config.features).some((key) =>
-          key.includes("dotnet") && (
-            config.features[key]?.version === "10.0" ||
-            config.features[key]?.version === "10" ||
-            config.features[key] === "10.0" ||
-            config.features[key] === "10"
-          )
+        Object.keys(config.features).some(
+          (key) =>
+            key.includes("dotnet") &&
+            (config.features[key]?.version === "10.0" ||
+              config.features[key]?.version === "10" ||
+              config.features[key] === "10.0" ||
+              config.features[key] === "10"),
         ));
 
     // Check if base image contains dotnet (SDK baked in)
-    const hasDotNetImage = config.image && config.image.toLowerCase().includes("dotnet");
+    const hasDotNetImage =
+      config.image && config.image.toLowerCase().includes("dotnet");
 
     expect(hasDotNetFeature || hasDotNetImage).toBe(true);
   });
@@ -117,11 +123,14 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
 
     // Assert — Docker CLI feature is present
     // RED: Docker CLI feature does not exist yet
-    const hasDockerFeature =
-      !!(config.features &&
+    const hasDockerFeature = !!(
+      config.features &&
       (config.features["ghcr.io/devcontainers/features/docker-in-docker:2"] ||
-        config.features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] ||
-        Object.keys(config.features).some((key) => key.includes("docker"))));
+        config.features[
+          "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+        ] ||
+        Object.keys(config.features).some((key) => key.includes("docker")))
+    );
 
     expect(hasDockerFeature).toBe(true);
   });
@@ -143,11 +152,12 @@ test.describe("P2 — AC-15: DevContainer configuration", () => {
     expect(config.postCreateCommand).toBeDefined();
 
     // Verify it includes npm install
-    const commandString = typeof config.postCreateCommand === "string"
-      ? config.postCreateCommand
-      : Array.isArray(config.postCreateCommand)
-      ? config.postCreateCommand.join(" ")
-      : JSON.stringify(config.postCreateCommand);
+    const commandString =
+      typeof config.postCreateCommand === "string"
+        ? config.postCreateCommand
+        : Array.isArray(config.postCreateCommand)
+          ? config.postCreateCommand.join(" ")
+          : JSON.stringify(config.postCreateCommand);
 
     expect(commandString).toContain("npm install");
     expect(commandString).toContain("dotnet restore");

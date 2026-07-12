@@ -14,7 +14,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -43,13 +43,13 @@ jobs:
       - name: Setup .NET SDK 10
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: "10.0.x"
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
           cache-dependency-path: src/client/package-lock.json
 
       - name: Cache NuGet packages
@@ -97,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: test-results
-          path: '**/*.trx'
+          path: "**/*.trx"
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────────

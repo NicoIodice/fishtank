@@ -93,7 +93,11 @@ async function seedService(
         }),
       });
     } catch (e) {
-      if (attempt < 2 && e instanceof Error && e.message.includes("SERVICE_PORT_CONFLICT"))
+      if (
+        attempt < 2 &&
+        e instanceof Error &&
+        e.message.includes("SERVICE_PORT_CONFLICT")
+      )
         continue;
       throw e;
     }

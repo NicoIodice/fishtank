@@ -87,7 +87,11 @@ async function seedService(
         data: JSON.stringify({ name, externalUrl, port, tags: [] }),
       });
     } catch (e) {
-      if (attempt < 2 && e instanceof Error && e.message.includes("SERVICE_PORT_CONFLICT"))
+      if (
+        attempt < 2 &&
+        e instanceof Error &&
+        e.message.includes("SERVICE_PORT_CONFLICT")
+      )
         continue;
       throw e;
     }
@@ -328,7 +332,9 @@ test("T16: AC-2 AC-9 — setting preference to Right Drawer opens drawer on row 
   // Assert click outside (backdrop) closes the drawer
   await rowLocator.click();
   await expect(drawer).toBeVisible({ timeout: 3000 });
-  await page.locator('[data-testid="activity-row-detail-drawer-backdrop"]').click();
+  await page
+    .locator('[data-testid="activity-row-detail-drawer-backdrop"]')
+    .click();
   await expect(drawer).not.toBeVisible({ timeout: 2000 });
 });
 

@@ -105,7 +105,7 @@ public class Story6_4_GoodFirstIssuesTests
 
         // Assert — Scope or Description field is present
         // RED: Scope/description field is missing for some issues
-        var scopePattern = new Regex(@"(^\*?\*?Scope\*?\*?:|^\*?\*?Description\*?\*?:|^\*?\*?Summary\*?\*?:)", 
+        var scopePattern = new Regex(@"(^\*?\*?Scope\*?\*?:|^\*?\*?Description\*?\*?:|^\*?\*?Summary\*?\*?:)",
                                      RegexOptions.Multiline | RegexOptions.IgnoreCase);
         var scopeMatches = scopePattern.Matches(content);
 
@@ -165,7 +165,7 @@ public class Story6_4_GoodFirstIssuesTests
 
         // Assert — Acceptance criteria are defined
         // RED: No acceptance criteria sections found
-        var acPattern = new Regex(@"(^\*?\*?Acceptance Criteria\*?\*?:|^\*?\*?AC\*?\*?:|^\*?\*?Definition of Done\*?\*?:)", 
+        var acPattern = new Regex(@"(^\*?\*?Acceptance Criteria\*?\*?:|^\*?\*?AC\*?\*?:|^\*?\*?Definition of Done\*?\*?:)",
                                    RegexOptions.Multiline | RegexOptions.IgnoreCase);
         var acMatches = acPattern.Matches(content);
 

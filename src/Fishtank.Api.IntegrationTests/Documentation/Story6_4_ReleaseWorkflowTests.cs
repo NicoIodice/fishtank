@@ -83,9 +83,9 @@ public class Story6_4_ReleaseWorkflowTests
         yamlContent.Should().Contain("on:", "release.yml must define workflow triggers (AC-1 FR-34)");
         yamlContent.Should().Contain("push:", "release.yml must trigger on push events (AC-1 FR-34)");
         yamlContent.Should().Contain("tags:", "release.yml must trigger on tag pushes (AC-1 FR-34)");
-        
+
         // Verify version tag pattern v*.*.*
-        var hasSemverTagPattern = yamlContent.Contains("'v*.*.*'") || 
+        var hasSemverTagPattern = yamlContent.Contains("'v*.*.*'") ||
                                    yamlContent.Contains("\"v*.*.*\"") ||
                                    yamlContent.Contains("- v*.*.*");
 
@@ -136,7 +136,7 @@ public class Story6_4_ReleaseWorkflowTests
         // Assert — backend unit tests are executed
         // RED: Backend unit tests step is missing
         var hasUnitTests = yamlContent.Contains("dotnet test") &&
-                            (yamlContent.Contains("Fishtank.Api.UnitTests") || 
+                            (yamlContent.Contains("Fishtank.Api.UnitTests") ||
                              yamlContent.Contains("UnitTests"));
 
         hasUnitTests.Should().BeTrue(
@@ -153,7 +153,7 @@ public class Story6_4_ReleaseWorkflowTests
         // Assert — backend integration tests are executed
         // RED: Backend integration tests step is missing
         var hasIntegrationTests = yamlContent.Contains("dotnet test") &&
-                                   (yamlContent.Contains("Fishtank.Api.IntegrationTests") || 
+                                   (yamlContent.Contains("Fishtank.Api.IntegrationTests") ||
                                     yamlContent.Contains("IntegrationTests"));
 
         hasIntegrationTests.Should().BeTrue(
@@ -222,7 +222,7 @@ public class Story6_4_ReleaseWorkflowTests
 
         // Assert — Linux runner job is present
         // RED: Linux smoke test is missing
-        var hasLinuxRunner = yamlContent.Contains("ubuntu-") || 
+        var hasLinuxRunner = yamlContent.Contains("ubuntu-") ||
                               yamlContent.Contains("runs-on: ubuntu");
 
         hasLinuxRunner.Should().BeTrue(
@@ -244,9 +244,9 @@ public class Story6_4_ReleaseWorkflowTests
 
         // Assert — macOS ARM runner job is present
         // RED: macOS ARM smoke test is missing
-        var hasMacOsArmRunner = yamlContent.Contains("macos-") && 
-                                 (yamlContent.Contains("arm64") || 
-                                  yamlContent.Contains("macos-14") || 
+        var hasMacOsArmRunner = yamlContent.Contains("macos-") &&
+                                 (yamlContent.Contains("arm64") ||
+                                  yamlContent.Contains("macos-14") ||
                                   yamlContent.Contains("macos-latest")); // GitHub uses ARM by default on macos-latest
 
         hasMacOsArmRunner.Should().BeTrue(
@@ -262,7 +262,7 @@ public class Story6_4_ReleaseWorkflowTests
 
         // Assert — macOS Intel runner job is present
         // RED: macOS Intel smoke test is missing
-        var hasMacOsIntelRunner = yamlContent.Contains("macos-13") || 
+        var hasMacOsIntelRunner = yamlContent.Contains("macos-13") ||
                                    (yamlContent.Contains("macos-") && yamlContent.Contains("intel"));
 
         hasMacOsIntelRunner.Should().BeTrue(
@@ -278,7 +278,7 @@ public class Story6_4_ReleaseWorkflowTests
 
         // Assert — Windows runner job is present
         // RED: Windows smoke test is missing
-        var hasWindowsRunner = yamlContent.Contains("windows-") || 
+        var hasWindowsRunner = yamlContent.Contains("windows-") ||
                                 yamlContent.Contains("runs-on: windows");
 
         hasWindowsRunner.Should().BeTrue(
